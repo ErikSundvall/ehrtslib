@@ -135,7 +135,7 @@ Deno.test("OPT → WT → OPT → WT preserves quantity units and coded lists (b
     webTemplateToOpt(parseWebTemplate(JSON.stringify(wt))),
   );
 
-  const systolic = findWtLeaf(wt2.tree, (n) => n.nodeId === "at0004");
+  const systolic = findWtLeaf(wt2.tree, (n) => n.nodeId === "at0004" && n.id === "systolic");
   const unit = systolic?.inputs?.find((i) => i.suffix === "unit");
   assertEquals(unit?.list?.map((item) => item.value), ["mm[Hg]"]);
 
@@ -182,16 +182,19 @@ Deno.test("FLAT full roundtrip preserves all keys (minimal_evaluation)", async (
 
 Deno.test("STRUCTURED roundtrip preserves ctx and root branch keys", async () => {
   const { wt, instance } = await loadOpt("minimal_evaluation.opt");
-  const structured = serializeToStructured(instance, wt);
+  const structured = serializeToStructured(instance, wt, { flavor: "input" });
   const restored = deserializeFromStructured(structured, wt);
-  const structured2 = serializeToStructured(restored, wt);
+  const structured2 = serializeToStructured(restored, wt, { flavor: "input" });
 
   assertExists(structured.ctx);
+  assertExists(structured[wt.tree.id]);
   assertEquals(ctxCode(restored, "language"), "en");
-  assertEquals(
-    JSON.stringify(structured2.ctx),
-    JSON.stringify(structured.ctx),
-  );
+  // The fixture is an event composition without context; reading gives it
+  // one (category rule), so ctx/time and ctx/setting are added on the way back.
+  const ctx2 = { ...(structured2.ctx as Record<string, unknown>) };
+  delete ctx2.time;
+  delete ctx2.setting;
+  assertEquals(JSON.stringify(ctx2), JSON.stringify(structured.ctx));
 });
 
 Deno.test("structuredToFlat matches serializeToFlat for clinical keys", async () => {
@@ -202,11 +205,15 @@ Deno.test("structuredToFlat matches serializeToFlat for clinical keys", async ()
     wt,
   );
 
-  for (const key of Object.keys(flat)) {
-    if (key.startsWith("ctx/")) {
-      assertEquals(fromStructured[key], flat[key], key);
-    }
-  }
+  assertEquals(fromStructured, flat);
+  const inputFlat = serializeToFlat(instance, wt, { flavor: "input" });
+  assertEquals(
+    structuredToFlat(
+      serializeToStructured(instance, wt, { flavor: "input" }) as Record<string, unknown>,
+      wt,
+    ),
+    inputFlat,
+  );
 });
 
 Deno.test("toTypedRm produces typed COMPOSITION from FLAT deserialize", async () => {

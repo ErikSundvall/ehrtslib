@@ -32,6 +32,8 @@ export {
   serializeToFlatJson,
 } from "./flat_serializer.ts";
 
+export { type SimplifiedFlavor } from "./flavor.ts";
+
 export {
   deserializeFromFlat,
   deserializeFromFlatJson,
@@ -42,9 +44,15 @@ export {
   type FlatDeserializeOptions,
   FlatDeserializer,
   type FlatRmDefaultIssue,
+  type ContextDefaults,
+  type FlatContextOptions,
+  throwOnUnknownFlatKey,
+  UnknownFlatKeyError,
+  type UnknownFlatKeys,
 } from "./flat_deserializer.ts";
 
 export {
+  flatToStructured,
   serializeToStructured,
   serializeToStructuredJson,
   StructuredSerializer,
@@ -54,6 +62,7 @@ export {
 export {
   deserializeFromStructured,
   deserializeFromStructuredJson,
+  deserializeFromStructuredWithIssues,
   StructuredDeserializer,
 } from "./structured_deserializer.ts";
 

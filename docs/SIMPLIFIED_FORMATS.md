@@ -14,14 +14,16 @@ Library support for **Web Template**, **FLAT**, and **STRUCTURED** simplified co
 | `parseWebTemplate(json)` | Parse Web Template JSON (EHRBase/Better dialects) |
 | `isWebTemplateJson(value)` | Detect Web Template JSON documents |
 | `webTemplateToOpt(wt)` | Reconstruct approximate `OPERATIONAL_TEMPLATE` from Web Template |
-| `serializeToFlat(instance, wt)` | RM instance → FLAT key/value map |
-| `serializeToFlatJson(instance, wt)` | Same, JSON string |
-| `deserializeFromFlat(flat, wt)` | FLAT → RM instance (plain object with `_type`) |
-| `deserializeFromFlatJson(json, wt)` | Same, from JSON string |
-| `serializeToStructured(instance, wt)` | RM instance → STRUCTURED nested object |
-| `serializeToStructuredJson(instance, wt)` | Same, JSON string |
-| `deserializeFromStructured(structured, wt)` | STRUCTURED → RM instance |
-| `structuredToFlat(structured, wt)` | STRUCTURED → FLAT (shared path) |
+| `serializeToFlat(instance, wt, { flavor })` | RM instance → FLAT key/value map (`flavor`: `"output"` default, or `"input"`) |
+| `serializeToFlatJson(instance, wt, options)` | Same, JSON string |
+| `deserializeFromFlat(flat, wt, options)` | FLAT → RM instance (plain object with `_type`); throws on error issues |
+| `deserializeFromFlatJson(json, wt, options)` | Same, from JSON string |
+| `deserializeFromFlatWithIssues(flat, wt, options)` | FLAT → RM instance plus issues, does not throw |
+| `serializeToStructured(instance, wt, { flavor })` | RM instance → STRUCTURED nested object |
+| `serializeToStructuredJson(instance, wt, options)` | Same, JSON string |
+| `deserializeFromStructured(structured, wt, options)` | STRUCTURED → RM instance |
+| `deserializeFromStructuredWithIssues(structured, wt, options)` | STRUCTURED → RM instance plus issues |
+| `structuredToFlat(structured, wt)` / `flatToStructured(flat)` | STRUCTURED ↔ FLAT (shared path) |
 | `validateFlatPayload(flat, wt)` | Validate FLAT keys against template schema |
 | `toTypedRm(plain)` | Plain `_type` tree → typed RM class instances |
 
@@ -54,14 +56,14 @@ RM instance → JsonCanonicalSerializer → JSON
      → JsonCanonicalSerializer → JSON
 ```
 
-Template-scoped fields (ctx + template content paths) round-trip; RM attributes not in the Web Template are not preserved.
+The output flavour round-trips every RM-mandatory attribute: the Web Template has a node for each of them (see [Input and output flavours](#input-and-output-flavours)). RM attributes without a node or `_` path (see [Limitations](#limitations)) are not preserved.
 
 Background: [research note on FLAT/STRUCTURED input and output flavours and `ctx` defaults (2026-10)](research/flat-input-output-ctx-2026-10.md).
 
 ## FLAT format
 
-- Composition metadata uses `ctx/` prefix (`ctx/language`, `ctx/territory`, `ctx/composer_name`, …).
-- Clinical data keys are fully qualified from the normalised template root id.
+- Keys are fully qualified from the normalised template root id. RM attributes such as `language`, `composer` or `context/start_time` have their own paths. In the input flavour, composition metadata uses the `ctx/` prefix instead (`ctx/language`, `ctx/territory`, `ctx/composer_name`, …).
+- HISTORY and a single EVENT with max 1 have no path segment (spec "Level Removal").
 - Repeating nodes use zero-based `:n` indices (`blood_pressure:0/any_event:0/...`).
 - Typed attributes use pipe suffixes on the key (`|magnitude`, `|unit`, `|code`, `|value`, `|terminology`).
 
@@ -78,10 +80,43 @@ Example (from openEHR curated example `openehr://examples/flat/vital_signs_blood
 
 ## STRUCTURED format
 
-- Top-level `ctx` object (not prefixed keys).
+- Top-level `ctx` object (not prefixed keys), input flavour only.
 - Template root id as nested object key.
+- Built from FLAT with the spec's "Flat to Structured" rule, so it carries the same values in both flavours.
 - Arrays at every data-bearing node, even cardinality 1.
 - Pipe-prefixed keys inside leaf objects (`{"|magnitude": 128, "|unit": "mm[Hg]"}`).
+
+## Input and output flavours
+
+openEHR platforms use two forms of FLAT and STRUCTURED. Better calls them `INPUT` and `OUTPUT` (web template examples, `exampleFilter`), and the openEHR REST API has `example?type=input|output`. ehrtslib supports both, so it can serve as a front end for, and a converter between, platforms that expect either form.
+
+| | `output` (default) | `input` |
+|---|---|---|
+| Composition language, territory, composer, context time and setting | at their own paths | `ctx/` keys |
+| Entry language and encoding, subject, event and action times | at their own paths | left out when equal to the default |
+| Lossless | yes | yes, with the same defaults on input |
+| Typical use | storage, comparison, conversion | forms and hand-written payloads |
+
+The serializers take `flavor`. The deserializers accept both flavours, also mixed, with this fill order for every value: **explicit path → `ctx/` → template or RM default.**
+
+Deserializer options (FLAT and STRUCTURED, next to `codedTextMismatch` and `codedTextDisplayValue`):
+
+- `contextDefaults`: `"apply"` (default) fills missing RM-mandatory values: LOCATABLE names and `archetype_details`, composition language (Web Template default), category (when the template fixes it), `context/start_time` (`ctx/time`, else the clock), `context/setting` (238 "other care"), entry `language` (composition language), `encoding` (UTF-8), `subject` (PARTY_SELF), `HISTORY.origin`, `EVENT.time`, `ACTION.time`, `ACTIVITY.action_archetype_id` (template pattern, else `/.*/`). The EVENT_CONTEXT follows the category (see "Event context" below). `"none"` fills nothing and reports each missing value. Missing values that have no default (territory, composer, instruction narrative, an action state) are always reported. Issues have `kind: "missing-mandatory"`.
+- `clock`: function returning the current time as ISO 8601, used for times that are neither in the payload nor in `ctx/`. Default `() => new Date().toISOString()`. `null` reports such times instead. Inject it for reproducible results.
+- `unknownKeys`: `"error"` (default) | `"warning"` | `"ignore"` for keys that match no Web Template node (`kind: "unknown-key"`). `deserializeFromFlat` and `deserializeFromStructured` throw `UnknownFlatKeyError` on such errors. Unknown `ctx/` fields are warnings.
+
+Event context: decided by category, as Better does. `ctx/` keys never create a context by themselves; they only fill one that exists.
+
+- Event (433), episodic (451) or any other non-persistent composition: gets an EVENT_CONTEXT on reading, with `ctx/time` (else the clock) and setting 238 when missing. So an event composition without context gains one on the way back, in both flavours. With `contextDefaults: "none"` the context is created only when `ctx/` context keys are given; otherwise its absence is a `missing-mandatory` warning.
+- Persistent composition (431): gets a context only from `context/…` paths (an optional EVENT_CONTEXT is allowed since RM 1.0.4); `ctx/` keys then fill it. Without such paths, `ctx/time`, `ctx/setting` and other context keys are ignored with a `context-rule` warning.
+
+Composer PARTY_SELF (ehrtslib convention, pending SEC clarification): the spec expresses it only as `ctx/composer_self: true`, which the output flavour cannot use. Output writes `<root>/composer|_type: "PARTY_SELF"` (plus `|id`, `|id_scheme`, `|id_namespace` when there is an `external_ref`). The input flavour writes `ctx/composer_self`. Reading accepts both, and `|_type` (`PARTY_SELF`, `PARTY_IDENTIFIED`, `PARTY_RELATED`) at any PARTY_PROXY path. This follows the spec's `subject|_type` (FEEDER_AUDIT_DETAILS) and the form EHRbase uses internally for `ctx/composer_self`; Better writes nothing for a bare PARTY_SELF composer.
+
+Times: `HISTORY.origin` comes from its path, else `ctx/history_origin`, else the earliest event time, else `ctx/time`, else the clock. An `EVENT.time` without a value gets `HISTORY.origin`. The spec has two rules for the origin (earliest event time, and `ctx/time`); ehrtslib uses the event time when events have times.
+
+The first path segment may be the template id, the Web Template tree id, or the normalised composition name (as EHRbase writes it). Keys in the older ehrtslib form with a `data` segment for HISTORY are accepted with a `legacy-path` warning.
+
+Why options: platforms differ. Some fill defaults from the server clock, some reject what is missing, some keep `ctx/` keys in their output. The defaults suit a converter: lossless output, complete RM on input, and no key dropped without an issue. See the [research note](research/flat-input-output-ctx-2026-10.md).
 
 ## Coded text input (`DV_CODED_TEXT`)
 
@@ -145,15 +180,35 @@ On the **Instance** input tab, choose **FLAT (simplified)** or **STRUCTURED (sim
 
 Upload multiple `.adl`/`.opt`/`.oet` files or a ZIP: the demo shows a **scrollable tab bar** per file. The **radio** on a tab marks the **generation root** (drives example/stub output); clicking the tab name switches the editor buffer. The full file set stays in `ClinicalModelWorkspace` (backed by `TemplateWorkspace`) for ADL2 flattening.
 
-**Auto** input format detects simplified JSON (`ctx/` keys → FLAT; top-level `ctx` object → STRUCTURED).
+**Auto detect** (the default input format) recognises simplified JSON: `ctx/` keys, `|` attributes, or only path keys with primitive values → FLAT; a top-level `ctx` object, or one root object with `|` attributes → STRUCTURED. This also covers output-flavour payloads without `ctx/`.
+
+The deserializer panel shows the FLAT/STRUCTURED options when such input is detected: **Coded text mismatch**, **Coded text display value**, **RM defaults** (`contextDefaults`) and **Unknown keys**. Presets set them; **Custom…** unlocks them. Errors that stop the conversion (`CodedTextMismatchError`, `UnknownFlatKeyError`) list each path. Warnings and notes are listed above the output. The Simplified output tab has a **Flavour** select (output or input).
+
+## RM attributes (`_` prefix)
+
+A path segment `_<attr>` addresses an RM attribute of the object at that path (spec "RM Attributes prefix"). ehrtslib uses it for every RM attribute that has no other FLAT path. The attribute and its type come from the BMM, so any attribute works, not only the ones the spec lists:
+
+- Multi-valued attributes are singular with `:i`: `_link:0`, `_participation:0`, `_other_participation:0`, `_mapping:0`, `_feeder_audit/originating_system_item_id:0`. `other_reference_ranges` keeps its plural (`_other_reference_ranges:0`), as in the spec. `workflow_id` is `_work_flow_id`.
+- Nested attributes are plain sub-paths: `_feeder_audit/originating_system_audit|system_id`, `dv_quantity/_normal_range/lower|magnitude`.
+- A value is written in the spec's FLAT form for its type: the DV field maps, and the "RM Mappings" tables for LINK, PARTICIPATION (`|function|mode|name|id|id_scheme|id_namespace`, `/relationship`), FEEDER_AUDIT, FEEDER_AUDIT_DETAILS, OBJECT_REF (`|id|namespace|type|id_scheme`), INSTRUCTION_DETAILS, ISM_TRANSITION, TERM_MAPPING, REFERENCE_RANGE, DV_INTERVAL (`/lower`, `/upper`, `|lower_unbounded` and `|upper_unbounded` only when true, `|lower_included` and `|upper_included` only when false) and INTERVAL_EVENT (`/width`, `/math_function`, `|sample_count`). Anything else is `/_attr` again, down to primitives.
+- RM → FLAT writes every set attribute that no template node, collapsed level or form covers, so RM → FLAT → RM is lossless. `archetype_node_id` and `archetype_details` come from the template and are not written. A LOCATABLE `name` is written as `_name` only when it differs from the template name.
+- Abstract node types take the subtype the attributes need: an EVENT with `/width` or `|sample_count` is an INTERVAL_EVENT, a PARTY_PROXY with `/relationship` a PARTY_RELATED.
+- `EVENT.offset` is computed (time − `HISTORY.origin`). It is not written; `_offset` on input is ignored with a warning.
+- ehrtslib conventions for values the spec has no form for: `|_type` when the RM type is not the one the attribute type or the keys imply, and `|raw` (canonical JSON) as a last resort.
+- Attributes that are not RM attributes of the object are `unknown-key` issues (see `unknownKeys`).
+
+Reading also accepts an attribute name without `_` when no template node has that id (the spec examples write `expiry_time`), and `|scheme` or `|id_scheme` on OBJECT_REF.
+
+`ACTIVITY.action_archetype_id` defaults to the template's pattern, delimited as `/pattern/` (for example `/openEHR-EHR-ACTION\.minimal\.v1/`), and to `/.*/` when the template has none. The Web Template node carries the pattern in `inputs[0].validation.pattern` and the default in `inputs[0].defaultValue`.
 
 ## Limitations
 
-- Web Template tree follows EHRbase-style flattening (ITEM_TREE/HISTORY level removal). Node **names** use scoped term lookup (`term_archetype_scope` + `archetype_term_definitions`), matching `RMInstanceGenerator`. Scope keys are archetype ids and, for nested Better templates, template ids, so two templates that share an archetype id keep distinct question text. `templateId` on the Web Template is `OPERATIONAL_TEMPLATE.template_id` when flatten copied a Better template id, otherwise the archetype id. The demo **language** control is passed as `languages: [templateLanguage]` (the primary language). Node ids follow that language. Omitting it uses the template's original language only. OPT path annotations `L10n.{lang}` are promoted into `localizedNames` (Better/AD workaround for multilingual renamed repetitions — see `docs/ADL_SUPPORT.md`). The reconstructed OPT from `webTemplateToOpt()` still has a flat `ontology.term_definitions` map that last-wins on colliding at-codes — prefer names on the Web Template nodes, `archetype_term_definitions`, or the emitted `L10n.*` annotations.
+- Web Template tree follows the spec's level removal (ITEM_STRUCTURE, HISTORY, and a single EVENT with max 1), as Better and EHRbase do. Node **names** use scoped term lookup (`term_archetype_scope` + `archetype_term_definitions`), matching `RMInstanceGenerator`. Scope keys are archetype ids and, for nested Better templates, template ids, so two templates that share an archetype id keep distinct question text. `templateId` on the Web Template is `OPERATIONAL_TEMPLATE.template_id` when flatten copied a Better template id, otherwise the archetype id. The demo **language** control is passed as `languages: [templateLanguage]` (the primary language). Node ids follow that language. Omitting it uses the template's original language only. OPT path annotations `L10n.{lang}` are promoted into `localizedNames` (Better/AD workaround for multilingual renamed repetitions — see `docs/ADL_SUPPORT.md`). The reconstructed OPT from `webTemplateToOpt()` still has a flat `ontology.term_definitions` map that last-wins on colliding at-codes — prefer names on the Web Template nodes, `archetype_term_definitions`, or the emitted `L10n.*` annotations.
 - `webTemplateToOpt()` reconstructs an approximate operational template from a derived Web Template. Leaf **unit lists**, **coded `code_list`**, **assumed_value defaults**, and **magnitude/precision ranges** (`inputs[].validation`) are copied when present (OPT parse + WT builder: #73, #75–#77). Invariants and other AOM facets that the Web Template never carried remain dropped. Sufficient for structural round-trip, instance generation, and FLAT/STRUCTURED (de)serialization.
 - Example instances from `RMInstanceGenerator` may omit primitive values on optional DV types; FLAT/STRUCTURED leaf keys appear only when RM values are populated.
 - Deserialization returns plain RM object trees by default; use `toTypedRm()` (or `JsonCanonicalDeserializer`) for typed class instances.
-- Only template-scoped paths round-trip; extraneous RM metadata outside the Web Template is dropped.
+- Attributes of collapsed levels (HISTORY `duration`/`period`/`summary`, ITEM_TREE and other ITEM_STRUCTURE attributes) have no FLAT path: the spec removes those levels. DV_PROPORTION output does not write the computed bare magnitude the spec mentions; `|numerator`, `|denominator` and `|type` carry the value.
+- The RM types and names of collapsed objects (HISTORY, a single EVENT, ITEM_TREE/ITEM_LIST/…) come from `tree.collapsed`, an ehrtslib addition to the Web Template. Web Templates from other tools do not have it; then FLAT → RM uses HISTORY, POINT_EVENT (INTERVAL_EVENT when the template has `width`), ITEM_TREE, and generic names.
 - DV field maps follow `docs/vendor/simplified_formats.md` (ITS-REST); bare-path keys for single-field types (`DV_TEXT`, `DV_DATE_TIME`, …) and `|suffix` for multi-field types.
 
 ## Tests

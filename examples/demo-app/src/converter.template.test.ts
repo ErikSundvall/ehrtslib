@@ -11,6 +11,9 @@ import {
   getJsonDeserializeConfigPreset,
   getMarkdownConfigPreset,
   getYamlConfigPreset,
+  INPUT_DESERIALIZER_PRESETS,
+  resolveInputDeserializerSettings,
+  type SimplifiedInputSettings,
   validateTemplateInput,
   workspaceForConversion,
 } from "./converter.ts";
@@ -125,7 +128,10 @@ Deno.test("convert template input generates simplified format outputs", async ()
   assert(result.outputs?.flat);
   assert(result.outputs?.structured);
   assert(result.outputs?.webtemplate);
-  assert(JSON.parse(result.outputs?.flat || "{}")["ctx/language"]);
+  // Output flavour (default): RM attributes at their paths, no ctx/.
+  const flat = JSON.parse(result.outputs?.flat || "{}");
+  assertEquals(Object.keys(flat).some((k) => k.startsWith("ctx/")), false);
+  assert(Object.keys(flat).some((k) => k.endsWith("/language|code")));
   assert(JSON.parse(result.outputs?.webtemplate || "{}").templateId);
 });
 
@@ -272,6 +278,7 @@ Deno.test("convert instance mode with loaded template workspace produces FLAT", 
       archetypeNodeIdLocation: "after_name",
     },
     templateWorkspace: workspace,
+    simplifiedFlavor: "input",
   });
 
   assertEquals(flatResult.success, true, flatResult.error);
@@ -860,4 +867,191 @@ Deno.test("demo names nested Better templates that share an archetype id", async
   assert(swedishText.includes("Vikt"));
   assert(swedishText.includes("Har din vikt förändrats de senaste veckorna?"));
   assert(!swedishText.includes("Do you experience fatigue"));
+});
+
+// --- Deserializer settings (#237) ---------------------------------------
+
+Deno.test("deserializer presets differ and set codedTextMismatch", () => {
+  const { default: def, compact, canonical, hybrid } =
+    INPUT_DESERIALIZER_PRESETS;
+  assert(JSON.stringify(def) !== JSON.stringify(compact));
+  assertEquals(canonical.checks.strict, true);
+  assertEquals(canonical.simplified.codedTextMismatch, "reject");
+  assertEquals(def.simplified.codedTextMismatch, "reject");
+  assertEquals(compact.simplified.codedTextMismatch, "correct");
+  assertEquals(hybrid.simplified.codedTextMismatch, "keep");
+  for (const preset of Object.values(INPUT_DESERIALIZER_PRESETS)) {
+    assert(preset.description.length > 0);
+  }
+  const compactConfig = resolveInputDeserializerSettings("compact")
+    .deserializerConfig;
+  assertEquals(compactConfig.parseTerseFormat, true);
+});
+
+Deno.test("Custom preset applies its checkboxes and selects", () => {
+  const custom = {
+    checks: { strict: true, parseTerseFormat: true, allowIncomplete: true },
+    simplified: {
+      codedTextMismatch: "keep",
+      codedTextDisplayValue: "keep-and-set-preferred-term",
+      contextDefaults: "none",
+      unknownKeys: "ignore",
+    } as SimplifiedInputSettings,
+  };
+  const resolved = resolveInputDeserializerSettings("custom", custom);
+  assertEquals(resolved.deserializerConfig.strict, true);
+  assertEquals(resolved.deserializerConfig.parseTerseFormat, true);
+  assertEquals(resolved.deserializerConfig.allowIncomplete, true);
+  assertEquals(resolved.simplifiedInput, custom.simplified);
+
+  // A named preset ignores the custom values.
+  const named = resolveInputDeserializerSettings("default", custom);
+  assertEquals(named.deserializerConfig.strict, false);
+  assertEquals(named.simplifiedInput.codedTextMismatch, "reject");
+});
+
+const BP_OPT_URL = new URL(
+  "../../../test_data/opt14/ehrbase_blood_pressure_simple.de.v0.opt",
+  import.meta.url,
+);
+const BP_OBS =
+  "encounter_training_sample/blood_pressure_training_sample:0";
+
+function flatInputOptions(
+  workspace: ClinicalModelWorkspace,
+  simplifiedInput: SimplifiedInputSettings,
+): ConversionOptions {
+  return {
+    inputMode: "instance",
+    inputFormat: "flat",
+    inputDeserializerConfig: getJsonDeserializeConfigPreset("default"),
+    simplifiedInput,
+    outputFormats: ["json"],
+    templateGenerationMode: "minimal",
+    jsonSerializerType: "configurable",
+    jsonConfig: getJsonConfigPreset("canonical"),
+    yamlConfig: getYamlConfigPreset("default"),
+    markdownConfig: getMarkdownConfigPreset("default"),
+    asciidocConfig: getAsciidocConfigPreset("default"),
+    xmlConfig: {
+      prettyPrint: true,
+      indent: 2,
+      includeDeclaration: true,
+      includeNamespaces: true,
+    },
+    typescriptConfig: {
+      useTerseFormat: true,
+      usePrimitiveConstructors: true,
+      includeComments: false,
+      indent: 2,
+      includeUndefinedAttributes: false,
+      archetypeNodeIdLocation: "after_name",
+    },
+    templateWorkspace: workspace,
+  };
+}
+
+async function bpWorkspace(): Promise<ClinicalModelWorkspace> {
+  const workspace = new ClinicalModelWorkspace();
+  workspace.addFile(
+    "ehrbase_blood_pressure_simple.de.v0.opt",
+    await Deno.readTextFile(BP_OPT_URL),
+  );
+  return workspace;
+}
+
+const BP_FLAT = {
+  "ctx/language": "de",
+  "ctx/territory": "DE",
+  "ctx/composer_name": "Erik Test",
+  "ctx/time": "2026-10-30T10:00:00+01:00",
+  [`${BP_OBS}/systolic|magnitude`]: 120,
+  [`${BP_OBS}/systolic|unit`]: "mm[Hg]",
+};
+
+Deno.test("FLAT input passes codedTextMismatch through to the deserializer", async () => {
+  const workspace = await bpWorkspace();
+  // Case-only mismatch: the template rubric is "Sitting".
+  const input = JSON.stringify({
+    ...BP_FLAT,
+    [`${BP_OBS}/position|value`]: "sitting",
+  });
+
+  const rejected = await convert(
+    input,
+    flatInputOptions(workspace, { codedTextMismatch: "reject" }),
+  );
+  assertEquals(rejected.success, false);
+  assert(rejected.error?.startsWith("Coded text mismatch (1):"), rejected.error);
+  assert(rejected.error?.includes('"sitting"'), rejected.error);
+
+  const kept = await convert(
+    input,
+    flatInputOptions(workspace, { codedTextMismatch: "keep" }),
+  );
+  assertEquals(kept.success, true, kept.error);
+  assert(kept.outputs?.json?.includes('"sitting"'));
+  assert(
+    kept.inputIssues?.some((i) =>
+      i.kind === "coded-text-mismatch" && i.severity === "warning"
+    ),
+  );
+
+  const corrected = await convert(
+    input,
+    flatInputOptions(workspace, { codedTextMismatch: "correct" }),
+  );
+  assertEquals(corrected.success, true, corrected.error);
+  assert(corrected.outputs?.json?.includes('"Sitting"'));
+});
+
+Deno.test("FLAT input passes unknownKeys and contextDefaults through", async () => {
+  const workspace = await bpWorkspace();
+  const input = JSON.stringify({ ...BP_FLAT, [`${BP_OBS}/no_such_node`]: 1 });
+
+  const failed = await convert(
+    input,
+    flatInputOptions(workspace, { unknownKeys: "error" }),
+  );
+  assertEquals(failed.success, false);
+  assert(failed.error?.startsWith("Unknown FLAT keys (1):"), failed.error);
+
+  const warned = await convert(
+    input,
+    flatInputOptions(workspace, { unknownKeys: "warning" }),
+  );
+  assertEquals(warned.success, true, warned.error);
+  assert(warned.inputIssues?.some((i) => i.kind === "unknown-key"));
+
+  const noDefaults = await convert(
+    JSON.stringify(BP_FLAT),
+    flatInputOptions(workspace, { contextDefaults: "none" }),
+  );
+  assertEquals(noDefaults.success, true, noDefaults.error);
+  assert(noDefaults.inputIssues?.some((i) => i.kind === "missing-mandatory"));
+});
+
+Deno.test("Auto detect recognises output-flavour FLAT and STRUCTURED", async () => {
+  const { resolveInputFormat } = await import("./converter.ts");
+  const flat = JSON.stringify({
+    [`${BP_OBS}/systolic|magnitude`]: 120,
+    "encounter_training_sample/context/start_time": "2026-10-30T10:00:00Z",
+  });
+  assertEquals(resolveInputFormat(flat, "auto").format, "flat");
+  const pathsOnly = JSON.stringify({
+    "encounter_training_sample/context/start_time": "2026-10-30T10:00:00Z",
+  });
+  assertEquals(resolveInputFormat(pathsOnly, "auto").format, "flat");
+  const structured = JSON.stringify({
+    encounter_training_sample: {
+      blood_pressure_training_sample: [{
+        systolic: [{ "|magnitude": 120, "|unit": "mm[Hg]" }],
+      }],
+    },
+  });
+  assertEquals(resolveInputFormat(structured, "auto").format, "structured");
+  assertEquals(
+    resolveInputFormat('{"_type":"DV_TEXT","value":"x"}', "auto").format,
+    "json",
+  );
 });

@@ -19,10 +19,10 @@ import {
   convert,
   getAsciidocConfigPreset,
   getJsonConfigPreset,
-  getJsonDeserializeConfigPreset,
   getMarkdownConfigPreset,
   getYamlConfigPreset,
   getYamlDeserializeConfigPreset,
+  INPUT_DESERIALIZER_PRESETS,
   initializeTypeRegistry,
   isSimplifiedInputFormat,
   MISSING_WEB_TEMPLATE_ERROR,
@@ -31,6 +31,8 @@ import {
   type InputFormat,
   type InputMode,
   type OutputFormat,
+  resolveInputDeserializerSettings,
+  type SimplifiedInputSettings,
   type TemplateGenerationMode,
   validateTemplateInput,
   workspaceForConversion,
@@ -55,6 +57,7 @@ import type { MarkdownSerializationConfig } from "../../../serialization/markdow
 import type { AsciidocSerializationConfig } from "../../../serialization/asciidoc/mod.ts";
 
 import { strFromU8, unzipSync } from "fflate";
+import { installInfoTips } from "./info-tip.ts";
 import { ClinicalModelWorkspace } from "../../../parser/clinical_model_workspace.ts";
 import { availableTemplateLanguages } from "../../../generation/term_codes.ts";
 import {
@@ -80,7 +83,7 @@ import {
 const DEFAULT_INSTANCE_EXAMPLE = "accident-report-vitals";
 
 // Application state
-let currentInputFormat = "json";
+let currentInputFormat = "auto";
 let currentInputTab: InputMode = "instance";
 let currentOutputs: any = {};
 let autoConvertEnabled = true;
@@ -137,6 +140,7 @@ function init() {
   });
   syncInputEditorLanguage();
   setupEventListeners();
+  installInfoTips();
   initZipehrHtmlPreview({
     getActiveVariant: () => getActiveZipehrVariant(),
     getActiveHtml: () => {
@@ -182,8 +186,19 @@ function setupEventListeners() {
   const loadExampleBtn = document.getElementById("load-example");
   const exampleMenu = document.getElementById("example-menu");
   if (loadExampleBtn && exampleMenu) {
-    loadExampleBtn.addEventListener("click", () => {
-      exampleMenu.classList.toggle("hidden");
+    const setMenuOpen = (open: boolean) => {
+      exampleMenu.classList.toggle("hidden", !open);
+      loadExampleBtn.setAttribute("aria-expanded", String(open));
+    };
+    loadExampleBtn.addEventListener("click", (event) => {
+      event.stopPropagation();
+      setMenuOpen(exampleMenu.classList.contains("hidden"));
+    });
+    document.addEventListener("click", (event) => {
+      if (!exampleMenu.contains(event.target as Node)) setMenuOpen(false);
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") setMenuOpen(false);
     });
 
     // Example menu items
@@ -195,7 +210,7 @@ function setupEventListeners() {
         );
         if (exampleKey) {
           loadExample(exampleKey);
-          exampleMenu.classList.add("hidden");
+          setMenuOpen(false);
         }
       });
     });
@@ -768,7 +783,7 @@ function syncSimplifiedTemplateUi(): void {
   syncOptHtml5TemplateUi();
 
   const section = document.getElementById("input-simplified-template-section");
-  if (section && isSimplifiedInputFormat(currentInputFormat)) {
+  if (section && isSimplifiedInputFormat(effectiveInputFormat())) {
     section.classList.toggle("needs-attention", !hasAnyTemplate);
   }
 }
@@ -872,19 +887,43 @@ function setupInputSimplifiedTemplateUpload(): void {
   });
 }
 
+/**
+ * Input format after auto-detection: `json`, `yaml`, `xml`, `flat`,
+ * `structured` or `zipehr`. Settings and the template section follow it.
+ */
+function effectiveInputFormat(): string {
+  if (currentInputFormat !== "auto" && currentInputFormat !== "zipehr") {
+    return currentInputFormat;
+  }
+  const text = getDemoEditor("input-text")?.value ?? "";
+  if (!text.trim()) return currentInputFormat === "zipehr" ? "zipehr" : "json";
+  try {
+    const resolved = resolveInputFormat(
+      text,
+      currentInputFormat as InputFormat,
+    );
+    return resolved.isZipehr ? "zipehr" : resolved.format;
+  } catch {
+    return currentInputFormat === "zipehr" ? "zipehr" : "json";
+  }
+}
+
 function syncInputFormatUi(): void {
-  const isSimplified = isSimplifiedInputFormat(currentInputFormat);
-  document.getElementById("input-deserializer-section")?.classList.toggle(
-    "hidden",
-    isSimplified,
-  );
+  const format = effectiveInputFormat();
+  const isSimplified = isSimplifiedInputFormat(format);
+  document.querySelectorAll<HTMLElement>(
+    "#input-deserializer-section [data-deser-formats]",
+  ).forEach((group) => {
+    const formats = (group.dataset.deserFormats ?? "").split(/\s+/);
+    group.classList.toggle("hidden", !formats.includes(format));
+  });
   document.getElementById("input-simplified-template-section")?.classList
     .toggle("hidden", !isSimplified);
   syncSimplifiedTemplateUi();
 }
 
 function highlightTemplateUploadRequired(): void {
-  if (!isSimplifiedInputFormat(currentInputFormat)) return;
+  if (!isSimplifiedInputFormat(effectiveInputFormat())) return;
   const section = document.getElementById("input-simplified-template-section");
   section?.classList.add("needs-attention");
   section?.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -1059,6 +1098,7 @@ function setupPresetListeners() {
       const preset = (e.target as HTMLSelectElement).value;
       updateInputDeserializerOptions(preset);
     });
+    updateInputDeserializerOptions(inputDeserializerPreset.value);
   }
 
   // JSON config preset
@@ -1537,14 +1577,15 @@ function setupCopyDownloadButtons() {
 }
 
 function syncInputEditorLanguage(): void {
-  const language = currentInputFormat as DemoLanguage;
+  const format = effectiveInputFormat();
+  const language = format as DemoLanguage;
   if (
     language === "json" || language === "xml" || language === "yaml" ||
-    isSimplifiedInputFormat(currentInputFormat)
+    isSimplifiedInputFormat(format)
   ) {
     setDemoEditorLanguage(
       "input-text",
-      isSimplifiedInputFormat(currentInputFormat) ? "json" : language,
+      isSimplifiedInputFormat(format) ? "json" : language,
     );
   } else {
     setDemoEditorLanguage("input-text", "plain");
@@ -1579,14 +1620,15 @@ function loadExample(exampleKey: string) {
 
   if (inputEditor && formatSelect) {
     activateInputTab("instance");
+    const keepAuto = formatSelect.value === "auto";
     const { format, payload } = resolveExampleInput(
       example,
-      formatSelect.value,
+      keepAuto ? undefined : formatSelect.value,
     );
-    formatSelect.value = format;
-    syncInputFormatUi();
+    if (!keepAuto) formatSelect.value = format;
     inputEditor.value = payload;
-    currentInputFormat = format;
+    currentInputFormat = formatSelect.value;
+    syncInputFormatUi();
 
     syncInputEditorLanguage();
     handleInputChange("instance");
@@ -1748,6 +1790,14 @@ function handleInputChange(tab: InputMode = currentInputTab) {
   );
   if (lineCount) {
     lineCount.textContent = text.split("\n").length.toString();
+  }
+
+  if (
+    tab === "instance" &&
+    (currentInputFormat === "auto" || currentInputFormat === "zipehr")
+  ) {
+    syncInputFormatUi();
+    syncInputEditorLanguage();
   }
 
   validateInput();
@@ -1959,6 +2009,7 @@ async function handleConvert() {
   console.log("🔄 Converting...");
   showLoading();
   hideError();
+  showInputIssues([]);
 
   try {
     const inputMode = effectiveInputMode();
@@ -2015,6 +2066,7 @@ async function handleConvert() {
     if (result.outputs) {
       updateOutputs(result.outputs);
     }
+    showInputIssues(result.inputIssues ?? []);
 
     console.log("✅ Conversion successful");
   } catch (error) {
@@ -2051,15 +2103,26 @@ function gatherConversionOptions(): ConversionOptions {
   const inputFormatSelect = document.getElementById(
     "input-format",
   ) as HTMLSelectElement;
-  const inputFormat = (inputFormatSelect?.value || "json") as InputFormat;
+  const inputFormat = (inputFormatSelect?.value || "auto") as InputFormat;
 
-  // Input deserializer config
+  // Input deserializer settings: a named preset, or the Custom values.
   const inputDeserializerPreset =
     (document.getElementById("input-deserializer-preset") as HTMLSelectElement)
       ?.value || "default";
-  const inputDeserializerConfig = getJsonDeserializeConfigPreset(
-    inputDeserializerPreset,
-  );
+  const { deserializerConfig: inputDeserializerConfig, simplifiedInput } =
+    resolveInputDeserializerSettings(inputDeserializerPreset, {
+      checks: {
+        strict: checkboxValue("input-strict"),
+        parseTerseFormat: checkboxValue("input-parse-terse"),
+        allowIncomplete: checkboxValue("input-allow-incomplete"),
+      },
+      simplified: readSimplifiedInputControls(),
+    });
+  const simplifiedFlavor =
+    (document.getElementById("simplified-flavor") as HTMLSelectElement | null)
+        ?.value === "input"
+      ? "input" as const
+      : "output" as const;
 
   const templateGenerationMode = (
     (document.getElementById("template-generation-mode") as HTMLSelectElement)
@@ -2330,6 +2393,8 @@ function gatherConversionOptions(): ConversionOptions {
     inputMode,
     inputFormat,
     inputDeserializerConfig,
+    simplifiedInput,
+    simplifiedFlavor,
     outputFormats,
     templateGenerationMode,
     templateLanguage,
@@ -2415,49 +2480,71 @@ function syncOptHtml5PreviewFromOutputs(): void {
   syncOptHtml5TemplateUi();
 }
 
+const SIMPLIFIED_INPUT_CONTROLS: Record<
+  keyof SimplifiedInputSettings,
+  string
+> = {
+  codedTextMismatch: "input-coded-text-mismatch",
+  codedTextDisplayValue: "input-coded-text-display",
+  contextDefaults: "input-context-defaults",
+  unknownKeys: "input-unknown-keys",
+};
+
+const JSON_INPUT_CHECKBOXES = {
+  strict: "input-strict",
+  parseTerseFormat: "input-parse-terse",
+  allowIncomplete: "input-allow-incomplete",
+} as const;
+
+function checkboxValue(id: string): boolean {
+  return (document.getElementById(id) as HTMLInputElement | null)?.checked ??
+    false;
+}
+
+/** Current FLAT/STRUCTURED input selects (used by the Custom preset). */
+function readSimplifiedInputControls(): SimplifiedInputSettings {
+  const settings: Record<string, string> = {};
+  for (const [key, id] of Object.entries(SIMPLIFIED_INPUT_CONTROLS)) {
+    const value = (document.getElementById(id) as HTMLSelectElement | null)
+      ?.value;
+    if (value) settings[key] = value;
+  }
+  return settings as SimplifiedInputSettings;
+}
+
 /**
- * Update input deserializer options based on preset
+ * Show a preset's values in the deserializer controls. Named presets lock the
+ * controls; Custom unlocks them and keeps the values shown.
  */
 function updateInputDeserializerOptions(preset: string) {
-  const strictCheckbox = document.getElementById(
-    "input-strict",
-  ) as HTMLInputElement;
-  const terseCheckbox = document.getElementById(
-    "input-parse-terse",
-  ) as HTMLInputElement;
-  const incompleteCheckbox = document.getElementById(
-    "input-allow-incomplete",
-  ) as HTMLInputElement;
-
   const isCustom = preset === "custom";
+  const named = INPUT_DESERIALIZER_PRESETS[
+    preset as keyof typeof INPUT_DESERIALIZER_PRESETS
+  ];
 
-  [strictCheckbox, terseCheckbox, incompleteCheckbox].forEach((checkbox) => {
-    if (checkbox) checkbox.disabled = !isCustom;
-  });
-
-  if (!isCustom && strictCheckbox && terseCheckbox && incompleteCheckbox) {
-    // Set values based on preset
-    switch (preset) {
-      case "canonical":
-        strictCheckbox.checked = true;
-        terseCheckbox.checked = false;
-        incompleteCheckbox.checked = false;
-        break;
-      case "compact":
-        strictCheckbox.checked = false;
-        terseCheckbox.checked = true;
-        incompleteCheckbox.checked = false;
-        break;
-      case "hybrid":
-        strictCheckbox.checked = false;
-        terseCheckbox.checked = true;
-        incompleteCheckbox.checked = true;
-        break;
-      default: // 'default'
-        strictCheckbox.checked = false;
-        terseCheckbox.checked = false;
-        incompleteCheckbox.checked = false;
+  for (const [key, id] of Object.entries(JSON_INPUT_CHECKBOXES)) {
+    const checkbox = document.getElementById(id) as HTMLInputElement | null;
+    if (!checkbox) continue;
+    checkbox.disabled = !isCustom;
+    if (named) {
+      checkbox.checked = named.checks[key as keyof typeof named.checks];
     }
+  }
+  for (const [key, id] of Object.entries(SIMPLIFIED_INPUT_CONTROLS)) {
+    const select = document.getElementById(id) as HTMLSelectElement | null;
+    if (!select) continue;
+    select.disabled = !isCustom;
+    if (named) {
+      select.value = named.simplified[key as keyof SimplifiedInputSettings];
+    }
+  }
+
+  const description = document.getElementById(
+    "input-deserializer-preset-description",
+  );
+  if (description) {
+    description.textContent = named?.description ??
+      "Set each option below yourself.";
   }
 }
 
@@ -3059,6 +3146,40 @@ function showError(message: string) {
     errorText.textContent = message;
     errorState.classList.remove("hidden");
   }
+}
+
+/**
+ * List FLAT/STRUCTURED input warnings and notes that did not stop the
+ * conversion (kept or corrected coded text, unknown keys, legacy paths,
+ * missing values that have no default).
+ */
+function showInputIssues(
+  issues: { severity: string; path: string; message: string }[],
+) {
+  const box = document.getElementById("input-issues");
+  const summary = document.getElementById("input-issues-summary");
+  const list = document.getElementById("input-issues-list");
+  if (!box || !summary || !list) return;
+  list.replaceChildren(
+    ...issues.map((issue) => {
+      const item = document.createElement("li");
+      item.textContent = `${issue.severity}: ${issue.path}: ${issue.message}`;
+      return item;
+    }),
+  );
+  const errors = issues.filter((i) => i.severity === "error").length;
+  const warnings = issues.filter((i) => i.severity === "warning").length;
+  const parts = [
+    errors ? `${errors} error${errors === 1 ? "" : "s"}` : "",
+    warnings ? `${warnings} warning${warnings === 1 ? "" : "s"}` : "",
+    issues.length - errors - warnings
+      ? `${issues.length - errors - warnings} note${
+        issues.length - errors - warnings === 1 ? "" : "s"
+      }`
+      : "",
+  ].filter(Boolean);
+  summary.textContent = `FLAT/STRUCTURED input: ${parts.join(", ")}`;
+  box.classList.toggle("hidden", issues.length === 0);
 }
 
 /**

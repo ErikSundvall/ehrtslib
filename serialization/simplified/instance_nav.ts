@@ -88,10 +88,45 @@ function valuesByNodeId(arr: unknown[], nodeId?: string): unknown[] {
   return anyIds ? [] : arr.slice(0, 1);
 }
 
-function filterByRmType(values: unknown[], rmType?: string): unknown[] {
+/** A resolved value and, for a leaf below an ELEMENT, that ELEMENT. */
+export interface ResolvedValue {
+  value: unknown;
+  /** The ELEMENT whose `value` this is (absent for other values). */
+  element?: RmObject;
+}
+
+function filterPairsByRmType(values: ResolvedValue[], rmType?: string): ResolvedValue[] {
   if (!rmType) return values;
-  const filtered = values.filter((item) => rmTypeName(item) === rmType);
+  const filtered = values.filter((item) => rmTypeName(item.value) === rmType);
   return filtered.length ? filtered : values;
+}
+
+/**
+ * Like {@link resolveChildWebTemplateNodes}, with the ELEMENT of each leaf
+ * value (for its own attributes such as `uid`, `links`, `feeder_audit`).
+ */
+export function resolveChildWebTemplateNodeValues(
+  rootInstance: unknown,
+  parentInstance: unknown,
+  parentNode: WebTemplateNode,
+  childNode: WebTemplateNode,
+): ResolvedValue[] {
+  const parentPath = parentNode.aqlPath ?? "/";
+  const childPath = childNode.aqlPath ?? "/";
+
+  if (parentPath === "/" || parentPath === "") {
+    return resolveAllValuesAtWebTemplateNode(rootInstance, childNode);
+  }
+
+  if (childPath.startsWith(parentPath)) {
+    const relative = childPath.slice(parentPath.length);
+    const relativePath = relative.startsWith("/") ? relative : `/${relative}`;
+    return filterPairsByRmType(resolveAllValuesAtPath(parentInstance, relativePath), childNode.rmType);
+  }
+
+  // Child path is not under the parent path (e.g. sibling attribute);
+  // resolve it absolutely from the root instance.
+  return resolveAllValuesAtWebTemplateNode(rootInstance, childNode);
 }
 
 /** Resolve child template nodes relative to a parent instance slice. */
@@ -101,23 +136,19 @@ export function resolveChildWebTemplateNodes(
   parentNode: WebTemplateNode,
   childNode: WebTemplateNode,
 ): unknown[] {
-  const parentPath = parentNode.aqlPath ?? "/";
-  const childPath = childNode.aqlPath ?? "/";
+  return resolveChildWebTemplateNodeValues(rootInstance, parentInstance, parentNode, childNode)
+    .map((r) => r.value);
+}
 
-  if (parentPath === "/" || parentPath === "") {
-    return resolveAllAtWebTemplateNode(rootInstance, childNode);
-  }
-
-  if (childPath.startsWith(parentPath)) {
-    const relative = childPath.slice(parentPath.length);
-    const relativePath = relative.startsWith("/") ? relative : `/${relative}`;
-    const values = resolveAllAtPath(parentInstance, relativePath);
-    return filterByRmType(values, childNode.rmType);
-  }
-
-  // Child path is not under the parent path (e.g. sibling attribute);
-  // resolve it absolutely from the root instance.
-  return resolveAllAtWebTemplateNode(rootInstance, childNode);
+/** Like {@link resolveAllAtWebTemplateNode}, with the ELEMENT of each leaf value. */
+export function resolveAllValuesAtWebTemplateNode(
+  instance: unknown,
+  node: WebTemplateNode,
+): ResolvedValue[] {
+  const values = node.aqlPath === "/"
+    ? [{ value: instance }]
+    : resolveAllValuesAtPath(instance, node.aqlPath);
+  return filterPairsByRmType(values, node.rmType);
 }
 
 /** Resolve instance data for a Web Template node, filtering by rmType when needed. */
@@ -125,10 +156,7 @@ export function resolveAllAtWebTemplateNode(
   instance: unknown,
   node: WebTemplateNode,
 ): unknown[] {
-  const values = node.aqlPath === "/"
-    ? [instance]
-    : resolveAllAtPath(instance, node.aqlPath);
-  return filterByRmType(values, node.rmType);
+  return resolveAllValuesAtWebTemplateNode(instance, node).map((r) => r.value);
 }
 
 /**
@@ -178,11 +206,19 @@ export function resolveAllAtPath(
   instance: unknown,
   aqlPath: string,
 ): unknown[] {
+  return resolveAllValuesAtPath(instance, aqlPath).map((r) => r.value);
+}
+
+/** Like {@link resolveAllAtPath}, with the ELEMENT of each unwrapped value. */
+export function resolveAllValuesAtPath(
+  instance: unknown,
+  aqlPath: string,
+): ResolvedValue[] {
   if (!instance || !aqlPath) return [];
 
   const normalized = aqlPath.replace(/\/+/g, "/");
   const segments = normalized.match(/\/[^/]+/g);
-  if (!segments?.length) return [instance];
+  if (!segments?.length) return [{ value: instance }];
 
   let current: unknown[] = [instance];
 
@@ -213,9 +249,9 @@ export function resolveAllAtPath(
 
   return current.map((item) => {
     if (rmTypeName(item) === "ELEMENT" && rmProp(item, "value") != null) {
-      return rmProp(item, "value");
+      return { value: rmProp(item, "value"), element: item as RmObject };
     }
-    return item;
+    return { value: item };
   });
 }
 

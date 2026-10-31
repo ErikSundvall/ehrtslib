@@ -193,6 +193,12 @@ export class WebTemplateToOptConverter {
       // real constraints; re-insert them so the OPT round-trips. Only the
       // builder's unconditional defaults are skipped.
       if (child.inContext && DEFAULT_CTX_PATHS.has(child.aqlPath)) continue;
+      // EVENT_CONTEXT with only RM attributes (start_time, setting) has no
+      // template constraint of its own.
+      if (
+        child.rmType === "EVENT_CONTEXT" &&
+        !(child.children ?? []).some((c) => !c.inContext)
+      ) continue;
       this.insertNode(root, child, 0);
     }
 

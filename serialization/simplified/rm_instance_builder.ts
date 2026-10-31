@@ -26,6 +26,7 @@ const ATTR_RM_TYPE: Record<string, string> = {
   state: "ITEM_TREE",
   description: "ITEM_TREE",
   other_participations: "PARTICIPATION",
+  other_context: "ITEM_TREE",
 };
 
 /** Attributes that are containers (arrays) in the RM. */
@@ -144,6 +145,10 @@ export function assignAtAqlPath(
     const occurrence = occurrences?.[si + 1] ?? 0;
 
     if (isLast) {
+      if (leafRmType === "STRING") {
+        current[attr] = leafValue;
+        return;
+      }
       const isDataValue = leafRmType.startsWith("DV_") ||
         leafRmType.startsWith("C_") ||
         leafRmType === "CODE_PHRASE" ||
@@ -170,6 +175,18 @@ export function assignAtAqlPath(
             value: leafValue,
           });
         }
+      } else if (isDataValue && attr === "item") {
+        // ITEM_SINGLE.item is an ELEMENT, like ITEM_TREE/ITEM_LIST items.
+        const existing = current.item as RmObject | undefined;
+        if (existing && existing._type === "ELEMENT") {
+          existing.value = leafValue;
+        } else {
+          current.item = {
+            _type: "ELEMENT",
+            archetype_node_id: elementNodeId || nodeId || null,
+            value: leafValue,
+          };
+        }
       } else if (isDataValue) {
         current[attr] = leafValue;
       } else if (
@@ -192,4 +209,32 @@ export function assignAtAqlPath(
     const rmType = rmTypes?.[si + 1] ?? inferRmType(attr);
     current = ensureChild(current, attr, nodeId, rmType, occurrence);
   }
+}
+
+/**
+ * The RM object at `aqlPath`, created (with intermediates) when missing.
+ * `lastNodeId` overrides the node id of the last path predicate (the Web
+ * Template node id of an ELEMENT).
+ */
+export function ensureAtAqlPath(
+  root: RmObject,
+  aqlPath: string,
+  rmType: string,
+  lastNodeId?: string,
+  occurrences?: OccurrenceHints,
+  rmTypes?: RmTypeHints,
+): RmObject {
+  const segments = aqlPath.replace(/\/+/g, "/").match(/\/[^/]+/g);
+  if (!segments?.length) return root;
+  let current: RmObject = root;
+  for (let si = 0; si < segments.length; si++) {
+    const m = /^\/([^[]+)(?:\[([^\]]+)\])?$/.exec(segments[si]);
+    if (!m) continue;
+    const [, attr, nodeId] = m;
+    const isLast = si === segments.length - 1;
+    const occurrence = occurrences?.[si + 1] ?? 0;
+    const type = isLast ? rmType : rmTypes?.[si + 1] ?? inferRmType(attr);
+    current = ensureChild(current, attr, isLast ? lastNodeId ?? nodeId : nodeId, type, occurrence);
+  }
+  return current;
 }

@@ -52,6 +52,50 @@
             >input</span> Input
           </h2>
           <div class="panel-header-actions">
+            <div class="example-menu-anchor">
+              <button type="button" class="btn btn-secondary btn-sm" id="load-example" aria-haspopup="true" aria-expanded="false" aria-controls="example-menu">
+                <span class="material-icons btn-icon" aria-hidden="true">folder_open</span>
+                Select Preset Example
+              </button>
+              <div class="example-menu hidden" id="example-menu">
+                <button
+                  class="example-item"
+                  data-example="accident-report-vitals"
+                >
+                  Accident report + vitals (Ehrlibs FLAT)
+                </button>
+                <button class="example-item" data-example="dv-text">
+                  Simple DV_TEXT
+                </button>
+                <button class="example-item" data-example="code-phrase">
+                  CODE_PHRASE
+                </button>
+                <button
+                  class="example-item"
+                  data-example="dv-coded-text"
+                >
+                  DV_CODED_TEXT
+                </button>
+                <button
+                  class="example-item"
+                  data-example="basic-composition"
+                >
+                  Basic COMPOSITION
+                </button>
+                <button
+                  class="example-item"
+                  data-example="complex-composition"
+                >
+                  Complex COMPOSITION
+                </button>
+                <button
+                  class="example-item"
+                  data-example="realistic-composition"
+                >
+                  Realistic Template Composition
+                </button>
+              </div>
+            </div>
             <button
               type="button"
               class="btn btn-primary btn-auto-convert is-active"
@@ -69,13 +113,13 @@
             <div class="format-selector">
               <label for="input-format">Format:</label>
               <select id="input-format" class="format-dropdown">
-                <option value="json" selected>JSON</option>
+                <option value="auto" selected>Auto detect</option>
+                <option value="json">JSON</option>
                 <option value="xml">XML</option>
                 <option value="yaml">YAML</option>
                 <option value="flat">FLAT (simplified)</option>
                 <option value="structured">STRUCTURED (simplified)</option>
                 <option value="zipehr">ZipEHR (JSON/YAML/XHTML)</option>
-                <option value="auto">Auto detect (experimental)</option>
               </select>
             </div>
           </div>
@@ -126,34 +170,87 @@
                 <div class="config-grid config-grid--input-deser">
                   <div class="config-col">
                     <div class="form-group">
-                      <label for="input-deserializer-preset"
-                      >Deserializer Preset:</label>
+                      <span class="label-with-tip">
+                        <label for="input-deserializer-preset">Deserializer Preset:</label>
+                        <span class="info-tip"><button type="button" class="info-tip-btn" aria-expanded="false" aria-describedby="tip-deser-preset" aria-label="About deserializer presets">i</button><span id="tip-deser-preset" class="info-tip-balloon" role="tooltip" hidden><p>A preset sets all deserializer options at once. Choose <strong>Custom…</strong> to set them yourself.</p><p><strong>Default</strong>: standard input, type inference where <code>_type</code> is missing.<br><strong>Canonical (Strict)</strong>: canonical openEHR only.<br><strong>Compact</strong>: also terse strings; FLAT/STRUCTURED corrects case-only coded-text mismatches.<br><strong>Hybrid (Flexible)</strong>: most lenient; FLAT/STRUCTURED keeps coded text as sent.</p><p>Only the settings for the current input format are shown.</p><p><a href="https://github.com/ErikSundvall/ehrtslib/blob/main/serialization/json/README.md#deserialization-configuration" target="_blank" rel="noopener">JSON deserializer options</a> · <a href="https://github.com/ErikSundvall/ehrtslib/blob/main/docs/SIMPLIFIED_FORMATS.md#input-and-output-flavours" target="_blank" rel="noopener">FLAT/STRUCTURED options</a></p></span></span>
+                      </span>
                       <select
                         id="input-deserializer-preset"
                         class="config-dropdown"
+                        aria-describedby="input-deserializer-preset-description"
                       >
-                        <option value="default">Default</option>
+                        <option value="default" selected>Default</option>
                         <option value="canonical">Canonical (Strict)</option>
                         <option value="compact">Compact</option>
                         <option value="hybrid">Hybrid (Flexible)</option>
-                        <option value="custom" selected>Custom...</option>
+                        <option value="custom">Custom…</option>
                       </select>
+                      <p class="form-hint preset-description" id="input-deserializer-preset-description"></p>
                     </div>
                   </div>
-                  <div class="config-col config-col--checks">
+                  <div class="config-col config-col--checks deser-group" id="input-deser-json-options" data-deser-formats="json yaml zipehr">
                     <label class="checkbox-label">
                       <input type="checkbox" id="input-strict">
                       <span>Strict Mode</span>
+                      <span class="info-tip"><button type="button" class="info-tip-btn" aria-expanded="false" aria-describedby="tip-input-strict" aria-label="About Strict Mode">i</button><span id="tip-input-strict" class="info-tip-balloon" role="tooltip" hidden><p>Unknown properties and objects without <code>_type</code> where the type cannot be inferred are errors. Use it to check that input is canonical openEHR JSON/YAML.</p><p><a href="https://github.com/ErikSundvall/ehrtslib/blob/main/serialization/json/README.md#error-handling" target="_blank" rel="noopener">Error handling</a></p></span></span>
                     </label>
                     <label class="checkbox-label">
                       <input type="checkbox" id="input-parse-terse">
                       <span>Parse Terse Format</span>
+                      <span class="info-tip"><button type="button" class="info-tip-btn" aria-expanded="false" aria-describedby="tip-input-terse" aria-label="About Parse Terse Format">i</button><span id="tip-input-terse" class="info-tip-balloon" role="tooltip" hidden><p>Accept terse strings for CODE_PHRASE and DV_CODED_TEXT, such as <code>"ISO_639-1::en"</code> or <code>"openehr::433|event|"</code>. Terse format is not canonical openEHR.</p><p><a href="https://github.com/ErikSundvall/ehrtslib/blob/main/serialization/json/README.md#terse-format" target="_blank" rel="noopener">Terse format</a></p></span></span>
                     </label>
                     <label class="checkbox-label">
                       <input type="checkbox" id="input-allow-incomplete">
                       <span>Allow Incomplete Objects</span>
+                      <span class="info-tip"><button type="button" class="info-tip-btn" aria-expanded="false" aria-describedby="tip-input-incomplete" aria-label="About Allow Incomplete Objects">i</button><span id="tip-input-incomplete" class="info-tip-balloon" role="tooltip" hidden><p>Accept objects that lack RM-mandatory attributes, for example a draft or a fragment. Without it such input is an error.</p><p><a href="https://github.com/ErikSundvall/ehrtslib/blob/main/serialization/json/README.md#deserialization-configuration" target="_blank" rel="noopener">Deserializer options</a></p></span></span>
                     </label>
                   </div>
+                  <div class="config-col deser-group deser-group--simplified hidden" id="input-deser-simplified-options" data-deser-formats="flat structured">
+                    <div class="form-group form-group--inline">
+                      <span class="label-with-tip">
+                        <label for="input-coded-text-mismatch">Coded text mismatch:</label>
+                        <span class="info-tip"><button type="button" class="info-tip-btn" aria-expanded="false" aria-describedby="tip-input-coded-mismatch" aria-label="About coded text mismatch">i</button><span id="tip-input-coded-mismatch" class="info-tip-balloon" role="tooltip" hidden><p>What FLAT/STRUCTURED input does when a coded value (<code>|code</code> or <code>|value</code> only) matches no term the template lists.</p><p><strong>Reject</strong> (default): stop with an error that lists the paths.<br><strong>Keep</strong>: keep the input as sent, with a warning.<br><strong>Correct</strong>: fix what can be fixed, with a warning: a case-only difference, a <code>|value</code> that belongs to another code (the rubric of <code>|code</code> is used), a rubric in another template language. Input that matches nothing still stops.</p><p>Display text is not a mismatch: a valid code sent with other <code>|value</code> text is kept as display text in all modes (see the next setting).</p><p><a href="https://github.com/ErikSundvall/ehrtslib/blob/main/docs/SIMPLIFIED_FORMATS.md#codedtextmismatch-input-without-an-exact-match" target="_blank" rel="noopener">Coded text input</a></p></span></span>
+                      </span>
+                      <select id="input-coded-text-mismatch" class="config-dropdown">
+                        <option value="reject" selected>Reject (default)</option>
+                        <option value="keep">Keep</option>
+                        <option value="correct">Correct</option>
+                      </select>
+                    </div>
+                    <div class="form-group form-group--inline">
+                      <span class="label-with-tip">
+                        <label for="input-coded-text-display">Coded text display value:</label>
+                        <span class="info-tip"><button type="button" class="info-tip-btn" aria-expanded="false" aria-describedby="tip-input-coded-display" aria-label="About coded text display value">i</button><span id="tip-input-coded-display" class="info-tip-balloon" role="tooltip" hidden><p>What happens to display text: a valid code whose <code>|value</code> is not a term in any template language.</p><p><strong>Keep</strong> (default): keep the text as <code>value</code>.<br><strong>Keep and set preferred term</strong>: keep the text and set <code>defining_code.preferred_term</code> to the template rubric.<br><strong>Replace with rubric</strong>: replace the text with the template rubric. Not recommended: it loses what the user saw. Use it only to match EHRbase.</p><p><a href="https://github.com/ErikSundvall/ehrtslib/blob/main/docs/SIMPLIFIED_FORMATS.md#codedtextdisplayvalue-display-text-next-to-a-valid-code" target="_blank" rel="noopener">Display text</a></p></span></span>
+                      </span>
+                      <select id="input-coded-text-display" class="config-dropdown">
+                        <option value="keep" selected>Keep (default)</option>
+                        <option value="keep-and-set-preferred-term">Keep and set preferred term</option>
+                        <option value="replace-with-rubric">Replace with rubric (not recommended, EHRbase compatibility)</option>
+                      </select>
+                    </div>
+                    <div class="form-group form-group--inline">
+                      <span class="label-with-tip">
+                        <label for="input-context-defaults">RM defaults:</label>
+                        <span class="info-tip"><button type="button" class="info-tip-btn" aria-expanded="false" aria-describedby="tip-input-context-defaults" aria-label="About RM defaults">i</button><span id="tip-input-context-defaults" class="info-tip-balloon" role="tooltip" hidden><p>Values filled in for RM-mandatory attributes that the payload leaves out, such as language, territory, composer, start time, event times, encoding and subject.</p><p>Fill order: explicit path, then <code>ctx/</code>, then template or RM default.</p><p><strong>Apply</strong> (default): fill them; missing times use the current time.<br><strong>None</strong>: fill nothing beyond the payload and <code>ctx/</code>; each missing value is reported.</p><p><a href="https://github.com/ErikSundvall/ehrtslib/blob/main/docs/SIMPLIFIED_FORMATS.md#input-and-output-flavours" target="_blank" rel="noopener">Input and output flavours</a></p></span></span>
+                      </span>
+                      <select id="input-context-defaults" class="config-dropdown">
+                        <option value="apply" selected>Apply (default)</option>
+                        <option value="none">None (report missing values)</option>
+                      </select>
+                    </div>
+                    <div class="form-group form-group--inline">
+                      <span class="label-with-tip">
+                        <label for="input-unknown-keys">Unknown keys:</label>
+                        <span class="info-tip"><button type="button" class="info-tip-btn" aria-expanded="false" aria-describedby="tip-input-unknown-keys" aria-label="About unknown keys">i</button><span id="tip-input-unknown-keys" class="info-tip-balloon" role="tooltip" hidden><p>FLAT keys that match no Web Template path, no <code>ctx/</code> field and no legacy path.</p><p><strong>Error</strong> (default): stop and list them.<br><strong>Warning</strong>: skip them, with a warning.<br><strong>Ignore</strong>: skip them silently.</p><p>Older FLAT paths with an explicit history level (<code>…/data/any_event:0/…</code>) are accepted with a warning.</p><p><a href="https://github.com/ErikSundvall/ehrtslib/blob/main/docs/SIMPLIFIED_FORMATS.md#input-and-output-flavours" target="_blank" rel="noopener">Input and output flavours</a></p></span></span>
+                      </span>
+                      <select id="input-unknown-keys" class="config-dropdown">
+                        <option value="error" selected>Error (default)</option>
+                        <option value="warning">Warning</option>
+                        <option value="ignore">Ignore</option>
+                      </select>
+                    </div>
+                  </div>
+                  <p class="form-hint deser-group hidden" id="input-deser-xml-note" data-deser-formats="xml">XML input has no deserializer settings.</p>
                 </div>
               </div>
               <div class="config-section hidden" id="input-simplified-template-section">
@@ -210,49 +307,6 @@
                     aria-label="Instance input actions"
                   >
                     <span class="toolbar-left">
-                      <button class="btn btn-secondary btn-sm" id="load-example">
-                        <span class="material-icons btn-icon" aria-hidden="true"
-                        >folder_open</span>
-                        Select Preset Example
-                      </button>
-                      <div class="example-menu hidden" id="example-menu">
-                        <button
-                          class="example-item"
-                          data-example="accident-report-vitals"
-                        >
-                          Accident report + vitals (Ehrlibs FLAT)
-                        </button>
-                        <button class="example-item" data-example="dv-text">
-                          Simple DV_TEXT
-                        </button>
-                        <button class="example-item" data-example="code-phrase">
-                          CODE_PHRASE
-                        </button>
-                        <button
-                          class="example-item"
-                          data-example="dv-coded-text"
-                        >
-                          DV_CODED_TEXT
-                        </button>
-                        <button
-                          class="example-item"
-                          data-example="basic-composition"
-                        >
-                          Basic COMPOSITION
-                        </button>
-                        <button
-                          class="example-item"
-                          data-example="complex-composition"
-                        >
-                          Complex COMPOSITION
-                        </button>
-                        <button
-                          class="example-item"
-                          data-example="realistic-composition"
-                        >
-                          Realistic Template Composition
-                        </button>
-                      </div>
                       <button class="btn btn-secondary btn-sm" id="upload-file">
                         <span class="material-icons btn-icon" aria-hidden="true"
                         >upload_file</span>
@@ -512,6 +566,10 @@
               Dismiss
             </button>
           </div>
+          <details class="input-issues hidden" id="input-issues">
+            <summary id="input-issues-summary">Input notes</summary>
+            <ul id="input-issues-list"></ul>
+          </details>
           <div class="loading-state hidden" id="loading-state">
             <div class="spinner"></div>
             <span>Converting...</span>
@@ -591,25 +649,15 @@
                       <input type="checkbox" id="json-pretty" checked>
                       <span>Pretty Print</span>
                     </label>
-                    <label class="checkbox-label tooltip-container">
+                    <label class="checkbox-label">
                       <input type="checkbox" id="json-terse">
-                      <span>Terse Format <span
-                          class="material-icons inline-icon"
-                          aria-hidden="true"
-                        >warning</span></span>
-                      <span class="tooltip"
-                      >Compact format using string shortcuts for CODE_PHRASE and
-                        DV_CODED_TEXT. Not standard-compliant.</span>
+                      <span>Terse Format</span>
+                      <span class="info-tip"><button type="button" class="info-tip-btn" aria-expanded="false" aria-describedby="tip-json-terse" aria-label="About Terse Format">i</button><span id="tip-json-terse" class="info-tip-balloon" role="tooltip" hidden><p>Compact format using string shortcuts for CODE_PHRASE and DV_CODED_TEXT. Not standard-compliant.</p></span></span>
                     </label>
-                    <label class="checkbox-label tooltip-container">
+                    <label class="checkbox-label">
                       <input type="checkbox" id="json-hybrid">
-                      <span>Hybrid Style (zipehr-like) <span
-                          class="material-icons inline-icon"
-                          aria-hidden="true"
-                        >info</span></span>
-                      <span class="tooltip"
-                      >Mix of standard and terse formats for better
-                        readability</span>
+                      <span>Hybrid Style (zipehr-like)</span>
+                      <span class="info-tip"><button type="button" class="info-tip-btn" aria-expanded="false" aria-describedby="tip-json-hybrid" aria-label="About Hybrid Style (zipehr-like)">i</button><span id="tip-json-hybrid" class="info-tip-balloon" role="tooltip" hidden><p>Mix of standard and terse formats for better readability</p></span></span>
                     </label>
                     <label class="checkbox-label">
                       <input type="checkbox" id="json-type-inference">
@@ -738,15 +786,10 @@
                     </div>
                   </div>
                   <div class="config-col config-col--checks">
-                    <label class="checkbox-label tooltip-container">
+                    <label class="checkbox-label">
                       <input type="checkbox" id="yaml-terse" checked disabled>
-                      <span>Terse Format (Recommended) <span
-                          class="material-icons inline-icon"
-                          aria-hidden="true"
-                        >check</span></span>
-                      <span class="tooltip"
-                      >Uses compact notation for codes - recommended for
-                        YAML</span>
+                      <span>Terse Format (Recommended)</span>
+                      <span class="info-tip"><button type="button" class="info-tip-btn" aria-expanded="false" aria-describedby="tip-yaml-terse" aria-label="About Terse Format (Recommended)">i</button><span id="tip-yaml-terse" class="info-tip-balloon" role="tooltip" hidden><p>Uses compact notation for codes - recommended for YAML</p></span></span>
                     </label>
                     <label class="checkbox-label">
                       <input
@@ -758,7 +801,7 @@
                       <span>Type Inference (Compact Mode)</span>
                     </label>
                     <label
-                      class="checkbox-label tooltip-container"
+                      class="checkbox-label"
                       id="yaml-archetype-inline-group"
                     >
                       <input
@@ -767,9 +810,7 @@
                         disabled
                       >
                       <span>Keep Archetype Details Inline</span>
-                      <span class="tooltip"
-                      >Only for flow style: Groups archetype metadata on one
-                        line with strategic line breaks</span>
+                      <span class="info-tip"><button type="button" class="info-tip-btn" aria-expanded="false" aria-describedby="tip-yaml-archetype-inline-group" aria-label="About Keep Archetype Details Inline">i</button><span id="tip-yaml-archetype-inline-group" class="info-tip-balloon" role="tooltip" hidden><p>Only for flow style: Groups archetype metadata on one line with strategic line breaks</p></span></span>
                     </label>
                   </div>
                   <div class="config-col config-col--checks">
@@ -785,7 +826,7 @@
                       >
                       <span>Indent (spaces)</span>
                     </label>
-                    <label class="checkbox-label tooltip-container">
+                    <label class="checkbox-label">
                       <input
                         type="number"
                         id="yaml-max-inline-props"
@@ -796,9 +837,7 @@
                         disabled
                       >
                       <span>Max Inline Properties</span>
-                      <span class="tooltip"
-                      >Maximum number of properties for inline formatting in
-                        hybrid style</span>
+                      <span class="info-tip"><button type="button" class="info-tip-btn" aria-expanded="false" aria-describedby="tip-yaml-max-inline-props" aria-label="About Max Inline Properties">i</button><span id="tip-yaml-max-inline-props" class="info-tip-balloon" role="tooltip" hidden><p>Maximum number of properties for inline formatting in hybrid style</p></span></span>
                     </label>
                   </div>
                 </div>
@@ -1639,6 +1678,16 @@
                       <select id="simplified-variant" class="config-dropdown">
                         <option value="flat">FLAT</option>
                         <option value="structured" selected>STRUCTURED</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <span class="label-with-tip">
+                        <label for="simplified-flavor">Flavour:</label>
+                        <span class="info-tip"><button type="button" class="info-tip-btn" aria-expanded="false" aria-describedby="tip-simplified-flavor" aria-label="About FLAT/STRUCTURED flavour">i</button><span id="tip-simplified-flavor" class="info-tip-balloon" role="tooltip" hidden><p><strong>Output</strong> (default): every value at its own path, no <code>ctx/</code>. This is what openEHR REST and EHRbase return, and it can be read back as input.</p><p><strong>Input</strong>: the short form for writing data. Composition-wide values go in <code>ctx/</code>, and values equal to a <code>ctx/</code> or RM default (language, encoding, subject, times) are left out.</p><p><a href="https://github.com/ErikSundvall/ehrtslib/blob/main/docs/SIMPLIFIED_FORMATS.md#input-and-output-flavours" target="_blank" rel="noopener">Input and output flavours</a></p></span></span>
+                      </span>
+                      <select id="simplified-flavor" class="config-dropdown">
+                        <option value="output" selected>Output (no ctx/, default)</option>
+                        <option value="input">Input (ctx/ and defaults left out)</option>
                       </select>
                     </div>
                     <div class="form-group">

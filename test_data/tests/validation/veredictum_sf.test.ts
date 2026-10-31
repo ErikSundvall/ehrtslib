@@ -31,24 +31,12 @@ function withWebTemplateRoot(
   return out;
 }
 
-/** Veredictum FLAT omits HISTORY `data`; ehrtslib web templates keep it. */
+/** Veredictum FLAT paths follow the spec "Level Removal", as ehrtslib does. */
 function adaptVitalsFlat(
   payload: Record<string, unknown>,
   rootId: string,
 ): Record<string, unknown> {
-  const withRoot = withWebTemplateRoot(payload, rootId);
-  const out: Record<string, unknown> = {};
-  for (const [key, value] of Object.entries(withRoot)) {
-    if (key.startsWith("ctx/")) {
-      out[key] = value;
-      continue;
-    }
-    out[key.replace(
-      /^([^/]+\/body_temperature(?::\d+)?)\/(any_event)/,
-      "$1/data/$2",
-    )] = value;
-  }
-  return out;
+  return withWebTemplateRoot(payload, rootId);
 }
 
 async function loadJson(name: string): Promise<Record<string, unknown>> {
@@ -93,9 +81,6 @@ Deno.test("Veredictum SF — FLAT valid vitals payload is accepted", async () =>
     await loadJson("flat.multi_event.json"),
     wt.tree.id,
   );
-  for (const key of Object.keys(payload)) {
-    if (/\/time$/.test(key)) delete payload[key];
-  }
   const result = validateFlatPayload(payload as never, wt, {
     strictUnknownKeys: true,
   });

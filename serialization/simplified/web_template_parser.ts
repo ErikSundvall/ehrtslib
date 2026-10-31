@@ -86,6 +86,9 @@ function parseNode(raw: Json): WebTemplateNode {
     >;
   }
   if (isObject(raw.annotations)) node.annotations = raw.annotations;
+  if (isObject(raw.collapsed)) {
+    node.collapsed = raw.collapsed as WebTemplateNode["collapsed"];
+  }
   if (isObject(raw.termBindings)) {
     node.termBindings = raw.termBindings as WebTemplateNode["termBindings"];
   }

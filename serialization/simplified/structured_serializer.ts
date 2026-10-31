@@ -1,57 +1,129 @@
 /**
  * Serialize RM composition instances to STRUCTURED JSON (web-template keyed).
+ *
+ * The instance is serialized to FLAT first and then nested with the spec's
+ * "Flat to Structured" rule, so both formats always carry the same keys and
+ * honour the same flavour (`output` / `input`).
  * @see openehr://guides/specs/its-rest-simplified_formats
  */
 
-import type { WebTemplate, WebTemplateNode } from "./types.ts";
-import { templateRootId } from "./normalize.ts";
-import {
-  resolveAllAtWebTemplateNode,
-  resolveChildWebTemplateNodes,
-} from "./instance_nav.ts";
-import { extractContextField, extractValueFields } from "./value_extract.ts";
+import type { FlatPayload, WebTemplate } from "./types.ts";
+import { FlatSerializer } from "./flat_serializer.ts";
+import type { SimplifiedFlavor } from "./flavor.ts";
 
 export interface StructuredSerializerOptions {
   prettyPrint?: boolean;
+  /** See {@link FlatSerializerOptions.flavor}. Default `output`. */
+  flavor?: SimplifiedFlavor;
 }
 
 type StructuredValue = Record<string, unknown>;
 
-/** Drop trailing entries matching `isEmpty` (keeps inner gaps as null). */
-function trimTrailing<T>(arr: T[], isEmpty: (e: T) => boolean): T[] {
-  let end = arr.length;
-  while (end > 0 && isEmpty(arr[end - 1])) end--;
-  return arr.slice(0, end);
+/**
+ * Nest FLAT keys into STRUCTURED JSON: every path segment becomes an array
+ * (index from `:n`, default 0), `|suffix` fields become `"|suffix"`
+ * properties, a bare-only leaf becomes a primitive array entry and `ctx/`
+ * keys go to the `ctx` object.
+ */
+export function flatToStructured(flat: FlatPayload): StructuredValue {
+  const result: StructuredValue = {};
+  const ctx: StructuredValue = {};
+
+  for (const [key, value] of Object.entries(flat)) {
+    if (value == null) continue;
+    const pipe = key.indexOf("|");
+    const path = pipe >= 0 ? key.slice(0, pipe) : key;
+    const suffix = pipe >= 0 ? key.slice(pipe + 1) : "";
+    const segments = path.split("/");
+
+    if (segments[0] === "ctx") {
+      const field = segments.slice(1).join("/");
+      setEntry(ctx, field, 0, suffix, value, false);
+      continue;
+    }
+
+    let obj = (result[segments[0]] ??= {}) as StructuredValue;
+    for (let i = 1; i < segments.length; i++) {
+      const m = /^(.*?)(?::(\d+))?$/.exec(segments[i])!;
+      const id = m[1];
+      const idx = m[2] ? Number(m[2]) : 0;
+      if (i === segments.length - 1) {
+        setEntry(obj, id, idx, suffix, value, true);
+      } else {
+        obj = childObject(obj, id, idx);
+      }
+    }
+  }
+
+  return Object.keys(ctx).length ? { ctx, ...result } : result;
+}
+
+function fillArray(arr: unknown[], idx: number): void {
+  for (let i = arr.length; i < idx; i++) arr[i] = null;
+}
+
+function childObject(obj: StructuredValue, id: string, idx: number): StructuredValue {
+  const arr = (obj[id] ??= []) as unknown[];
+  fillArray(arr, idx);
+  const cur = arr[idx];
+  if (cur != null && typeof cur === "object") return cur as StructuredValue;
+  const next: StructuredValue = cur != null ? { "|value": cur } : {};
+  arr[idx] = next;
+  return next;
+}
+
+function setEntry(
+  obj: StructuredValue,
+  id: string,
+  idx: number,
+  suffix: string,
+  value: unknown,
+  asArray: boolean,
+): void {
+  if (!asArray) {
+    // ctx: bare-only → primitive; with suffixes → [{ "|value", "|code", … }]
+    const cur = obj[id];
+    if (suffix === "" && cur === undefined) {
+      obj[id] = value;
+      return;
+    }
+    const entry = Array.isArray(cur)
+      ? cur[0] as StructuredValue
+      : cur !== undefined
+      ? { "|value": cur }
+      : {};
+    entry[`|${suffix || "value"}`] = value;
+    obj[id] = [entry];
+    return;
+  }
+  const arr = (obj[id] ??= []) as unknown[];
+  fillArray(arr, idx);
+  const cur = arr[idx];
+  if (suffix === "" && cur == null) {
+    arr[idx] = value;
+    return;
+  }
+  const entry = cur != null && typeof cur === "object"
+    ? cur as StructuredValue
+    : cur != null
+    ? { "|value": cur }
+    : {};
+  entry[`|${suffix || "value"}`] = value;
+  arr[idx] = entry;
 }
 
 export class StructuredSerializer {
-  private rootId: string;
-  private instance: unknown;
+  private flat: FlatSerializer;
 
   constructor(
-    private webTemplate: WebTemplate,
+    webTemplate: WebTemplate,
     private options: StructuredSerializerOptions = {},
   ) {
-    this.rootId = templateRootId(webTemplate.templateId);
+    this.flat = new FlatSerializer(webTemplate, { flavor: options.flavor });
   }
 
   serialize(instance: unknown): StructuredValue {
-    this.instance = instance;
-    const result: StructuredValue = {};
-
-    const ctxNodes = this.collectContextNodes(this.webTemplate.tree);
-    if (ctxNodes.length) {
-      result.ctx = this.buildContext(ctxNodes);
-    }
-
-    const contentChildren = (this.webTemplate.tree.children ?? []).filter((c) =>
-      !c.inContext
-    );
-    if (contentChildren.length) {
-      result[this.rootId] = this.buildBranch(contentChildren);
-    }
-
-    return result;
+    return flatToStructured(this.flat.serialize(instance));
   }
 
   serializeJson(instance: unknown): string {
@@ -61,104 +133,14 @@ export class StructuredSerializer {
       this.options.prettyPrint ? 2 : undefined,
     );
   }
-
-  private collectContextNodes(node: WebTemplateNode): WebTemplateNode[] {
-    const ctx: WebTemplateNode[] = [];
-    if (node.inContext) ctx.push(node);
-    for (const child of node.children ?? []) {
-      if (child.inContext) ctx.push(child);
-    }
-    return ctx;
-  }
-
-  private buildContext(nodes: WebTemplateNode[]): StructuredValue {
-    const ctx: StructuredValue = {};
-    for (const node of nodes) {
-      const fields = extractContextField(this.instance, node.id);
-      const bare = fields[""] ?? fields.value;
-      const suffixed = Object.entries(fields).filter(
-        ([suffix]) => suffix !== "" && suffix !== "value",
-      );
-      if (suffixed.length) {
-        const entry: StructuredValue = {};
-        if (bare != null) entry["|value"] = bare;
-        for (const [suffix, val] of suffixed) entry[`|${suffix}`] = val;
-        ctx[node.id] = [entry];
-      } else if (bare != null) {
-        ctx[node.id] = bare;
-      }
-    }
-    return ctx;
-  }
-
-  private buildBranch(nodes: WebTemplateNode[]): StructuredValue {
-    const out: StructuredValue = {};
-    for (const node of nodes) {
-      const values = this.buildNodeArray(node);
-      if (values.length) out[node.id] = values;
-    }
-    return out;
-  }
-
-  private buildNodeArray(
-    node: WebTemplateNode,
-    scope?: unknown,
-  ): unknown[] {
-    const nodeValues = scope != null
-      ? [scope]
-      : resolveAllAtWebTemplateNode(this.instance, node);
-    if (!nodeValues.length) return [];
-
-    const isLeaf = node.inputs?.length && !node.children?.length;
-    if (isLeaf) {
-      // Preserve instance positions (null placeholders) so array indices
-      // stay aligned with FLAT `:n` occurrence indices; trim trailing gaps.
-      const entries0 = nodeValues.map((data): unknown => {
-        const fields = extractValueFields(data, node.inputs);
-        const entries = Object.entries(fields);
-        if (!entries.length) return null;
-        // Single bare field → primitive array entry (per spec examples,
-        // e.g. "time": ["2024-01-15T10:30:00Z"]).
-        if (entries.length === 1 && entries[0][0] === "") {
-          return entries[0][1];
-        }
-        const entry: StructuredValue = {};
-        for (const [suffix, value] of entries) {
-          entry[suffix === "" ? "|value" : `|${suffix}`] = value;
-        }
-        return entry;
-      });
-      return trimTrailing(entries0, (e) => e == null);
-    }
-
-    const items: (StructuredValue | null)[] = [];
-    for (let i = 0; i < nodeValues.length; i++) {
-      const currentData = nodeValues[i];
-      const item: StructuredValue = {};
-      for (const child of node.children ?? []) {
-        const childValues = resolveChildWebTemplateNodes(
-          this.instance,
-          currentData,
-          node,
-          child,
-        );
-        if (!childValues.length) continue;
-        const built = childValues.flatMap((childData) =>
-          this.buildNodeArray(child, childData)
-        );
-        if (built.length) item[child.id] = built;
-      }
-      items.push(Object.keys(item).length ? item : null);
-    }
-    return trimTrailing(items, (e) => e == null);
-  }
 }
 
 export function serializeToStructured(
   instance: unknown,
   webTemplate: WebTemplate,
+  options?: StructuredSerializerOptions,
 ): StructuredValue {
-  return new StructuredSerializer(webTemplate).serialize(instance);
+  return new StructuredSerializer(webTemplate, options).serialize(instance);
 }
 
 export function serializeToStructuredJson(

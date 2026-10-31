@@ -123,6 +123,7 @@ def("DV_CODED_TEXT", [
     inputType: "TEXT",
     intermediates: { defining_code: "CODE_PHRASE" },
   },
+  { suffix: "formatting", path: ["formatting"], kind: "string", inputType: "TEXT" },
 ]);
 
 def("CODE_PHRASE", [
@@ -170,6 +171,19 @@ def("DV_ORDINAL", [
 
 // --- Quantities & numbers ---------------------------------------------------
 
+const NORMAL_STATUS: FieldSpec = {
+  suffix: "normal_status",
+  path: ["normal_status", "code_string"],
+  kind: "string",
+  inputType: "TEXT",
+  intermediates: { normal_status: "CODE_PHRASE" },
+};
+const MAGNITUDE_STATUS: FieldSpec = { suffix: "magnitude_status", path: ["magnitude_status"], kind: "string", inputType: "TEXT" };
+const ACCURACY: FieldSpec[] = [
+  { suffix: "accuracy", path: ["accuracy"], kind: "number", inputType: "DECIMAL" },
+  { suffix: "accuracy_is_percent", path: ["accuracy_is_percent"], kind: "boolean", inputType: "BOOLEAN" },
+];
+
 def("DV_QUANTITY", [
   { suffix: "magnitude", path: ["magnitude"], kind: "number", inputType: "DECIMAL", required: true },
   { suffix: "unit", path: ["units"], kind: "string", inputType: "TEXT", required: true },
@@ -179,6 +193,7 @@ def("DV_QUANTITY", [
   { suffix: "accuracy_is_percent", path: ["accuracy_is_percent"], kind: "boolean", inputType: "BOOLEAN" },
   { suffix: "units_system", path: ["units_system"], kind: "string", inputType: "TEXT" },
   { suffix: "units_display_name", path: ["units_display_name"], kind: "string", inputType: "TEXT" },
+  NORMAL_STATUS,
 ]);
 
 def("DV_COUNT", [
@@ -186,6 +201,7 @@ def("DV_COUNT", [
   { suffix: "magnitude_status", path: ["magnitude_status"], kind: "string", inputType: "TEXT" },
   { suffix: "accuracy", path: ["accuracy"], kind: "number", inputType: "DECIMAL" },
   { suffix: "accuracy_is_percent", path: ["accuracy_is_percent"], kind: "boolean", inputType: "BOOLEAN" },
+  NORMAL_STATUS,
 ]);
 
 def("DV_PROPORTION", [
@@ -193,6 +209,9 @@ def("DV_PROPORTION", [
   { suffix: "denominator", path: ["denominator"], kind: "number", inputType: "DECIMAL", required: true },
   { suffix: "type", path: ["type"], kind: "integer", inputType: "INTEGER", required: true },
   { suffix: "precision", path: ["precision"], kind: "integer", inputType: "INTEGER" },
+  MAGNITUDE_STATUS,
+  ...ACCURACY,
+  NORMAL_STATUS,
 ]);
 
 // --- Booleans, dates, times -------------------------------------------------
@@ -203,18 +222,27 @@ def("DV_BOOLEAN", [
 
 def("DV_DATE", [
   { suffix: "", path: ["value"], kind: "string", inputType: "DATE", required: true },
+  MAGNITUDE_STATUS,
+  NORMAL_STATUS,
 ]);
 
 def("DV_DATE_TIME", [
   { suffix: "", path: ["value"], kind: "string", inputType: "DATETIME", required: true },
+  MAGNITUDE_STATUS,
+  NORMAL_STATUS,
 ]);
 
 def("DV_TIME", [
   { suffix: "", path: ["value"], kind: "string", inputType: "TIME", required: true },
+  MAGNITUDE_STATUS,
+  NORMAL_STATUS,
 ]);
 
 def("DV_DURATION", [
   { suffix: "", path: ["value"], kind: "string", inputType: "DURATION", required: true },
+  ...ACCURACY,
+  MAGNITUDE_STATUS,
+  NORMAL_STATUS,
 ]);
 
 // --- URIs, identifiers, parsable, multimedia --------------------------------
@@ -574,6 +602,7 @@ export function buildDvValue(
   // Apply build defaults (e.g. default terminology) when the owning object
   // was created but the defaulted leaf is missing.
   applyBuildDefaults(resolved, root, map);
+  applyPartyType(resolved, root, source._type);
   if (codedNode && root._type === "DV_CODED_TEXT") {
     const issues = context?.issues ?? [];
     completeDvCodedText(
@@ -592,11 +621,34 @@ export function buildDvValue(
   return root;
 }
 
+const PARTY_PROXY_SUBTYPES = new Set([
+  "PARTY_SELF",
+  "PARTY_IDENTIFIED",
+  "PARTY_RELATED",
+]);
+
+/**
+ * `|_type` at a PARTY_PROXY path selects the subtype (e.g. `composer|_type:
+ * "PARTY_SELF"`); PARTY_SELF has no name.
+ */
+function applyPartyType(rmType: string, root: RmObject, type: unknown): void {
+  if (!rmType.startsWith("PARTY_") || type == null) return;
+  const t = String(type);
+  if (!PARTY_PROXY_SUBTYPES.has(t)) return;
+  root._type = t;
+  if (t === "PARTY_SELF") delete root.name;
+}
+
 function applyBuildDefaults(
   rmType: string,
   root: RmObject,
   map: DvFieldMap,
 ): void {
+  // Spec: `|normal_status` carries only the code; the terminology is openEHR's.
+  const ns = root.normal_status as RmObject | undefined;
+  if (ns && ns.code_string != null && ns.terminology_id == null) {
+    ns.terminology_id = { _type: "TERMINOLOGY_ID", value: "openehr_normal_statuses" };
+  }
   if (rmType === "DV_CODED_TEXT") {
     const dc = root.defining_code as RmObject | undefined;
     if (dc && dc.code_string != null && dc.terminology_id == null) {
