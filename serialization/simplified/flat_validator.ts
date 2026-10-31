@@ -67,6 +67,7 @@ function knownSuffixes(node: WebTemplateNode): Set<string> {
   if (map) for (const f of map.fields) suffixes.add(f.suffix);
   if (suffixes.has("")) suffixes.add("value");
   if (node.rmType === "DV_CODED_TEXT") suffixes.add("other");
+  if (node.rmType.startsWith("PARTY_")) suffixes.add("_type");
   return suffixes;
 }
 

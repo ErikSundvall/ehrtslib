@@ -574,6 +574,7 @@ export function buildDvValue(
   // Apply build defaults (e.g. default terminology) when the owning object
   // was created but the defaulted leaf is missing.
   applyBuildDefaults(resolved, root, map);
+  applyPartyType(resolved, root, source._type);
   if (codedNode && root._type === "DV_CODED_TEXT") {
     const issues = context?.issues ?? [];
     completeDvCodedText(
@@ -590,6 +591,24 @@ export function buildDvValue(
     if (!context?.issues) throwOnCodedTextMismatch(issues);
   }
   return root;
+}
+
+const PARTY_PROXY_SUBTYPES = new Set([
+  "PARTY_SELF",
+  "PARTY_IDENTIFIED",
+  "PARTY_RELATED",
+]);
+
+/**
+ * `|_type` at a PARTY_PROXY path selects the subtype (e.g. `composer|_type:
+ * "PARTY_SELF"`); PARTY_SELF has no name.
+ */
+function applyPartyType(rmType: string, root: RmObject, type: unknown): void {
+  if (!rmType.startsWith("PARTY_") || type == null) return;
+  const t = String(type);
+  if (!PARTY_PROXY_SUBTYPES.has(t)) return;
+  root._type = t;
+  if (t === "PARTY_SELF") delete root.name;
 }
 
 function applyBuildDefaults(

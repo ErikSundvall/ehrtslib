@@ -76,15 +76,6 @@ export class FlatSerializer {
       : undefined;
     this.out = input ? inputContextFields(instance) : {};
 
-    const composer = rmProp(instance, "composer");
-    if (
-      !input && rmTypeOf(composer) === "PARTY_SELF" &&
-      !Object.keys(partyFields(composer)).length
-    ) {
-      // A plain PARTY_SELF composer has no field to write at /composer.
-      this.out["ctx/composer_self"] = true;
-    }
-
     const uid = rmProp(rmProp(instance, "uid"), "value");
     if (uid != null) this.out[`${this.rootId}/_uid`] = String(uid);
 
@@ -134,6 +125,11 @@ export class FlatSerializer {
       const fields = rmTypeOf(data).startsWith("PARTY_")
         ? partyFields(data)
         : allValueFields(data, node);
+      if (node.aqlPath === "/composer" && rmTypeOf(data) === "PARTY_SELF") {
+        // No ctx/composer_self in output: mark the subtype at its path
+        // (ehrtslib convention, docs/SIMPLIFIED_FORMATS.md "Composer").
+        fields._type = "PARTY_SELF";
+      }
       for (const [suffix, value] of Object.entries(fields)) {
         this.out[suffix === "" ? base : `${base}|${suffix}`] = value;
       }

@@ -264,3 +264,43 @@ Deno.test("#239 STRUCTURED: both flavours round trip, input ctx is applied", asy
   assertEquals(rmMandatory(composition, opt), []);
   assertEquals((composition as Rm).content[0].data.events[0].time.value, "2026-10-30T10:00:00+01:00");
 });
+
+Deno.test("#239 composer PARTY_SELF: output writes composer|_type, no ctx/", async () => {
+  const { opt, wt } = await load("ehrbase_blood_pressure_simple.de.v0.opt");
+  const instance = new RMInstanceGenerator({ mode: "example" }).generate(opt) as Rm;
+  for (const composer of [
+    { _type: "PARTY_SELF" },
+    {
+      _type: "PARTY_SELF",
+      external_ref: {
+        _type: "PARTY_REF",
+        id: { _type: "GENERIC_ID", value: "p-1", scheme: "local" },
+        namespace: "demographic",
+        type: "PARTY",
+      },
+    },
+  ]) {
+    instance.composer = composer;
+    const flat = serializeToFlat(instance, wt);
+    assertEquals(Object.keys(flat).filter((k) => k.startsWith("ctx/")), []);
+    assertEquals(flat[`${ROOT}/composer|_type`], "PARTY_SELF");
+    const { composition, issues } = deserializeFromFlatWithIssues(flat, wt, { clock: CLOCK });
+    assertEquals(issues, []);
+    const c = composition as Rm;
+    assertEquals(c.composer._type, "PARTY_SELF");
+    assertEquals(c.composer.name, undefined);
+    assertEquals(serializeToFlat(composition, wt), flat);
+
+    // Input flavour keeps the spec form ctx/composer_self.
+    const input = serializeToFlat(instance, wt, { flavor: "input" });
+    assertEquals(input["ctx/composer_self"], true);
+    assertEquals(input[`${ROOT}/composer|_type`], undefined);
+    const fromInput = deserializeFromFlat(input, wt, { clock: CLOCK }) as Rm;
+    assertEquals(fromInput.composer._type, "PARTY_SELF");
+  }
+
+  // ctx/composer_self (EHRbase output) is still accepted.
+  const self = { ...INPUT, "ctx/composer_self": true };
+  delete self["ctx/composer_name"];
+  assertEquals((deserializeFromFlat(self, wt, { clock: CLOCK }) as Rm).composer._type, "PARTY_SELF");
+});
