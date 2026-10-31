@@ -21,7 +21,7 @@ patient or a relative), not the person who typed it.
 - `ENTRY.provider` is set only when the user explicitly records who
   provided the information.
 - `COMPOSITION.composer` is an explicit build field. The caller sets it
-  before or at commit (`set-composer`); the CB does not infer it from the
+  before or at commit (`set-composer`); the Contribution Builder does not infer it from the
   editors.
 - The committer (in the contribution and version audits) is separate and
   may differ from the composer.

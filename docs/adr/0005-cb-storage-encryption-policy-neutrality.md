@@ -16,7 +16,7 @@ advising against saving unfinished content locally on the client.
 
 - ehrtslib is policy-neutral. It does not decide storage location, access
   rights or retention of drafts or logs.
-- Storage is a pluggable adapter. The CB exposes the log as bytes,
+- Storage is a pluggable adapter. The Contribution Builder exposes the log as bytes,
   computes its `sha256` hash and hands both to the adapter. Linking the log
   from the commit is covered by [ADR 0010](0010-cb-commit-envelope-and-provenance.md).
 - Local draft persistence is off by default. When a caller turns it on,
@@ -31,7 +31,7 @@ advising against saving unfinished content locally on the client.
 - An optional append-only **log sink**, configured by the deployment,
   streams the log to a server as work happens. A build whose drafts are all
   discarded never commits, so no contribution audit carries a link to its
-  log; the sink is how such logs reach durable storage. In the multi-user
+  log; the sink is how such logs reach durable storage. In the multi-caller
   flavour the log is also synchronised to the other replicas anyway.
 
 ## Consequences
@@ -52,5 +52,5 @@ advising against saving unfinished content locally on the client.
   to the deployment.
 - **Unencrypted local persistence on by default.** Rejected: clinical data
   on disk without protection.
-- **No local persistence at all.** Rejected: offline and multi-device use
-  need it as an option.
+- **No local persistence at all.** Rejected: offline and multi-caller use (for example
+  one person on several devices) need it as an option.

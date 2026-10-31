@@ -7,9 +7,9 @@ shared editing, presence and group builds, see the
 
 ## Context
 
-[ADR 0004](0004-cb-operation-log-and-sync.md) requires a multi-user flavour that
+[ADR 0004](0004-cb-operation-log-and-sync.md) requires a multi-caller flavour that
 syncs the same `CbOperation` log through a CRDT, without choosing a library in
-phase 1. The single-app core applies operations strictly: failures throw
+phase 1. The single-caller core applies operations strictly: failures throw
 `CbOperationError` and nothing is appended. Concurrent replicas must merge
 without aborting the whole session.
 
@@ -52,7 +52,7 @@ limitation; a future op field may add a Lamport or hybrid logical clock.
 
 ### Concurrent apply policy
 
-When replaying the merged log, the multi-user adapter **does not throw** on a
+When replaying the merged log, the multi-caller adapter **does not throw** on a
 single bad operation. It:
 
 | Case | Behaviour |
@@ -80,7 +80,7 @@ work).
 
 ## Consequences
 
-- Multi-user sessions can diverge in tree state until skips are resolved; the
+- Multi-caller sessions can diverge in tree state until skips are resolved; the
   log remains complete for audit.
 - Automerge WASM (~2.5 MiB) is an explicit opt-in download.
 - Changing CRDT vendor later: export `operations` from the map + sort; JCS log

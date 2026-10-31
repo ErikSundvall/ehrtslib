@@ -38,7 +38,7 @@ What already exists:
   uids `<versioned-object-uuid>::<replica>.<n>`
   ([ADR 0003](0003-cb-identity-and-uids.md)); `open-version` gives short
   keys to loaded nodes without a uid.
-- **Multi-user:** ehrtslib uses Automerge 3 for its multi-user flavour
+- **Multi-caller:** ehrtslib uses Automerge 3 for its multi-caller flavour
   (CRDT spike in PR #207). Other implementations, also in other languages,
   may use another CRDT or operational transformation.
 - **htmx:** 2.x is the npm `latest`; 4.0 was released on 2026-08-28 and is
@@ -162,7 +162,7 @@ Example (short dialect, excerpt):
 - **Concurrency is sync-technology neutral.** `rev` is an opaque log
   position. If the node changed since `rev`, the handler applies or
   rejects the change by the build's own policy and returns the current
-  node with a note. ehrtslib's multi-user flavour uses Automerge 3 behind
+  node with a note. ehrtslib's multi-caller flavour uses Automerge 3 behind
   the same handler; nothing in the variant or the request contract refers
   to Automerge, so another implementation can serve the same contract with
   another CRDT or operational transformation.
@@ -302,7 +302,7 @@ which edits are accepted.
 - Server-rendered and offline apps get Contribution Builder editing with no
   framework and little JavaScript.
 - Every change is an ordinary operation, so replay, attribution, conflicts
-  and multi-user sync are the same as for the other add-ons.
+  and multi-caller sync are the same as for the other add-ons.
 - The projection rule keeps one HTML5 parser for both variants and makes
   the hx variant safe to downgrade.
 - One more bundle target in the release workflow and one more asset row in

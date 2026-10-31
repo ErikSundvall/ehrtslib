@@ -1,5 +1,5 @@
 /**
- * Contribution builder (CB). Design: docs/maintainers/contribution-builder-design.md
+ * Contribution Builder (CB). Design: docs/maintainers/contribution-builder-design.md
  * and ADRs 0002–0012. Phase 1 starts with template binding (ADR 0007).
  */
 

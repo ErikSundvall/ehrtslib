@@ -44,7 +44,7 @@ Every change must still go through the operation log and target a node uid
 - **Transport-neutral.** The module executes GraphQL in process
   (`execute(build, query, variables, context)`). Serving it over HTTP or
   WebSocket is the caller's choice, for example in the planned CDR proxy.
-- **Scope is uncommitted CB content only**: drafts, their nodes, values,
+- **Scope is uncommitted Contribution Builder content only**: drafts, their nodes, values,
   validation results, template binding and the build's audit input. Querying
   committed EHR data stays with AQL and the REST API.
 - **A `NodeAddress` is either a `uid` or a path of steps.** The steps can
@@ -146,7 +146,7 @@ Every change must still go through the operation log and target a node uid
 - Callers can work in their own language and vocabulary, while the log,
   replay and conflict handling stay uid-based and language-independent.
 - AI agents (for example via MCP) and form engines get a typed,
-  self-describing interface to CB content.
+  self-describing interface to Contribution Builder content.
 - Name paths depend on template translations. A translation change in a new
   template version can change name paths but never uids or code paths.
 - The module adds an optional dependency on a GraphQL implementation, which
@@ -162,7 +162,7 @@ Every change must still go through the operation log and target a node uid
 - **Natural-language names as the only way of addressing.** Rejected: names
   are ambiguous and change with language and translation; code paths and
   uids are needed for reliable automation.
-- **Inventing a CB-specific alias mechanism.** Rejected: annotations
+- **Inventing a Contribution Builder-specific alias mechanism.** Rejected: annotations
   (including the symbol keys `a.id` and the later `am.symbol_binding` from
   t/2406 #46) already exist, ehrtslib reads them, and template tools can
   author them today.
@@ -222,7 +222,7 @@ Every change must still go through the operation log and target a node uid
    the `$` shorthand, so this only decides the default list; any key also
    works through `@key=value`.
 6. **Subscriptions:** should live changes (for example from other replicas
-   in the multi-user flavour) be offered as GraphQL subscriptions, and in
+   in the multi-caller flavour) be offered as GraphQL subscriptions, and in
    which phase?
 7. **Prior work:** how much to align with earlier openEHR community
    discussions of GraphQL (to be summarised in the design document).

@@ -36,9 +36,9 @@ const json = new JsonConfigurableSerializer({ prettyPrint: true })
 | ----- | --- |
 | Hello world, packages, limitations | [docs/getting-started.md](docs/getting-started.md) |
 | Pinned library release (source zip, CDN, runtime bundles) | [docs/library-package.md](docs/library-package.md) |
-| Contribution builder (not in `mod.ts`; use `mod_full.ts` or `contribution_builder/mod.ts`) | [docs/maintainers/contribution-builder-design.md](docs/maintainers/contribution-builder-design.md) |
+| Contribution Builder (not in `mod.ts`; use `mod_full.ts` or `contribution_builder/mod.ts`) | [docs/maintainers/contribution-builder-design.md](docs/maintainers/contribution-builder-design.md) |
 
-**Breaking (0.6.x):** the default barrel `mod.ts` no longer exports `contributionBuilder`. Use `mod_full.ts` / `ehrtslib-<version>.min.js` for the previous all-in-one import, or import `contribution_builder/mod.ts` (or `deno.json` export `./contribution-builder`) when you only need the CB. The lean `-core.min.js` bundle drops the CB package only; parser, serialization, validation, and UCUM still dominate size.
+**Breaking (0.6.x):** the default barrel `mod.ts` no longer exports `contributionBuilder`. Use `mod_full.ts` / `ehrtslib-<version>.min.js` for the previous all-in-one import, or import `contribution_builder/mod.ts` (or `deno.json` export `./contribution-builder`) when you only need the Contribution Builder. The lean `-core.min.js` bundle drops the Contribution Builder package only; parser, serialization, validation, and UCUM still dominate size.
 
 **ADL2 coding (0.7.x+):** OPT 1.4 up-conversion and template binding default to **at-coded** ADL2 (SPECAM-90). Pass `adl2CodingSystem: "id-coded"` on `bindTemplate`, `upconvertOpt14ToAdl2`, `convertAdl14ToAdl2`, or `OPT2Serializer.serializeOperationalTemplate` for the legacy id-coded mapping. The ADL2 parser accepts both.
 | Dual accessors (`name` vs `$name`) | [docs/user/dual-accessors.md](docs/user/dual-accessors.md) |

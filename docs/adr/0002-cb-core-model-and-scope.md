@@ -5,8 +5,10 @@ Status: proposed (draft for review). Part of the
 
 ## Context
 
-The Contribution Builder (CB) is needed in two flavours: a single web app or
-server process, and collaborative multi-user / multi-device editing. It must
+The Contribution Builder (CB) is needed in two flavours: a single caller
+(one web app or server process), and collaborative multi-caller editing. A
+caller is one app instance or device writing to the build; one person on two
+devices is multi-caller. It must
 also cover every openEHR versioned type, not only compositions. Two separate
 code bases would drift, and a composition-only design would need a new
 format when `EHR_STATUS`, `FOLDER` or demographic `PARTY` versions are added.
@@ -14,8 +16,8 @@ format when `EHR_STATUS`, `FOLDER` or demographic `PARTY` versions are added.
 ## Decision
 
 - One core model, `ContributionBuild`, holds the drafts (`VersionDraft<T>`),
-  the operation log, template bindings and validation results. Single-app
-  and CRDT use are adapters over the same core.
+  the operation log, template bindings and validation results. Single-caller
+  and CRDT (multi-caller) use are adapters over the same core.
 - The core is generic over `VERSION<T>`: `COMPOSITION`, `EHR_STATUS`,
   `EHR_ACCESS`, `FOLDER`, demographic `PARTY` subtypes and later versioned
   types. The implementation ships `COMPOSITION` first.
@@ -33,15 +35,15 @@ format when `EHR_STATUS`, `FOLDER` or demographic `PARTY` versions are added.
 
 - Adding a versioned type means adding type-specific validation and
   defaults, not a new log or envelope format.
-- Any CDR that accepts the REST ITS contribution shape accepts CB output.
+- Any CDR that accepts the REST ITS contribution shape accepts Contribution Builder output.
 - Simplified formats can change without touching stored drafts or logs.
 - Working state needs its own (non-RM) serialisation for storage and sync.
 
 ## Alternatives considered
 
-- **Separate single-app and multi-user builders.** Rejected: duplicated
+- **Separate single-caller and multi-caller builders.** Rejected: duplicated
   logic and diverging behaviour.
 - **FLAT or Web Template paths as the internal format.** Rejected: lossy
   for some RM content and tied to one template rendering.
 - **Composition-only design.** Rejected by the maintainer: the design must
-  cover the whole CB; only the delivery order starts with compositions.
+  cover the whole Contribution Builder; only the delivery order starts with compositions.
