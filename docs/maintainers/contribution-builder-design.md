@@ -63,7 +63,46 @@ verbs:
    together, or a demographic `PARTY` and its relationships.
 6. An auditor replays the editing session that led to a commit.
 
-### 1.4 Why
+### 1.4 Single caller and multi-caller
+
+A **caller** is one app instance or device writing to the build; one person
+on two devices is multi-caller. There is one builder and one operation
+format for both cases. Only the sync layer differs
+([ADR 0002](../adr/0002-cb-core-model-and-scope.md)).
+
+**What a single caller gets.** A single caller (one web app, one server
+request, one device) needs no CRDT library and still gets:
+
+| Feature | What it gives | Status |
+| --- | --- | --- |
+| One append-only operation log | Every change is an operation with author, timestamp, replica and target node uid ([ADR 0004](../adr/0004-cb-operation-log-and-sync.md)). | Implemented |
+| Deterministic replay | The same log and template give the same RM JSON, so the editing session can be played back. | Implemented |
+| Undo and redo | Designed to come from the same log ([ADR 0004](../adr/0004-cb-operation-log-and-sync.md)). | Planned, not in the code yet |
+| Kept discarded drafts | A `discard` is an operation; the log is the record of drafts that never reach the CDR. | Designed, not in the code yet |
+| Tamper-evident audit trail | Each commit's `AUDIT_DETAILS.description` carries `oplog sha256:<hex>` and, optionally, a link to the log ([ADR 0010](../adr/0010-cb-commit-envelope-and-provenance.md)). | Implemented |
+| Optional append-only log sink | The deployment can stream the log to a server as work happens ([ADR 0005](../adr/0005-cb-storage-encryption-policy-neutrality.md)). | Designed, not in the code yet |
+| Conflict detection against the CDR | Other systems can write to the same EHR, so an update commit carries `preceding_version_uid`; on failure the builder re-reads, replays the log and returns conflicts as data ([ADR 0009](../adr/0009-cb-conflicts-and-rebase.md)). Costs nothing unless a commit fails. | Implemented |
+
+The hash plus the log sink give a trail that is good for catching
+fraudulent edits. It is **not** non-repudiation: authors in the log are
+whatever the caller passes in, and operations are not signed. That needs
+signatures, for example the optional `signature` and `attestations` on
+`UPDATE_VERSION`. Encryption at rest and retention are the deployment's
+choice ([ADR 0005](../adr/0005-cb-storage-encryption-policy-neutrality.md)).
+
+**What multi-caller adds.** Several callers (people, or one person on
+several devices) edit the same draft. On top of everything above it adds
+the following. This flavour is designed (ADR 0013, proposed) and so far
+exists only as a spike ([#170](https://github.com/ErikSundvall/ehrtslib/issues/170)):
+
+| Feature | What it adds |
+| --- | --- |
+| CRDT sync | The same operations are synced through Automerge 3 ([ADR 0013](../adr/0013-cb-crdt-library-and-apply-policy.md)); the Automerge WASM is an opt-in download. |
+| Concurrent apply policy | Rules for replaying merged operations without throwing, and for surfacing skips ([ADR 0013](../adr/0013-cb-crdt-library-and-apply-policy.md)). |
+| Presence | Who edits where, ephemeral and not logged. |
+| Text sync levels and the base `rev` check | A `set-value` with a stale `rev` is not applied, so nobody silently overwrites someone else's free text. [#243](https://github.com/ErikSundvall/ehrtslib/issues/243) proposes making `rev` optional for single-caller builds. |
+
+### 1.5 Why
 
 openEHR REST lets clients send whole contributions, but today every app
 re-implements draft handling, uid assignment, validation, attribution and
@@ -79,13 +118,13 @@ versioned type). The operation log, the uid scheme and the commit envelope are g
 over `VERSION<T>`. The implementation ships **COMPOSITION first**; the other
 types follow without format changes ([ADR 0002](../adr/0002-cb-core-model-and-scope.md)).
 
-Two flavours share one core:
+Two flavours share one core (see section 1.4):
 
-- **Single-app**: one process (for example one web app or one server
+- **Single caller**: one caller (for example one web app or one server
   request) edits the draft. Operations are applied directly.
-- **Multi-user / multi-device**: operations are synchronised through a CRDT
-  so several users or devices edit the same draft, with presence, per-value
-  author colouring and session playback.
+- **Multi-caller**: operations are synchronised through a CRDT so several
+  people or devices edit the same draft, with presence and per-value
+  author colouring.
 
 Out of scope here: the merge-conflict resolver UI (separate project, see
 roadmap) and formal openEHR specification proposals (see section 11).
