@@ -14,9 +14,22 @@ import type { FlatPayload, WebTemplate, WebTemplateNode } from "./types.ts";
 import { normalizeWebTemplateId, templateRootId } from "./normalize.ts";
 import {
   assignAtAqlPath,
+  ensureAtAqlPath,
   type OccurrenceHints,
   type RmTypeHints,
 } from "./rm_instance_builder.ts";
+import {
+  baseType,
+  decodeRmObjectInto,
+  decodeRmValue,
+  type FlatFieldValue,
+  type FlatTree,
+  hasStructuredForm,
+  isRmAttributeSegmentOfAny,
+  newFlatTree,
+  resolveRmAttribute,
+  type UnknownAttributes,
+} from "./rm_attribute_codec.ts";
 import {
   applyFlatRmDefaults,
   type FlatRmDefaultIssue,
@@ -38,6 +51,8 @@ type Primitive = string | number | boolean;
 interface ParsedSegment {
   id: string;
   index: number;
+  /** Written with `:i`. */
+  indexed: boolean;
 }
 
 interface LeafGroup {
@@ -50,12 +65,24 @@ interface LeafGroup {
   /** `_null_flavour|…` / `_null_reason` fields of an ELEMENT without value. */
   nullFlavour?: Record<string, Primitive>;
   nullReason?: Primitive;
+  /** `/_<attribute>` (and plain form) sub-paths below the node. */
+  attributes?: FlatTree;
+  /** The leaf value was decoded from `fields` and `attributes` together. */
+  attributesConsumed?: boolean;
+}
+
+/** Key path split into the Web Template node and the RM attribute path below it. */
+interface ResolvedKey {
+  node: WebTemplateNode;
+  segments: ParsedSegment[];
+  attr: ParsedSegment[];
+  legacy: boolean;
 }
 
 function parseSegments(basePath: string): ParsedSegment[] {
   return basePath.split("/").map((seg) => {
     const m = /^(.*?)(?::(\d+))?$/.exec(seg)!;
-    return { id: m[1], index: m[2] ? parseInt(m[2], 10) : 0 };
+    return { id: m[1], index: m[2] ? parseInt(m[2], 10) : 0, indexed: m[2] != null };
   });
 }
 
@@ -110,8 +137,26 @@ export function throwOnUnknownFlatKey(issues: FlatRmDefaultIssue[]): void {
   if (errors.length) throw new UnknownFlatKeyError(errors);
 }
 
-/** Supported `_attribute` escapes on EVENT_CONTEXT. */
-const CONTEXT_UNDERSCORE = new Set(["_end_time", "_location", "_health_care_facility"]);
+/** RM types whose leaf value sits in an ELEMENT (`items[…]` / `item[…]`). */
+function isElementLeaf(node: WebTemplateNode): boolean {
+  return /\/(items|item)\[[^\]]+\]$/.test(node.aqlPath) && node.rmType !== "ELEMENT";
+}
+
+function insertAttribute(
+  tree: FlatTree,
+  segments: ParsedSegment[],
+  suffix: string,
+  value: FlatFieldValue,
+): void {
+  let cur = tree;
+  for (const seg of segments) {
+    let child = cur.children.get(seg.id);
+    if (!child) cur.children.set(seg.id, child = { multi: false, items: [] });
+    if (seg.indexed) child.multi = true;
+    cur = child.items[seg.index] ??= newFlatTree();
+  }
+  cur.fields[suffix] = value;
+}
 
 export class FlatDeserializer {
   /**
@@ -170,7 +215,6 @@ export class FlatDeserializer {
     const comp: RmObject = { _type: "COMPOSITION" };
     const groups = new Map<string, LeafGroup>();
     const ctx: CtxFields = new Map();
-    const contextAttrs: Record<string, Primitive> = {};
     const legacyKeys: string[] = [];
     const unknownMode = this.options.unknownKeys ?? "error";
     const unknown = (key: string, message: string, severity = unknownMode) => {
@@ -211,58 +255,26 @@ export class FlatDeserializer {
       segments.shift();
       if (!segments.length) continue;
 
-      // Root-level RM attribute escape (e.g. `template/_uid`)
-      if (segments.length === 1 && segments[0].id === "_uid") {
-        if (typeof value !== "object") {
-          comp.uid = { _type: "OBJECT_VERSION_ID", value: String(value) };
-        }
-        continue;
-      }
-
-      // RM attribute escapes: `…/_null_flavour|code`, `context/_end_time`, …
-      const last = segments[segments.length - 1].id;
-      let attr: string | undefined;
-      if (last.startsWith("_")) {
-        attr = last;
-        segments.pop();
-      }
-
-      let chain = segments.map((s) => s.id).join("/");
-      let node = this.nodeByChain.get(chain);
-      if (!node) {
-        const legacy = this.legacySegments(segments);
-        if (legacy) {
-          segments.splice(0, segments.length, ...legacy);
-          chain = segments.map((s) => s.id).join("/");
-          node = this.nodeByChain.get(chain);
-          legacyKeys.push(key);
-        }
-      }
-      if (!node) {
+      const resolved = this.resolveKey(segments);
+      if (!resolved) {
         unknown(key, "no Web Template node has this path");
         continue;
       }
+      if (resolved.legacy) legacyKeys.push(key);
+      const node = resolved.node;
+      segments.splice(0, segments.length, ...resolved.segments);
 
-      if (attr) {
-        if (typeof value === "object") continue;
-        if (node.rmType === "EVENT_CONTEXT" && CONTEXT_UNDERSCORE.has(attr)) {
-          contextAttrs[suffix ? `${attr}|${suffix}` : attr] = value as Primitive;
-          continue;
-        }
-        if (attr !== "_null_flavour" && attr !== "_null_reason") {
-          unknown(key, `RM attribute "${attr}" is not supported; ignored`, unknownMode === "ignore" ? "ignore" : "warning");
-          continue;
-        }
+      // `…/_null_flavour|code`, `…/_null_reason` of an ELEMENT without value.
+      const attrName = resolved.attr.length === 1 ? resolved.attr[0].id : undefined;
+      const nullAttr = attrName === "_null_flavour" || attrName === "_null_reason";
+      if (resolved.attr.length && !nullAttr) {
+        const group = this.group(groups, node, segments);
+        insertAttribute(group.attributes ??= newFlatTree(), resolved.attr, suffix, value as FlatFieldValue);
+        continue;
       }
+      const attr = nullAttr ? attrName : undefined;
 
-      const groupKey = segments
-        .map((s) => `${s.id}:${s.index}`)
-        .join("/");
-      let group = groups.get(groupKey);
-      if (!group) {
-        group = { node, segments, fields: {} };
-        groups.set(groupKey, group);
-      }
+      const group = this.group(groups, node, segments);
 
       if (attr === "_null_flavour" && typeof value !== "object") {
         (group.nullFlavour ??= {})[suffix] = value as Primitive;
@@ -292,7 +304,10 @@ export class FlatDeserializer {
     for (const group of groups.values()) {
       this.assignGroup(comp, group);
     }
-    this.applyContextAttrs(comp, contextAttrs);
+    // RM attributes after the values, so they land on existing objects.
+    for (const group of groups.values()) {
+      this.applyAttributes(comp, group);
+    }
 
     // ctx/ and RM defaults fill only what the paths did not set.
     applyFlatContextDefaults(comp, this.webTemplate, ctx, this.issues, this.options);
@@ -326,21 +341,124 @@ export class FlatDeserializer {
     return undefined;
   }
 
-  /** `context/_end_time`, `_location`, `_health_care_facility|…` paths. */
-  private applyContextAttrs(comp: RmObject, attrs: Record<string, Primitive>): void {
-    if (!Object.keys(attrs).length) return;
-    const ctx = (comp.context ??= { _type: "EVENT_CONTEXT" }) as RmObject;
-    if (attrs._end_time != null) {
-      ctx.end_time = { _type: "DV_DATE_TIME", value: String(attrs._end_time) };
+  private group(groups: Map<string, LeafGroup>, node: WebTemplateNode, segments: ParsedSegment[]): LeafGroup {
+    const groupKey = segments.map((s) => `${s.id}:${s.index}`).join("/");
+    let group = groups.get(groupKey);
+    if (!group) {
+      group = { node, segments, fields: {} };
+      groups.set(groupKey, group);
     }
-    if (attrs._location != null) ctx.location = String(attrs._location);
-    const hcf: Record<string, Primitive> = {};
-    for (const [k, v] of Object.entries(attrs)) {
-      if (k.startsWith("_health_care_facility|")) hcf[k.split("|")[1]] = v;
+    return group;
+  }
+
+  /** Node for a segment chain (indices ignored), with the legacy HISTORY form. */
+  private matchChain(segments: ParsedSegment[]): { node: WebTemplateNode; segments: ParsedSegment[]; legacy: boolean } | undefined {
+    if (!segments.length) return { node: this.webTemplate.tree, segments: [], legacy: false };
+    const node = this.nodeByChain.get(segments.map((s) => s.id).join("/"));
+    if (node) return { node, segments, legacy: false };
+    const legacy = this.legacySegments(segments);
+    if (!legacy) return undefined;
+    const legacyNode = this.nodeByChain.get(legacy.map((s) => s.id).join("/"));
+    return legacyNode ? { node: legacyNode, segments: legacy, legacy: true } : undefined;
+  }
+
+  /** RM types an attribute segment below `node` may belong to (ELEMENT first for a leaf). */
+  private attributeOwners(node: WebTemplateNode): string[] {
+    if (node === this.webTemplate.tree) return ["COMPOSITION"];
+    const types = [baseType(node.rmType)];
+    if (isElementLeaf(node)) types.unshift("ELEMENT");
+    return types;
+  }
+
+  /**
+   * Split key segments into the Web Template node and the RM attribute path:
+   * the first `_<name>` segment starts the attribute path; a plain segment
+   * does when it names an attribute of the node's RM type (form paths such
+   * as DV_INTERVAL `/lower` or ISM_TRANSITION `/transition`).
+   */
+  private resolveKey(segments: ParsedSegment[]): ResolvedKey | undefined {
+    const full = this.matchChain(segments);
+    if (full && segments.length) return { ...full, attr: [] };
+    const underscore = segments.findIndex((s) => s.id.startsWith("_"));
+    if (underscore !== -1) {
+      const prefix = this.matchChain(segments.slice(0, underscore));
+      if (prefix) return { ...prefix, attr: segments.slice(underscore) };
     }
-    if (Object.keys(hcf).length) {
-      ctx.health_care_facility = buildRmValue("PARTY_IDENTIFIED", hcf);
+    for (let j = segments.length - 1; j >= 1; j--) {
+      const prefix = this.matchChain(segments.slice(0, j));
+      if (!prefix) continue;
+      const seg = segments[j].id;
+      if (this.attributeOwners(prefix.node).some((t) => isRmAttributeSegmentOfAny(t, seg))) {
+        return { ...prefix, attr: segments.slice(j) };
+      }
+      return undefined;
     }
+    return undefined;
+  }
+
+  private reportAttributes(unknownAttrs: UnknownAttributes, node: WebTemplateNode): void {
+    const mode = this.options.unknownKeys ?? "error";
+    if (mode === "ignore") return;
+    for (const path of unknownAttrs) {
+      const computed = /\/_?offset(:\d+)?$/.test(path) && /EVENT$/.test(node.rmType);
+      this.issues.push({
+        path: `${node.aqlPath}${path}`,
+        severity: "warning",
+        kind: "unknown-key",
+        message: computed
+          ? "EVENT.offset is computed (time − HISTORY.origin), not stored; ignored"
+          : `RM type ${node.rmType} has no attribute for "${path.split("/").pop()}"; ignored`,
+      });
+    }
+  }
+
+  /** Apply `/_<attribute>` paths (and form fields of non-leaf nodes) to the RM objects. */
+  private applyAttributes(comp: RmObject, group: LeafGroup): void {
+    const { node } = group;
+    const leaf = !node.children?.length;
+    const tree = group.attributes;
+    const nodeFields = node.children?.length && node !== this.webTemplate.tree ? group.fields : {};
+    if ((!tree || group.attributesConsumed) && !Object.keys(nodeFields).length) return;
+    const unknownAttrs: UnknownAttributes = [];
+    const attrs = tree && !group.attributesConsumed ? tree : newFlatTree();
+    if (node === this.webTemplate.tree) {
+      decodeRmObjectInto(comp, "COMPOSITION", undefined, attrs, unknownAttrs);
+      this.reportAttributes(unknownAttrs, node);
+      return;
+    }
+    const hints = this.occurrenceHints(group);
+    const typeHints = this.rmTypeHints(group);
+    if (!leaf) {
+      const obj = ensureAtAqlPath(comp, node.aqlPath, node.rmType, node.nodeId, hints, typeHints);
+      const type = String(obj._type ?? node.rmType);
+      decodeRmObjectInto(obj, type, undefined, { fields: { ...nodeFields }, children: attrs.children }, unknownAttrs);
+      this.reportAttributes(unknownAttrs, node);
+      return;
+    }
+    // Leaf: ELEMENT attributes (uid, links, feeder_audit, name) on the
+    // ELEMENT, the others on its value.
+    const valueTree = newFlatTree();
+    const elementTree = newFlatTree();
+    const elementLeaf = isElementLeaf(node);
+    for (const [name, child] of attrs.children) {
+      const onElement = elementLeaf && resolveRmAttribute("ELEMENT", name) != null;
+      (onElement ? elementTree : valueTree).children.set(name, child);
+    }
+    if (elementTree.children.size) {
+      const element = ensureAtAqlPath(comp, node.aqlPath, "ELEMENT", node.nodeId, hints, typeHints);
+      decodeRmObjectInto(element, "ELEMENT", undefined, elementTree, unknownAttrs);
+    }
+    if (valueTree.children.size) {
+      let value: RmObject;
+      if (elementLeaf) {
+        const element = ensureAtAqlPath(comp, node.aqlPath, "ELEMENT", node.nodeId, hints, typeHints);
+        value = (element.value ??= { _type: baseType(node.rmType) }) as RmObject;
+      } else {
+        value = ensureAtAqlPath(comp, node.aqlPath, baseType(node.rmType), undefined, hints, typeHints);
+      }
+      decodeRmObjectInto(value, String(value._type ?? node.rmType), undefined, valueTree, unknownAttrs);
+    }
+    this.reportAttributes(unknownAttrs, node);
   }
 
   private occurrenceHints(group: LeafGroup): OccurrenceHints {
@@ -397,8 +515,23 @@ export class FlatDeserializer {
 
   private assignGroup(comp: RmObject, group: LeafGroup): void {
     const { node } = group;
+    if (node === this.webTemplate.tree) return;
+    // Fields of a node with children are its form fields (applyAttributes).
+    if (node.children?.length && !group.raw) return;
     const hints = this.occurrenceHints(group);
     const typeHints = this.rmTypeHints(group);
+
+    if (!group.raw && group.other === undefined && hasStructuredForm(node.rmType)) {
+      // e.g. DV_INTERVAL: `|lower_included` fields and `/lower`, `/upper` paths.
+      const tree: FlatTree = { fields: { ...group.fields }, children: group.attributes?.children ?? new Map() };
+      group.attributesConsumed = true;
+      if (!Object.keys(tree.fields).length && !tree.children.size) return;
+      const unknownAttrs: UnknownAttributes = [];
+      const value = decodeRmValue(node.rmType, undefined, tree, unknownAttrs);
+      this.reportAttributes(unknownAttrs, node);
+      assignAtAqlPath(comp, node.aqlPath, value, baseType(node.rmType), node.nodeId, hints, typeHints);
+      return;
+    }
 
     if (group.raw) {
       assignAtAqlPath(

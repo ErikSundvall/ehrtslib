@@ -6,13 +6,19 @@
 import type { FlatPayload, WebTemplate, WebTemplateNode } from "./types.ts";
 import { templateRootId } from "./normalize.ts";
 import {
-  resolveAllAtWebTemplateNode,
-  resolveChildWebTemplateNodes,
+  resolveAllValuesAtWebTemplateNode,
+  resolveChildWebTemplateNodeValues,
 } from "./instance_nav.ts";
 import { extractValueFields } from "./value_extract.ts";
-import { rmProp } from "./dv_field_maps.ts";
+import { getFieldMap } from "./dv_field_maps.ts";
 import {
-  contextUnderscoreFields,
+  baseType,
+  emitFlatTree,
+  encodeRmObject,
+  hasStructuredForm,
+  TEMPLATE_SUPPLIED,
+} from "./rm_attribute_codec.ts";
+import {
   InputFlavorPolicy,
   inputContextFields,
   nullFlavourFields,
@@ -55,11 +61,51 @@ function indexSuffix(max: number, index: number): string {
   return max !== 1 || index > 0 ? `:${index}` : "";
 }
 
+/** Names the template gives a node (the instance name is written only when it differs). */
+function templateNames(node: WebTemplateNode): string[] {
+  return [node.name, node.localizedName, ...Object.values(node.localizedNames ?? {})]
+    .filter((n): n is string => !!n);
+}
+
+/** Attributes of an ELEMENT that its leaf already writes. */
+const ELEMENT_WRITTEN = new Set([...TEMPLATE_SUPPLIED, "value", "null_flavour", "null_reason"]);
+
+/** EVENT_CONTEXT attributes the input flavour writes as `ctx/`. */
+const INPUT_CTX_CONTEXT = new Set(["end_time", "location", "health_care_facility"]);
+
+/**
+ * RM attributes a Web Template node's descendants address (first AQL
+ * segment below the node), so they are not written again as `_<attribute>`.
+ */
+function templateAttributes(node: WebTemplateNode, wt: WebTemplate): Set<string> {
+  const base = node.aqlPath === "/" ? "" : node.aqlPath;
+  const out = new Set<string>();
+  // Objects the template constrains without a node of their own (HISTORY,
+  // ITEM_TREE, a single EVENT, other_context).
+  for (const path of Object.keys(wt.tree.collapsed ?? {})) {
+    if (!path.startsWith(`${base}/`)) continue;
+    const m = /^\/([^[/]+)/.exec(path.slice(base.length));
+    if (m) out.add(m[1]);
+  }
+  const visit = (n: WebTemplateNode) => {
+    for (const child of n.children ?? []) {
+      if (child.aqlPath.startsWith(base) && child.aqlPath !== base) {
+        const m = /^\/([^[/]+)/.exec(child.aqlPath.slice(base.length));
+        if (m) out.add(m[1]);
+      }
+      visit(child);
+    }
+  };
+  visit(node);
+  return out;
+}
+
 export class FlatSerializer {
   private out: FlatPayload = {};
   private rootId: string;
   private instance: unknown;
   private policy?: InputFlavorPolicy;
+  private covered = new WeakMap<WebTemplateNode, Set<string>>();
 
   constructor(
     private webTemplate: WebTemplate,
@@ -76,17 +122,15 @@ export class FlatSerializer {
       : undefined;
     this.out = input ? inputContextFields(instance) : {};
 
-    const uid = rmProp(rmProp(instance, "uid"), "value");
-    if (uid != null) this.out[`${this.rootId}/_uid`] = String(uid);
-
     // FLAT keys carry a single root segment (the normalised template id);
     // the tree root node itself contributes no extra path segment.
     for (const child of this.webTemplate.tree.children ?? []) {
-      const values = resolveAllAtWebTemplateNode(instance, child);
+      const values = resolveAllValuesAtWebTemplateNode(instance, child);
       for (let i = 0; i < values.length; i++) {
-        this.walkNode(child, [this.rootId], i, values[i], [instance]);
+        this.walkNode(child, [this.rootId], i, values[i].value, [instance], values[i].element);
       }
     }
+    this.writeAttributes(this.webTemplate.tree, this.rootId, instance);
     return { ...this.out };
   }
 
@@ -105,6 +149,7 @@ export class FlatSerializer {
     index: number,
     data: unknown,
     ancestors: unknown[],
+    element?: unknown,
   ): void {
     if (data == null) return;
     if (node.inContext && this.policy?.omit(node, data, ancestors)) return;
@@ -116,10 +161,23 @@ export class FlatSerializer {
     if (isLeaf) {
       if (rmTypeOf(data) === "ELEMENT") {
         for (const [k, v] of nullFlavourFields(data)) this.out[`${base}/${k}`] = v;
+        this.writeElementAttributes(node, base, data);
         return;
       }
       if (typeof data !== "object") {
         this.out[base] = data as string | number | boolean;
+        return;
+      }
+      if (element) this.writeElementAttributes(node, base, element);
+      if (hasStructuredForm(rmTypeOf(data) || node.rmType) && !getFieldMap(rmTypeOf(data))) {
+        // e.g. DV_INTERVAL: `/lower`, `/upper`, `|lower_included`, …
+        emitFlatTree(base, encodeRmObject(data, node.rmType), this.out);
+        return;
+      }
+      if (node.rmType === "DV_CODED_TEXT" && rmTypeOf(data) === "DV_TEXT") {
+        // Free text on an open coded value set.
+        this.out[`${base}|other`] = (data as { value?: string }).value ?? "";
+        this.writeValueAttributes(base, data);
         return;
       }
       const fields = rmTypeOf(data).startsWith("PARTY_")
@@ -133,27 +191,58 @@ export class FlatSerializer {
       for (const [suffix, value] of Object.entries(fields)) {
         this.out[suffix === "" ? base : `${base}|${suffix}`] = value;
       }
+      this.writeValueAttributes(base, data);
       return;
     }
 
     for (const child of node.children ?? []) {
-      const childValues = resolveChildWebTemplateNodes(
+      const childValues = resolveChildWebTemplateNodeValues(
         this.instance,
         data,
         node,
         child,
       );
       for (let i = 0; i < childValues.length; i++) {
-        this.walkNode(child, nextPath, i, childValues[i], [...ancestors, data]);
+        this.walkNode(child, nextPath, i, childValues[i].value, [...ancestors, data], childValues[i].element);
       }
     }
+    this.writeAttributes(node, base, data);
+  }
 
-    if (node.rmType === "EVENT_CONTEXT" && !this.policy) {
-      for (const [k, v] of contextUnderscoreFields(data)) {
-        const [attr, suffix] = k.split("|");
-        this.out[suffix ? `${base}/${attr}|${suffix}` : `${base}/${attr}`] = v;
-      }
+  /** `_<attribute>` paths for RM attributes no Web Template node writes. */
+  private writeAttributes(node: WebTemplateNode, base: string, data: unknown): void {
+    let covered = this.covered.get(node);
+    if (!covered) {
+      covered = new Set([...templateAttributes(node, this.webTemplate), ...TEMPLATE_SUPPLIED]);
+      this.covered.set(node, covered);
     }
+    const skip = this.policy && node.rmType === "EVENT_CONTEXT"
+      ? new Set([...covered, ...INPUT_CTX_CONTEXT])
+      : covered;
+    const type = rmTypeOf(data) || node.rmType;
+    const tree = encodeRmObject(data, type, undefined, { skip, templateNames: templateNames(node) });
+    emitFlatTree(base, tree, this.out);
+  }
+
+  /** `_uid`, `_link:i`, `_feeder_audit`, `_name` of the ELEMENT of a leaf. */
+  private writeElementAttributes(node: WebTemplateNode, base: string, element: unknown): void {
+    const tree = encodeRmObject(element, "ELEMENT", undefined, {
+      skip: ELEMENT_WRITTEN,
+      templateNames: templateNames(node),
+    });
+    emitFlatTree(base, { fields: {}, children: tree.children }, this.out);
+  }
+
+  /**
+   * `_<attribute>` paths for attributes of a leaf value that its `|suffix`
+   * fields do not carry (DV_QUANTITY `_normal_range`, DV_TEXT `_mapping:i`,
+   * PARTY_IDENTIFIED `_identifier:i`, …).
+   */
+  private writeValueAttributes(base: string, data: unknown): void {
+    const type = baseType(rmTypeOf(data));
+    if (!type) return;
+    const tree = encodeRmObject(data, type);
+    emitFlatTree(base, { fields: {}, children: tree.children }, this.out);
   }
 }
 
