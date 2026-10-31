@@ -340,12 +340,8 @@ class ContextDefaulter {
         }
         return;
       }
-      this.issues.push({
-        path: "/context",
-        severity: "warning",
-        kind: "context-rule",
-        message: "context/… paths given for a persistent composition (category 431); kept, but the RM invariant Is_persistent_validity requires no context",
-      });
+      // A context given by context/… paths is kept (allowed since RM 1.0.4,
+      // SPECRM-52); ctx/ keys then fill it.
     } else if (!c.context) {
       // ctx/ values are always used, so they fill the event context even
       // with contextDefaults "none".

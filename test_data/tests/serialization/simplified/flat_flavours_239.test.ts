@@ -351,7 +351,7 @@ Deno.test("#239 context by category: event gets one, persistent only from contex
   assert(warning && warning.severity === "warning" && /ctx\/time, ctx\/setting/.test(warning.message), warning?.message);
   assertEquals(persistent.issues.filter((i) => i.severity === "error"), []);
 
-  // ... and explicit context/ paths are kept, with an RM-invariant warning.
+  // ... and explicit context/ paths are kept without a warning (RM 1.0.4+).
   const explicit = deserializeFromFlatWithIssues(
     { ...INPUT, [`${ROOT}/context/start_time`]: "2026-10-30T09:00:00+01:00" },
     p.wt,
@@ -360,7 +360,12 @@ Deno.test("#239 context by category: event gets one, persistent only from contex
   const ec = explicit.composition as Rm;
   assertEquals(ec.context.start_time.value, "2026-10-30T09:00:00+01:00");
   assertEquals(ec.context.setting.defining_code.code_string, "238");
-  assert(explicit.issues.some((i) => i.kind === "context-rule" && /Is_persistent_validity/.test(i.message)));
+  assertEquals(explicit.issues.filter((i) => i.kind === "context-rule"), []);
+  const explicitFlat = serializeToFlat(ec, p.wt);
+  assertEquals(explicitFlat[`${ROOT}/context/start_time`], "2026-10-30T09:00:00+01:00");
+  const explicitAgain = deserializeFromFlatWithIssues(explicitFlat, p.wt, { clock: CLOCK });
+  assertEquals(explicitAgain.issues.filter((i) => i.kind === "context-rule"), []);
+  assertEquals(serializeToFlat(explicitAgain.composition, p.wt), explicitFlat);
 
   // Both flavours round trip a persistent composition without context.
   const instance = deserializeFromFlat({ ...INPUT }, p.wt, { clock: CLOCK, unknownKeys: "ignore" });
