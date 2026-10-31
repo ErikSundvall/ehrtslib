@@ -75,8 +75,10 @@ bytes) and `contribution_builder/contribution_build.ts` (`ContributionBuild`,
 
 ## Consequences
 
-- Undo, playback, per-value author colouring and conflict replay all come
-  from one source.
+- History replay (playback), copy forward from an earlier state,
+  per-value author colouring and conflict replay all come from one source.
+  Nothing is rewound: bringing something back is a new operation. Undo in a
+  UI is the UI's business, not the builder's.
 - The log grows with editing activity; compaction must not drop what
   playback and audit need (retention is the caller's policy, see
   [ADR 0005](0005-cb-storage-encryption-policy-neutrality.md)).

@@ -77,11 +77,15 @@ request, one device) needs no CRDT library and still gets:
 | --- | --- | --- |
 | One append-only operation log | Every change is an operation with author, timestamp, replica and target node uid ([ADR 0004](../adr/0004-cb-operation-log-and-sync.md)). | Implemented |
 | Deterministic replay | The same log and template give the same RM JSON, so the editing session can be played back. | Implemented |
-| Undo and redo | Designed to come from the same log ([ADR 0004](../adr/0004-cb-operation-log-and-sync.md)). | Planned, not in the code yet |
+| History replay and copy forward | Nothing is erased. A caller can replay the log to see the draft as it was after any operation, and copy a value or text block from that earlier state into the current one as a new `set-value` ([ADR 0004](../adr/0004-cb-operation-log-and-sync.md)). | Replay implemented; a replay-to-point API and copy-forward provenance are not in the code yet |
 | Kept discarded drafts | A `discard` is an operation; the log is the record of drafts that never reach the CDR. | Designed, not in the code yet |
 | Tamper-evident audit trail | Each commit's `AUDIT_DETAILS.description` carries `oplog sha256:<hex>` and, optionally, a link to the log ([ADR 0010](../adr/0010-cb-commit-envelope-and-provenance.md)). | Implemented |
 | Optional append-only log sink | The deployment can stream the log to a server as work happens ([ADR 0005](../adr/0005-cb-storage-encryption-policy-neutrality.md)). | Designed, not in the code yet |
 | Conflict detection against the CDR | Other systems can write to the same EHR, so an update commit carries `preceding_version_uid`; on failure the builder re-reads, replays the log and returns conflicts as data ([ADR 0009](../adr/0009-cb-conflicts-and-rebase.md)). Costs nothing unless a commit fails. | Implemented |
+
+The Contribution Builder has no undo and never rewinds the log or restores a
+whole earlier state. What a UI does before it calls the builder, such as
+in-field undo, is the UI's business.
 
 The hash plus the log sink give a trail that is good for catching
 fraudulent edits. It is **not** non-repudiation: authors in the log are
