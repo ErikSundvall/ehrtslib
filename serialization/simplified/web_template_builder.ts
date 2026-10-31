@@ -180,6 +180,21 @@ function rmContextNode(
 }
 
 /**
+ * Input of an ACTIVITY `action_archetype_id` node. A template pattern (C_STRING
+ * on the attribute) becomes `validation.pattern` and the default value
+ * `/pattern/`, which the deserializer uses when the payload has none.
+ */
+function actionArchetypeIdInput(obj?: openehr_am.C_COMPLEX_OBJECT): WebTemplateInput {
+  const attr = (obj?.attributes ?? []).find((a) => a.rm_attribute_name === "action_archetype_id");
+  const child = attr?.children?.[0] as { item?: { pattern?: string; list?: string[] }; pattern?: string; list?: string[] } | undefined;
+  const constraint = child?.item ?? child;
+  const pattern = constraint?.pattern ?? (constraint?.list?.length === 1 ? constraint.list[0] : undefined);
+  if (!pattern) return { type: "TEXT" };
+  const bare = pattern.replace(/^\/(.*)\/$/, "$1");
+  return { type: "TEXT", validation: { pattern: bare }, defaultValue: `/${bare}/` };
+}
+
+/**
  * ISM_TRANSITION of an ACTION whose template does not constrain it: any
  * openEHR instruction state as `current_state`.
  */
@@ -1197,14 +1212,14 @@ export class WebTemplateBuilder {
       }
     }
 
-    if (this.includeContext) this.appendRmContextNodes(node);
+    if (this.includeContext) this.appendRmContextNodes(node, obj);
 
     if (!node.children?.length) delete node.children;
     return this.decorateWithAnnotations(node);
   }
 
   /** RM-mandatory attributes of entries and activities as `inContext` nodes. */
-  private appendRmContextNodes(node: WebTemplateNode): void {
+  private appendRmContextNodes(node: WebTemplateNode, obj?: openehr_am.C_COMPLEX_OBJECT): void {
     const path = node.aqlPath;
     const extra: WebTemplateNode[] = [];
     if (node.rmType === "ACTION") {
@@ -1220,7 +1235,7 @@ export class WebTemplateBuilder {
           "action_archetype_id",
           "STRING",
           joinAqlPath(path, "action_archetype_id"),
-          [{ type: "TEXT" }],
+          [actionArchetypeIdInput(obj)],
         ),
       );
     }

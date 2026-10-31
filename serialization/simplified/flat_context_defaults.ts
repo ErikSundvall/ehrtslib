@@ -19,7 +19,7 @@ import {
 } from "../../term/openehr_group_rubrics.ts";
 import type { WebTemplate, WebTemplateNode } from "./types.ts";
 import type { FlatRmDefaultIssue } from "./flat_rm_defaults.ts";
-import { fixedCategoryCode } from "./flavor.ts";
+import { actionArchetypeIdDefault, fixedCategoryCode } from "./flavor.ts";
 
 type RmObject = Record<string, unknown>;
 type Primitive = string | number | boolean;
@@ -506,7 +506,11 @@ class ContextDefaulter {
       if (!obj.timing && timing != null) {
         obj.timing = { _type: "DV_PARSABLE", value: String(timing), formalism: "timing" };
       }
-      if (obj.action_archetype_id == null && this.apply) obj.action_archetype_id = "/.*/";
+      if (obj.action_archetype_id == null && this.apply) {
+        // The template's pattern, else "/.*/" (spec ACTIVITY table).
+        const idNode = node?.children?.find((c) => c.id === "action_archetype_id");
+        obj.action_archetype_id = actionArchetypeIdDefault(idNode);
+      }
     }
   }
 

@@ -108,25 +108,14 @@ export function inputContextFields(instance: unknown): FlatPayload {
 }
 
 /**
- * Fields of EVENT_CONTEXT attributes without their own Web Template node,
- * written by the output flavour as `context/_end_time`, `_location`,
- * `_health_care_facility|…` (spec "Flat paths" for RM attributes).
+ * Default ACTIVITY.action_archetype_id for a Web Template
+ * `action_archetype_id` node: the template's pattern as `/pattern/`
+ * (`inputs[0].defaultValue`), else the match-all pattern (spec ACTIVITY
+ * table).
  */
-export function contextUnderscoreFields(
-  context: unknown,
-): Array<[string, string | number | boolean]> {
-  const out: Array<[string, string | number | boolean]> = [];
-  const end = str(rmProp(context, "end_time"));
-  if (end != null) out.push(["_end_time", end]);
-  const location = rmProp(context, "location");
-  if (location != null) out.push(["_location", String(location)]);
-  const hcf = rmProp(context, "health_care_facility");
-  if (hcf != null) {
-    for (const [k, v] of Object.entries(partyFields(hcf))) {
-      out.push([`_health_care_facility|${k}`, v]);
-    }
-  }
-  return out;
+export function actionArchetypeIdDefault(node: WebTemplateNode | undefined): string {
+  const value = node?.inputs?.find((i) => i.defaultValue != null)?.defaultValue;
+  return value != null ? String(value) : "/.*/";
 }
 
 /** `_null_flavour|…` and `_null_reason` of an ELEMENT without a value. */
@@ -172,7 +161,7 @@ export class InputFlavorPolicy {
     const ownerType = rmTypeOf(owner);
     switch (node.id) {
       case "action_archetype_id":
-        return data === "/.*/";
+        return data === actionArchetypeIdDefault(node);
       case "language":
         return node.rmType === "CODE_PHRASE" &&
           str(rmProp(data, "code_string")) === this.language;
