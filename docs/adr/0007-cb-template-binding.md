@@ -46,10 +46,10 @@ data.
   ehrtslib, in audits and logs, where one value should name exactly one
   released template. Two releases with the same content therefore have
   different hashes.
-- When the hash or version differs from what the draft was bound to, the CB
+- When the hash or version differs from what the draft was bound to, the Contribution Builder
   reports it. Moving to another template is an explicit `migrate-template`
   operation in the log, never a silent rebind.
-- At commit, for CDRs that need ADL 1.4 codes, the CB down-converts with
+- At commit, for CDRs that need ADL 1.4 codes, the Contribution Builder down-converts with
   ehrtslib's existing converter (`generation/id_to_at_code.ts`). For
   ADL2-native templates, the OPT 1.4 exporter may renumber colliding node ids;
   the caller supplies that map (decided by Erik, 2026-10-27): optional

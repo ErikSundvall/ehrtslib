@@ -56,7 +56,7 @@ export interface CommitConfig {
   builderName?: string;
   /** Builder version; default the ehrtslib release. */
   builderVersion?: string;
-  /** CRDT library behind the log adapter; default none (single-app adapter). */
+  /** CRDT library behind the log adapter; default none (single-caller adapter). */
   crdtLibrary?: { name: string; version: string };
   /** Do not warn when the caller gives no `originatingSystemAudit`. */
   silenceMissingOriginatingAudit?: boolean;

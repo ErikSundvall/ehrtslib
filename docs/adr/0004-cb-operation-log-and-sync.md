@@ -5,15 +5,17 @@ Status: proposed (draft for review). Part of the
 
 ## Context
 
-Multi-user editing needs a change log that merges. Auditors want to see how
+Multi-caller editing needs a change log that merges. (A caller is one app
+instance or device writing to the build; one person on two devices is
+multi-caller.) Auditors want to see how
 a commit was produced. Conflict handling needs to re-apply local changes to
-a newer base. If single-app editing mutated the tree directly, these
-features would only exist in the multi-user flavour and the two would
+a newer base. If single-caller editing mutated the tree directly, these
+features would only exist in the multi-caller flavour and the two would
 behave differently.
 
 ## Decision
 
-- Every change, also in the single-app flavour, is an operation in one
+- Every change, also in the single-caller flavour, is an operation in one
   append-only log. Initial operation set: `set-value`, `add-instance`,
   `remove-instance`, `move-instance`, `assign-uid`, `set-composer`,
   `set-participation`, `set-lifecycle`, `bind-template`, `migrate-template`,
@@ -25,7 +27,7 @@ behave differently.
   the log.
 - Each operation records author, timestamp and replica, and targets a node
   uid ([ADR 0003](0003-cb-identity-and-uids.md)), not a path.
-- Single-app applies operations directly. Multi-user synchronises the same
+- A single caller applies operations directly. Multi-caller synchronises the same
   operations through a CRDT; presence (who edits where) is ephemeral and not
   logged.
 - Session playback is replay of the log. Replay is deterministic: the same
@@ -67,7 +69,7 @@ bytes) and `contribution_builder/contribution_build.ts` (`ContributionBuild`,
   not by index, so concurrent inserts do not shift each other.
 - New keys are recorded in the operation (`keys`, depth-first with object
   members in sorted order), never re-minted on replay.
-- No CRDT library is chosen: the single-app adapter needs none, and the core
+- No CRDT library is chosen: the single-caller adapter needs none, and the core
   sees only the `OperationLogAdapter` interface (`append`, `operations`).
   The Automerge / Loro spike stays open.
 
@@ -89,7 +91,7 @@ bytes) and `contribution_builder/contribution_build.ts` (`ContributionBuild`,
   see design section 11.8). Rejected by the maintainer as overkill; the
   log is sufficient.
 
-- **Direct tree mutation in single-app mode.** Rejected: no playback, and
+- **Direct tree mutation in single-caller mode.** Rejected: no playback, and
   two behaviours to test.
 - **Operational transformation (OT) with a central server.** Rejected:
   needs a server for every edit and does not suit offline or peer-to-peer

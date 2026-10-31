@@ -62,7 +62,7 @@ The RM (Common, archetyped package) offers:
     (decided by Erik, 2026-10-25); `other_details` holds the builder name
     (`ehrtslib-contribution-builder`, or another builder implementation's
     name), the builder version (one value:
-    the ehrtslib release, which also fixes the CB version), the log format
+    the ehrtslib release, which also fixes the Contribution Builder version), the log format
     version and the CRDT library name and version. Decided by Erik
     (2026-10-25): the builder version must be readable from the committed
     version or its content; this location satisfies that.
@@ -150,7 +150,7 @@ Code: `contribution_builder/commit.ts` (`prepareContribution`,
   "contribution builder") with `ELEMENT`s *builder name*, *builder version*
   (`EHRTSLIB_VERSION`, kept equal to `deno.json` by the release script),
   *log format*, *log format version* and *CRDT library* (`none` for the
-  single-app adapter). No `original_content`.
+  single-caller adapter). No `original_content`.
 - **Version uid.** The root gets
   `<provisional object uuid>::<creating system id>::1`; the adapter reads the
   creating system id from `EHR.system_id`. The provisional uuid is the one

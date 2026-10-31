@@ -5,7 +5,7 @@
  * by appending operations to the log. Replaying a log gives the same drafts,
  * including node uids. The log goes through an {@link OperationLogAdapter}:
  * {@link SingleAppLogAdapter} is the one-replica adapter; a CRDT adapter for
- * multi-user editing can implement the same interface later without changing
+ * multi-caller editing can implement the same interface later without changing
  * the operation format (ADR 0004 leaves the CRDT library to a spike).
  */
 
@@ -41,7 +41,7 @@ import {
 /** Caller context: who is editing, on which replica, and the clock / uuid source. */
 export interface BuildContext {
   author: OperationAuthor;
-  /** Replica prefix for minted keys. Single-app default: `a`. */
+  /** Replica prefix for minted keys. Single-caller default: `a`. */
   replica?: string;
   /** ISO 8601 timestamp source. Default: `new Date().toISOString()`. */
   now?: () => string;
@@ -49,7 +49,7 @@ export interface BuildContext {
   uuid?: () => string;
 }
 
-/** Per-call override of the author (one server process, several users). */
+/** Per-call override of the author (one caller, such as a server process, acting for several users). */
 export interface OperationOptions {
   author?: OperationAuthor;
 }
@@ -280,7 +280,7 @@ export class ContributionBuild {
     };
   }
 
-  /** Start an empty build with a single-app adapter (or the given one). */
+  /** Start an empty build with a single-caller adapter (or the given one). */
   static create(
     context: BuildContext,
     adapter: OperationLogAdapter = new SingleAppLogAdapter(),

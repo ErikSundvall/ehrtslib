@@ -22,10 +22,10 @@ The idea comes from Sundvall et al., *Applying representational state
 transfer (REST) architecture to archetype-based electronic health record
 systems*, BMC Medical Informatics and Decision Making 13:57 (2013),
 <https://link.springer.com/article/10.1186/1472-6947-13-57>. Table 2 of that
-paper lists contribution-build operations. The CB keeps them as its public
+paper lists contribution-build operations. The Contribution Builder keeps them as its public
 verbs:
 
-| Paper verb | CB meaning |
+| Paper verb | Contribution Builder meaning |
 | --- | --- |
 | new build | Start an empty contribution build for one EHR (or demographic store). |
 | update-version | Add a new version of an existing versioned object, starting from its latest committed version. |
@@ -42,7 +42,7 @@ verbs:
   send whole, valid contributions instead of hand-assembling JSON.
 - **Clinicians** who use those apps, indirectly: they get drafts that
   survive reloads, live validation next to the field, and (in the
-  multi-user flavour) shared editing of one note by several people or
+  multi-caller flavour) shared editing of one note by several people or
   devices.
 - **Integrators and server-side services** (including the planned ehrtslib
   CDR proxy) that need to batch several versions into one atomic commit.
@@ -57,7 +57,7 @@ verbs:
 3. A user saves an unfinished note as `incomplete` (lifecycle 553) and
    another user completes it later.
 4. Between opening and committing, someone else commits a newer version.
-   The CB detects the conflict and returns it as data for a resolver UI
+   The Contribution Builder detects the conflict and returns it as data for a resolver UI
    instead of overwriting.
 5. One contribution changes a composition, a folder and the `EHR_STATUS`
    together, or a demographic `PARTY` and its relationships.
@@ -145,13 +145,13 @@ roadmap) and formal openEHR specification proposals (see section 11).
   └───────────────────────────────────────────────────────┘
         │ apply ops                     │ build
         ▼                               ▼
-  single-app adapter        NewContribution  → CDR (REST)
+  single-caller adapter     NewContribution  → CDR (REST)
   CRDT sync adapter  ◄──►   other replicas (ops as CRDT changes)
   storage adapter    ──►    caller-chosen storage (drafts, log bytes)
 ```
 
-- **One core model**, `ContributionBuild`, with adapters for single-app
-  and CRDT use.
+- **One core model**, `ContributionBuild`, with adapters for single-caller
+  and CRDT (multi-caller) use.
 - **Commit shapes follow the REST ITS** `NewContribution` request body,
   with `UPDATE_VERSION` and `UPDATE_AUDIT` (field list in ADR 0010). Version `data` is always real RM
   objects from ehrtslib's RM classes.
@@ -203,7 +203,7 @@ Summary of [ADR 0003](../adr/0003-cb-identity-and-uids.md):
 Summary of [ADR 0004](../adr/0004-cb-operation-log-and-sync.md):
 
 - **Every change goes through one append-only operation log**, also in the
-  single-app flavour. Initial operations: `set-value`, `add-instance`,
+  single-caller flavour. Initial operations: `set-value`, `add-instance`,
   `remove-instance`, `move-instance`, `assign-uid`, `set-composer`,
   `set-participation`, `set-lifecycle`, `bind-template`,
   `migrate-template`, `import` (adapter input recorded as operations) and
@@ -214,7 +214,7 @@ Summary of [ADR 0004](../adr/0004-cb-operation-log-and-sync.md):
 - Each operation records author, timestamp and replica, and **targets a
   node uid, not a path**. Paths are derived for display and for fallback
   matching only.
-- Single-app applies operations directly. Multi-user sends the same
+- A single caller applies operations directly. Multi-caller sends the same
   operations through a CRDT.
 - **Session playback is replay of the log.** Any implementation must be
   able to recreate the session from the log alone (plus the bound
@@ -276,7 +276,7 @@ Summary of [ADR 0008](../adr/0008-cb-validation-and-lifecycle.md):
   source; `COMPOSITION.composer` is an explicit build field set before or at
   commit; the committer is separate. Per-value author colouring comes only
   from the log, never from RM data.
-- **Conflicts** ([ADR 0009](../adr/0009-cb-conflicts-and-rebase.md)): the CB
+- **Conflicts** ([ADR 0009](../adr/0009-cb-conflicts-and-rebase.md)): the Contribution Builder
   never overwrites. On any failed commit it re-reads the latest version of
   each modified object; if that is no longer the draft's base
   (`preceding_version_uid`), it is a conflict, whatever the status code. It
@@ -341,7 +341,7 @@ Discarded drafts are **not committed to the CDR**.
 - A build in which everything is discarded never commits, so there is no
   contribution audit to carry the link. The optional append-only log sink
   (configured by the deployment, see ADR 0005) is how such logs reach
-  durable storage. In the multi-user flavour the log is synchronised to the
+  durable storage. In the multi-caller flavour the log is synchronised to the
   other replicas anyway.
 - Rejected alternative: committing discarded drafts to the CDR as
   `incomplete` and then `abandoned` (`801`), the RM-conformant two-version
@@ -359,7 +359,7 @@ for review:
 - It ships as a separate add-on release file (for example
   `ehrtslib-<version>-cb-graphql.min.js`), not in `mod.ts` or the main
   bundles, so users who don't need GraphQL don't carry it.
-- It covers uncommitted CB content only. Committed EHR data stays with AQL
+- It covers uncommitted Contribution Builder content only. Committed EHR data stays with AQL
   and REST.
 - A node is addressed by `uid`, or by a path whose steps can mix ADL2
   codes, node names in a chosen ISO `lang` (default `lang.1`), **any
@@ -464,7 +464,7 @@ still open for review:
   fragments with validation messages.
 - The handler runs in a service worker, a local or app server, or the CDR
   proxy. The variant and request contract are sync-technology neutral;
-  ehrtslib's multi-user flavour uses Automerge 3 behind them.
+  ehrtslib's multi-caller flavour uses Automerge 3 behind them.
 
 ## 10. Testing
 
@@ -542,7 +542,8 @@ openEHR specification sources (RM = Reference Model, CNF = Conformance).
   (EHR Compositions, Demographic Parties etc) cannot be saved locally on
   the client machine, as this represents a security risk". They must be
   persisted on the server, in the EHR or in a secure "holding area".
-- Offline and multi-device drafting needs local persistence. The builder
+- Offline and multi-caller drafting (for example one person on several
+  devices) needs local persistence. The builder
   keeps it pluggable, off by default and encrypted at rest when on; the
   optional server log sink matches the "holding area" idea.
 - Possible later clarification: phrase the sentence as a security

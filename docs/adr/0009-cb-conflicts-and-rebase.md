@@ -16,9 +16,9 @@ carry the ids the local log refers to.
 
 ## Decision
 
-- The CB never overwrites silently.
+- The Contribution Builder never overwrites silently.
 - Conflict detection does not depend on the status code. On any failed
-  commit (any status other than 201) the CB re-reads the latest version of
+  commit (any status other than 201) the Contribution Builder re-reads the latest version of
   each versioned object the contribution modifies. It is a conflict if that
   version is no longer the draft's base version. The status code is kept
   only as a hint. A failure where every base is still the latest is a plain
@@ -28,11 +28,11 @@ carry the ids the local log refers to.
 - Where a uid is missing on the newer version, it falls back to matching by
   archetype path (and name or position where needed). Every match found this
   way is marked as guessed and shown for review.
-- The CB returns conflicts as structured data. Each conflict has: the local
+- The Contribution Builder returns conflicts as structured data. Each conflict has: the local
   operation, their current value, the base value, and how the target was
   matched (`uid`, `path`, `none`).
 - The caller sends back a list of resolutions (keep ours, keep theirs,
-  custom value, drop operation). The CB applies them as new operations in
+  custom value, drop operation). The Contribution Builder applies them as new operations in
   the log, then retries the commit with the new `preceding_version_uid`.
 - The resolver user interface is a separate project (see roadmap).
 

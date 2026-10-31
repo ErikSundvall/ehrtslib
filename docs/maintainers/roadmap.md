@@ -22,21 +22,21 @@ OPT XML constraint closeout (#75 serialize, #76 quantity intervals, #77 `C_DV_CO
 
 - One version of this code needs to be small so that it can fit and be run
   eficiently inside form engines etc.
-- Also make a (less lightweight) version that can be synchronously multiuser
-  updated using a CRDT (library chosen in the multi-user contribution builder
-  spike below)
+- Also make a (less lightweight) multi-caller version that can be updated
+  synchronously using a CRDT (library chosen in the multi-caller Contribution
+  Builder spike below)
 - Create build step to genenrate minified and web component versions
 
 
 Create /dist directory and subdirectories with different distributions for
 targeted purposes for example
 - compact code for browser use
-- simultaneous multi-user editing
+- simultaneous multi-caller editing
 - complete release e.g. for making advanced tooling
 
 create/update end user docs 
 
-## Phase X - Contribution builder
+## Phase X - Contribution Builder
 Design: [contribution-builder-design.md](contribution-builder-design.md) and
 ADRs [0002](../adr/0002-cb-core-model-and-scope.md) to
 [0010](../adr/0010-cb-commit-envelope-and-provenance.md), plus
@@ -44,7 +44,7 @@ ADRs [0002](../adr/0002-cb-core-model-and-scope.md) to
 [0012](../adr/0012-cb-add-on-packages-and-patch-formats.md) (add-on packages) and
 [0014](../adr/0014-cb-htmx-add-on-and-editable-zipehr-html5.md) (htmx add-on).
 
-Implement the "contribution builder" suggested in
+Implement the "Contribution Builder" suggested in
 https://link.springer.com/article/10.1186/1472-6947-13-57, including the verbs
 in [Table 2](https://link.springer.com/article/10.1186/1472-6947-13-57/tables/2)
 (new build, update-version, copy-version, from-form, from-ehr-path,
@@ -54,7 +54,7 @@ servers, and server side.
 
 The design covers every versioned type; delivery is staged:
 1. Core `ContributionBuild`, operation log, uid scheme and `UPDATE_*` commit
-   envelope (all generic over `VERSION<T>`), single-app adapter, for
+   envelope (all generic over `VERSION<T>`), single-caller adapter, for
    **COMPOSITION** first. Template binding with canonical hash, validation
    (complete and incomplete), conflict data on a failed commit (re-read the
    latest version; the status code is only a hint), ADL 1.4 down-conversion
@@ -78,11 +78,12 @@ The design covers every versioned type; delivery is staged:
    ([ADR 0014](../adr/0014-cb-htmx-add-on-and-editable-zipehr-html5.md)).
 
 
-## Phase X - multiuser contribution builder
-CRDT-based multi-user / multi-device contribution builder for collaborative
+## Phase X - multi-caller Contribution Builder
+CRDT-based multi-caller Contribution Builder (several people, or one person
+on several devices) for collaborative
 editing of an uncommitted contribution, similar to "Google Docs"
 collaboration (preferably P2P, with optional continuous server persistence).
-Builds on the same core and operation log as the single-app builder.
+Builds on the same core and operation log as the single-caller builder.
 1. **Spike first:** compare Automerge and Loro on a real template (full
    replayable history, compact binary log, Deno + browser support, licence).
    Record the choice in its own ADR.
@@ -97,7 +98,7 @@ Builds on the same core and operation log as the single-app builder.
 5. Session playback (replay of the log).
 
 ## Phase X - openEHR merge conflict resolver UI
-Separate later project, depends on the contribution builder's structured
+Separate later project, depends on the Contribution Builder's structured
 conflict output (ADR 0009). A clinician-facing UI, likely AI-assisted, that
 shows our change, their change and the base value per conflict and returns a
 list of resolutions to the builder.
@@ -105,7 +106,7 @@ list of resolutions to the builder.
 ## Phase X - CDR proxy
 Make a Deno based ehrtslib openEHR CDR proxy 
 - that includes conversion of all ehrtslib added formats and externally is exposed as a normal openEHR CDR but that accepts more media types
-- that adds a (multiuser?) contribution builder to a standard CDR
+- that adds a (multi-caller?) Contribution Builder to a standard CDR
 - Make sure to do releases that export the proxy via Deno's export as single executable files for various operating systems
 - Possibly add features mising in the official spec but suggested in https://link.springer.com/article/10.1186/1472-6947-13-57 - for example 
   - bookmarking and 

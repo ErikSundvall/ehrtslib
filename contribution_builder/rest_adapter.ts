@@ -1,5 +1,5 @@
 /**
- * Single-app REST adapter for the openEHR REST ITS (ADR 0010): sends a
+ * Single-caller REST adapter for the openEHR REST ITS (ADR 0010): sends a
  * prepared contribution to `POST /ehr/{ehr_id}/contribution` on any
  * conformant CDR. `fetch` is injectable (tests, auth, proxies).
  */

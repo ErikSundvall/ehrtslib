@@ -16,21 +16,21 @@ version that is missing mandatory content (ehrbase#1630), while FerroEHR
 
 ## Decision
 
-- After each operation the CB runs a quick constraint check on the changed
+- After each operation the Contribution Builder runs a quick constraint check on the changed
   nodes (value types, ranges, code lists, patterns).
 - The full check (existence, cardinality, occurrences, invariants and
   lifecycle rules) runs on an explicit `validate` call and always just
   before `commit`.
 - Results are attached to nodes by uid so a UI can show each one next to
   the right field.
-  In multi-user builds this status is a derived view, never synced or
+  In multi-caller builds this status is a derived view, never synced or
   logged ([ADR 0013 amendment](0013-cb-crdt-library-and-apply-policy.md#validation-state-during-editing)).
 - Two modes:
   - **complete**: all template constraints apply.
   - **incomplete**: existence and cardinality lower bounds count as zero,
     but content that is present must be valid. The result also lists the
     missing required fields.
-- The CB reports, per target CDR profile, when that CDR is known to reject
+- The Contribution Builder reports, per target CDR profile, when that CDR is known to reject
   incomplete versions with missing mandatory content.
 
 ## Consequences
