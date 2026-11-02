@@ -32,6 +32,11 @@ const CTX: FlatPayload = {
   [`${ROOT}/context/setting|value`]: "other care",
   [`${ROOT}/context/setting|terminology`]: "openehr",
 };
+const NULL_FLAVOUR = {
+  "_null_flavour|code": "271",
+  "_null_flavour|value": "no information",
+  "_null_flavour|terminology": "openehr",
+};
 
 function payload(node: string, fields: Record<string, unknown>): FlatPayload {
   const flat: FlatPayload = { ...CTX };
@@ -117,4 +122,51 @@ Deno.test("FLAT: the untyped _value on an ELEMENT is rejected", () => {
     assertEquals(el?.value, undefined, node);
     assertThrows(() => deserializeFromFlat(flat, wt), Error, "<type>_value");
   }
+});
+
+// --- a value together with _null_flavour
+
+Deno.test("FLAT: a value with _null_flavour on one ELEMENT is rejected", () => {
+  for (const node of ["labresult", "any"] as const) {
+    const flat = payload(node, { text_value: "text", ...NULL_FLAVOUR });
+    const { element: el, issues } = element(flat, node);
+    assertEquals(elementValueErrors(issues).length, 1, node);
+    // Not both: the RM invariant forbids a null_flavour next to a value.
+    assert(!(el?.value && el?.null_flavour), node);
+    assertThrows(() => deserializeFromFlat(flat, wt), Error, "_null_flavour");
+  }
+});
+
+Deno.test("FLAT: _null_flavour alone on a choice ELEMENT is read", () => {
+  const flat = payload("labresult", NULL_FLAVOUR);
+  const { element: el, issues } = element(flat, "labresult");
+  assertEquals(elementValueErrors(issues), []);
+  assertEquals(
+    ((el?.null_flavour as Record<string, unknown>).defining_code as Record<
+      string,
+      unknown
+    >).code_string,
+    "271",
+  );
+  assertEquals(el?.value, undefined);
+});
+
+// --- coded text without a code
+
+Deno.test("FLAT: plain text as the bare value of a coded node is rejected", () => {
+  const flat: FlatPayload = { ...CTX, [`${CLUSTER}/comment`]: "free text" };
+  const { issues } = deserializeFromFlatWithIssues(flat, wt);
+  assertEquals(
+    issues.filter((i) =>
+      i.kind === "coded-text-mismatch" && i.severity === "error"
+    ).length,
+    1,
+  );
+  assertThrows(() => deserializeFromFlat(flat, wt), Error, "has no |code");
+  // Plain text goes in |other.
+  const other = element(
+    { ...CTX, [`${CLUSTER}/comment|other`]: "free text" },
+    "comment",
+  );
+  assertEquals(other.element?.value, { _type: "DV_TEXT", value: "free text" });
 });

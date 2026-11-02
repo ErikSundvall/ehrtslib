@@ -364,13 +364,16 @@ export class FlatDeserializer {
   }
 
   /**
-   * One value per ELEMENT instance: reject two `<type>_value` children.
-   * Returns the groups not to build.
+   * One value per ELEMENT instance: reject two `<type>_value` children, and a
+   * value together with `_null_flavour`/`_null_reason` (RM invariant
+   * `Inv_null_flavour_indicated`). Returns the groups not to build.
    */
   private checkElementValues(groups: Map<string, LeafGroup>): Set<LeafGroup> {
     interface ElementEntry {
       key: string;
       typed: LeafGroup[];
+      values: LeafGroup[];
+      nulls: LeafGroup[];
     }
     const elements = new Map<string, ElementEntry>();
     for (const group of groups.values()) {
@@ -378,8 +381,12 @@ export class FlatDeserializer {
       const segs = typed ? group.segments.slice(0, -1) : group.segments;
       const key = segs.map((s) => `${s.id}:${s.index}`).join("/");
       let entry = elements.get(key);
-      if (!entry) elements.set(key, entry = { key, typed: [] });
+      if (!entry) elements.set(key, entry = { key, typed: [], values: [], nulls: [] });
       if (typed) entry.typed.push(group);
+      if (group.nullFlavour || group.nullReason != null) entry.nulls.push(group);
+      const hasValue = Object.keys(group.fields).length > 0 || group.raw ||
+        group.other !== undefined || !!group.attributes?.children.size;
+      if (hasValue && (typed || !group.node.children?.length)) entry.values.push(group);
     }
     const rejected = new Set<LeafGroup>();
     const path = (key: string) =>
@@ -395,6 +402,22 @@ export class FlatDeserializer {
           }); it holds one value`,
         });
         for (const group of entry.typed) rejected.add(group);
+      }
+      if (entry.values.length && entry.nulls.length) {
+        this.issues.push({
+          path: path(entry.key),
+          severity: "error",
+          kind: "element-value",
+          message:
+            "ELEMENT has both a value and _null_flavour/_null_reason; give one or the other",
+        });
+        for (const group of entry.nulls) {
+          if (!entry.values.includes(group)) rejected.add(group);
+          else {
+            delete group.nullFlavour;
+            delete group.nullReason;
+          }
+        }
       }
     }
     return rejected;
@@ -607,8 +630,12 @@ export class FlatDeserializer {
   private assignGroup(comp: RmObject, group: LeafGroup): void {
     const { node } = group;
     if (node === this.webTemplate.tree) return;
-    // Fields of a node with children are its form fields (applyAttributes).
-    if (node.children?.length && !group.raw) return;
+    // Fields of a node with children are its form fields (applyAttributes),
+    // except `_null_flavour` on a choice ELEMENT.
+    if (
+      node.children?.length && !group.raw &&
+      !(node.rmType === "ELEMENT" && (group.nullFlavour || group.nullReason != null))
+    ) return;
     const hints = this.occurrenceHints(group);
     const typeHints = this.rmTypeHints(group);
 
@@ -686,10 +713,8 @@ export class FlatDeserializer {
 
     if (!Object.keys(group.fields).length) return;
 
-    assignAtAqlPath(
-      comp,
-      node.aqlPath,
-      buildRmValue(node.rmType, group.fields, {
+    const issueCount = this.issues.length;
+    const value = buildRmValue(node.rmType, group.fields, {
         node,
         language: this.language,
         issues: this.issues,
@@ -700,12 +725,25 @@ export class FlatDeserializer {
         archetypeCodes: this.localCodes.get(
           archetypeOfNode(node, this.webTemplate.tree.nodeId) ?? "",
         ) ?? new Set(),
-      }),
-      node.rmType,
-      node.nodeId,
-      hints,
-      typeHints,
-    );
+      });
+    // A DV_CODED_TEXT needs a code. Plain text on a node that also allows
+    // DV_TEXT goes in `|other`.
+    const dc = (value as RmObject | undefined)?.defining_code as RmObject | undefined;
+    if (
+      (value as RmObject | undefined)?._type === "DV_CODED_TEXT" && !dc?.code_string &&
+      !this.issues.slice(issueCount).some((issue) => issue.path === node.aqlPath)
+    ) {
+      const reject = (this.options.codedTextMismatch ?? "reject") !== "keep";
+      this.issues.push({
+        path: node.aqlPath,
+        severity: reject ? "error" : "warning",
+        kind: "coded-text-mismatch",
+        message: `DV_CODED_TEXT "${
+          String((value as RmObject).value ?? "")
+        }" has no |code; send |code, |value and |terminology, or plain text as |other where the node allows DV_TEXT`,
+      });
+    }
+    assignAtAqlPath(comp, node.aqlPath, value, node.rmType, node.nodeId, hints, typeHints);
   }
 }
 
