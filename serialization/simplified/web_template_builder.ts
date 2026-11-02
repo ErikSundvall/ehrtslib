@@ -30,7 +30,10 @@ import {
   templateRootId,
 } from "./normalize.ts";
 import { inputsForRmType, resolveDvType } from "./dv_field_maps.ts";
-import { valueChoiceId } from "./element_value_choice.ts";
+import {
+  UNCONSTRAINED_ELEMENT_VALUE_TYPES,
+  valueChoiceId,
+} from "./element_value_choice.ts";
 import {
   type OperationalTemplateWithTermScopes,
   resolveTermEntry,
@@ -1531,7 +1534,41 @@ export class WebTemplateBuilder {
       }
       return leaf;
     }
-    return nodeShell(shell, { aqlPath, rmType: shell.rmType ?? "ELEMENT" });
+    return this.buildUnconstrainedElement(obj, aqlPath, shell);
+  }
+
+  /**
+   * ELEMENT with no value constraint: one `<type>_value` child per type
+   * EHRbase and FerroEHR both list (#267). DV_INTERVAL stays unlisted;
+   * the reader still accepts `interval_of_<t>_value`.
+   */
+  private buildUnconstrainedElement(
+    obj: openehr_am.C_COMPLEX_OBJECT,
+    aqlPath: string,
+    shell: WebTemplateNode,
+  ): WebTemplateNode {
+    const element = nodeShell(shell, { aqlPath, rmType: "ELEMENT" });
+    const fields = this.termFields(obj, shell.id);
+    element.children = UNCONSTRAINED_ELEMENT_VALUE_TYPES.map((rmType) => {
+      const child: WebTemplateNode = {
+        id: valueChoiceId(rmType),
+        rmType,
+        min: 0,
+        max: 1,
+        aqlPath: `${aqlPath}/value`,
+        inputs: inputsForRmType(rmType),
+      };
+      if (fields.localizedName) {
+        child.name = fields.name;
+        child.localizedName = fields.localizedName;
+        child.localizedNames = fields.localizedNames;
+      }
+      if (fields.localizedDescriptions) {
+        child.localizedDescriptions = fields.localizedDescriptions;
+      }
+      return child;
+    });
+    return element;
   }
 
   /**
