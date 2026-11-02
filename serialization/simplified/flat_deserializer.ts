@@ -296,6 +296,18 @@ export class FlatDeserializer {
       const node = resolved.node;
       segments.splice(0, segments.length, ...resolved.segments);
 
+      // `…/_value` names ELEMENT.value without its type.
+      if (resolved.attr[0]?.id === "_value" && node.rmType === "ELEMENT") {
+        this.issues.push({
+          path: key,
+          severity: "error",
+          kind: "element-value",
+          message:
+            "ELEMENT value without a type: write it as <type>_value (text_value, quantity_value|magnitude, …)",
+        });
+        continue;
+      }
+
       // `…/_null_flavour|code`, `…/_null_reason` of an ELEMENT without value.
       const attrName = resolved.attr.length === 1 ? resolved.attr[0].id : undefined;
       const nullAttr = attrName === "_null_flavour" || attrName === "_null_reason";

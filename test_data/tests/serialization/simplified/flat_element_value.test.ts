@@ -106,3 +106,15 @@ Deno.test("FLAT: one <type>_value per ELEMENT instance is fine", () => {
   assertEquals(elementValueErrors(issues), []);
   assertEquals((el?.value as Record<string, unknown>)._type, "DV_TEXT");
 });
+
+// --- untyped `_value`
+
+Deno.test("FLAT: the untyped _value on an ELEMENT is rejected", () => {
+  for (const node of ["labresult", "any"] as const) {
+    const flat = payload(node, { _value: "lab text" });
+    const { element: el, issues } = element(flat, node);
+    assertEquals(elementValueErrors(issues).length, 1, node);
+    assertEquals(el?.value, undefined, node);
+    assertThrows(() => deserializeFromFlat(flat, wt), Error, "<type>_value");
+  }
+});
