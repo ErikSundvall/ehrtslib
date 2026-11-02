@@ -340,7 +340,8 @@ export class WebTemplateToOptConverter {
         // Both leaf styles produce ELEMENT { value: <DV constraint> },
         // except when the leaf itself is a non-ELEMENT RM attribute value
         // (e.g. /time on an EVENT) — then the DV constraint sits directly.
-        const elementLike = leafValueStyle || seg.attr === "items";
+        const elementLike = leafValueStyle || seg.attr === "items" ||
+          seg.attr === "item";
         if (elementLike) {
           const element = this.ensureObject(
             attr,

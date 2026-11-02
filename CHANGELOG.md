@@ -24,6 +24,7 @@ Add an entry under **Unreleased** in every PR that changes user-visible behaviou
 - **Behaviour change.** `validateFlatPayload` also reports what the FLAT reader rejects (`coded-text-mismatch`, `element-value`, `unknown-key`), so it is no longer `valid` for a payload `deserializeFromFlat` throws on. `strictUnknownKeys` now defaults to `true`, as the reader's `unknownKeys` defaults to `"error"`; pass `false` for warnings ([#266](https://github.com/ErikSundvall/ehrtslib/issues/266)).
 - **Behaviour change.** A collapsed ELEMENT leaf in the Web Template has the ELEMENT's `min`/`max`, not its value's, as EHRbase and Better give. An optional ELEMENT (blood pressure systolic, 0..1) used to show `min: 1`, and `validateFlatPayload` warned that it was missing ([#268](https://github.com/ErikSundvall/ehrtslib/issues/268)).
 - EVENTs that share a node id and have different name constraints ("First event", "Second event") get `name/value` predicates in their Web Template AQL paths, like other renamed siblings, so they stay apart through `webTemplateToOpt` ([#269](https://github.com/ErikSundvall/ehrtslib/issues/269)).
+- `webTemplateToOpt` rebuilds an ITEM_SINGLE leaf (`…/item[at0005]`) as an ELEMENT with its value, as it does for `items[…]`; it used to put the bare value under `item` and lose the node id ([#270](https://github.com/ErikSundvall/ehrtslib/issues/270)).
 
 ## [0.10.0] - 2026-11-01
 
