@@ -131,8 +131,18 @@ export function validateFlatPayload(
       : segments.slice(1, rmAttrIdx);
     if (!chainSegs.length) continue;
 
-    const chain = chainSegs.join("/");
-    const node = nodeForChain(chains, chain);
+    let chain = chainSegs.join("/");
+    let node = nodeForChain(chains, chain);
+    // DV_INTERVAL<T> bounds: `<interval>/lower|…`, `<interval>/upper|…`.
+    const bound = node ? undefined : /^(.*)\/(?:lower|upper)$/.exec(chain);
+    if (bound) {
+      const interval = nodeForChain(chains, bound[1]);
+      const param = interval && /^DV_INTERVAL<(.+)>$/.exec(interval.rmType);
+      if (param) {
+        chain = bound[1];
+        node = { ...interval, rmType: param[1], inputs: undefined };
+      }
+    }
     if (!node) {
       report(key, "Unknown flat key for template");
       continue;
