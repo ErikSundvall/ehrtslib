@@ -140,6 +140,26 @@ export class UnknownFlatKeyError extends Error {
   }
 }
 
+/**
+ * Thrown by the non-collecting FLAT APIs when an ELEMENT gets more than one
+ * value (two `<type>_value` children, a value and `_null_flavour`) or the
+ * untyped `_value`.
+ */
+export class FlatElementValueError extends Error {
+  constructor(readonly issues: FlatRmDefaultIssue[]) {
+    super(issues.map((issue) => `${issue.path}: ${issue.message}`).join("\n"));
+    this.name = "FlatElementValueError";
+  }
+}
+
+/** Throw {@link FlatElementValueError} when `issues` has an element-value error. */
+export function throwOnElementValueIssue(issues: FlatRmDefaultIssue[]): void {
+  const errors = issues.filter((issue) =>
+    issue.kind === "element-value" && issue.severity === "error"
+  );
+  if (errors.length) throw new FlatElementValueError(errors);
+}
+
 /** Throw {@link UnknownFlatKeyError} when `issues` has an unknown-key error. */
 export function throwOnUnknownFlatKey(issues: FlatRmDefaultIssue[]): void {
   const errors = issues.filter((issue) =>
@@ -303,12 +323,13 @@ export class FlatDeserializer {
       }
     }
 
+    const rejected = this.checkElementValues(groups);
     for (const group of groups.values()) {
-      this.assignGroup(comp, group);
+      if (!rejected.has(group)) this.assignGroup(comp, group);
     }
     // RM attributes after the values, so they land on existing objects.
     for (const group of groups.values()) {
-      this.applyAttributes(comp, group);
+      if (!rejected.has(group)) this.applyAttributes(comp, group);
     }
 
     // ctx/ and RM defaults fill only what the paths did not set.
@@ -321,6 +342,50 @@ export class FlatDeserializer {
 
   deserializeJson(json: string): RmObject {
     return this.deserialize(JSON.parse(json) as FlatPayload);
+  }
+
+  /** `<type>_value` child of an ELEMENT (choice or unconstrained). */
+  private isValueChoiceGroup(group: LeafGroup): boolean {
+    const lineage = this.pathNodes.get(group.segments.map((s) => s.id).join("/"));
+    const parent = lineage?.[lineage.length - 2];
+    return parent?.rmType === "ELEMENT" && valueChoiceType(group.node.id) !== undefined;
+  }
+
+  /**
+   * One value per ELEMENT instance: reject two `<type>_value` children.
+   * Returns the groups not to build.
+   */
+  private checkElementValues(groups: Map<string, LeafGroup>): Set<LeafGroup> {
+    interface ElementEntry {
+      key: string;
+      typed: LeafGroup[];
+    }
+    const elements = new Map<string, ElementEntry>();
+    for (const group of groups.values()) {
+      const typed = this.isValueChoiceGroup(group);
+      const segs = typed ? group.segments.slice(0, -1) : group.segments;
+      const key = segs.map((s) => `${s.id}:${s.index}`).join("/");
+      let entry = elements.get(key);
+      if (!entry) elements.set(key, entry = { key, typed: [] });
+      if (typed) entry.typed.push(group);
+    }
+    const rejected = new Set<LeafGroup>();
+    const path = (key: string) =>
+      `${this.rootId}/${key.split("/").map((s) => s.replace(/:0$/, "")).join("/")}`;
+    for (const entry of elements.values()) {
+      if (entry.typed.length > 1) {
+        this.issues.push({
+          path: path(entry.key),
+          severity: "error",
+          kind: "element-value",
+          message: `ELEMENT has more than one typed value (${
+            entry.typed.map((g) => g.node.id).join(", ")
+          }); it holds one value`,
+        });
+        for (const group of entry.typed) rejected.add(group);
+      }
+    }
+    return rejected;
   }
 
   private group(groups: Map<string, LeafGroup>, node: WebTemplateNode, segments: ParsedSegment[]): LeafGroup {
@@ -640,6 +705,7 @@ export function deserializeFromFlat(
   const deserializer = new FlatDeserializer(webTemplate, options);
   const composition = deserializer.deserialize(flat);
   throwOnCodedTextMismatch(deserializer.issues);
+  throwOnElementValueIssue(deserializer.issues);
   throwOnUnknownFlatKey(deserializer.issues);
   return composition;
 }
