@@ -129,19 +129,29 @@ Deno.test("ELEMENT without a value constraint: the value type is the <type>_valu
       { [`${element}/date_time_value`]: "2026-11-02T10:00:00Z" },
       "DV_DATE_TIME",
     ],
+    [{ [`${element}/ehr_uri_value`]: "ehr://abc/x" }, "DV_EHR_URI"],
+    [{
+      [`${element}/interval_of_quantity_value/lower|magnitude`]: 1,
+      [`${element}/interval_of_quantity_value/lower|unit`]: "kg",
+      [`${element}/interval_of_quantity_value/upper|magnitude`]: 2,
+      [`${element}/interval_of_quantity_value/upper|unit`]: "kg",
+    }, "DV_INTERVAL"],
   ];
   for (const [flat, type] of cases) {
     const value = roundTrip(wt, flat, element);
-    assertEquals(value._type, type, JSON.stringify(flat));
+    assertEquals(String(value._type).replace(/<.*$/, ""), type, JSON.stringify(flat));
   }
 });
 
 Deno.test("ELEMENT without a value constraint: a bare key or an unknown type is reported", () => {
   const wt = webTemplate();
   const element = `${CLUSTER}/any`;
-  const payloads: FlatPayload[] = [{ [element]: "x" }, {
-    [`${element}/no_such_value`]: "x",
-  }];
+  const payloads: FlatPayload[] = [
+    { [element]: "x" },
+    { [`${element}/no_such_value`]: "x" },
+    // `interval_value` does not say what the interval is of.
+    { [`${element}/interval_value/lower|magnitude`]: 1 },
+  ];
   for (const flat of payloads) {
     const { issues } = deserializeFromFlatWithIssues({ ...BASE, ...flat }, wt, {
       clock: CLOCK,

@@ -18,18 +18,34 @@ export function isUnconstrainedElement(node: WebTemplateNode): boolean {
     !node.inputs?.length;
 }
 
-/** `DV_CODED_TEXT` → `coded_text_value` (generic parameters dropped). */
+/**
+ * `DV_CODED_TEXT` → `coded_text_value`, `DV_INTERVAL<DV_QUANTITY>` →
+ * `interval_of_quantity_value` (as Better and FerroEHR name it; a plain
+ * `interval_value` would lose the interval's type).
+ */
 export function valueChoiceId(rmType: string): string {
-  return `${
-    rmType.replace(/<.*$/, "").replace(/^DV_/, "").toLowerCase()
-  }_value`;
+  const interval = /^DV_INTERVAL<(.+)>$/.exec(rmType);
+  if (interval) return `interval_of_${valueChoiceId(interval[1])}`;
+  return `${rmType.replace(/^DV_/, "").toLowerCase()}_value`;
 }
 
-/** `coded_text_value` → `DV_CODED_TEXT`, when that is a concrete data value type. */
+/**
+ * `coded_text_value` → `DV_CODED_TEXT`, `interval_of_quantity_value` →
+ * `DV_INTERVAL<DV_QUANTITY>`, when that is a concrete data value type.
+ */
 export function valueChoiceType(segmentId: string): string | undefined {
+  const interval = /^interval_of_(.+)$/.exec(segmentId);
+  if (interval) {
+    const inner = valueChoiceType(interval[1]);
+    return inner && isSubtypeOf(inner, "DV_ORDERED")
+      ? `DV_INTERVAL<${inner}>`
+      : undefined;
+  }
   const m = /^([a-z0-9_]+)_value$/.exec(segmentId);
   if (!m) return undefined;
   const rmType = `DV_${m[1].toUpperCase()}`;
+  // A generic type needs its parameter: `interval_of_<t>_value`.
+  if (rmType === "DV_INTERVAL") return undefined;
   if (!hasRmType(rmType) || isAbstractType(rmType)) return undefined;
   return isSubtypeOf(rmType, "DATA_VALUE") ? rmType : undefined;
 }

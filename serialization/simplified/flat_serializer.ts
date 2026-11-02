@@ -165,7 +165,7 @@ export class FlatSerializer {
     if (isUnconstrainedElement(node) && element && rmTypeOf(data) !== "ELEMENT") {
       // Any data value: its type is the `<type>_value` segment.
       this.writeElementAttributes(node, base, element);
-      const choice = elementValueChoiceNode(node, rmTypeOf(data) || "DV_TEXT");
+      const choice = elementValueChoiceNode(node, dataValueType(data));
       this.writeLeafValue(choice, `${base}/${choice.id}`, data);
       return;
     }
@@ -277,4 +277,13 @@ export function serializeToFlatJson(
   options?: FlatSerializerOptions,
 ): string {
   return new FlatSerializer(webTemplate, options).serializeJson(instance);
+}
+
+/** RM type of a data value, with the interval's parameter (`DV_INTERVAL<DV_QUANTITY>`). */
+function dataValueType(data: unknown): string {
+  const type = rmTypeOf(data) || "DV_TEXT";
+  if (type !== "DV_INTERVAL") return type;
+  const bounds = data as { lower?: unknown; upper?: unknown };
+  const bound = rmTypeOf(bounds.lower ?? bounds.upper);
+  return bound ? `DV_INTERVAL<${bound}>` : type;
 }
