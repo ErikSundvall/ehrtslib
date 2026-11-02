@@ -28,6 +28,7 @@
 import * as openehr_am from "../../am/openehr_am.ts";
 import * as openehr_base from "../../base/openehr_base.ts";
 import { aqlPathSegments } from "./normalize.ts";
+import { fixedNameConstraint } from "./web_template_builder.ts";
 import type {
   QuantityItemInterval,
   QuantityItemRuntime,
@@ -40,6 +41,7 @@ import type {
 import {
   type OperationalTemplateWithTermScopes,
   TERM_ARCHETYPE_SCOPE_KEY,
+  TERM_OCCURRENCE_SCOPE_KEY,
   type TermScopeMeta,
 } from "../../generation/term_scope.ts";
 import type { TermDefinitionTable } from "../../am/util/ontology_merge.ts";
@@ -80,10 +82,16 @@ function intervalFromValidationRange(
 interface AqlSegment {
   attr: string;
   nodeId?: string;
+  /** `name/value` predicate: a name-constrained sibling (e.g. two SECTION.adhoc). */
+  nameValue?: string;
 }
 
 function parseAqlPath(aqlPath: string): AqlSegment[] {
-  return aqlPathSegments(aqlPath).map(({ attr, nodeId }) => ({ attr, nodeId }));
+  return aqlPathSegments(aqlPath).map(({ attr, nodeId, nameValue }) => ({
+    attr,
+    nodeId,
+    nameValue,
+  }));
 }
 
 function isArchetypeId(nodeId?: string): boolean {
@@ -123,6 +131,20 @@ function wrapperRmType(parentRmType: string, attr: string): string {
   return "CLUSTER";
 }
 
+/**
+ * Put `name` constraints after the other attributes, where template tools
+ * write them, so the Web Template children keep their order.
+ */
+function moveNameConstraintsLast(obj: openehr_am.C_OBJECT): void {
+  const attrs = (obj as { attributes?: openehr_am.C_ATTRIBUTE[] }).attributes;
+  if (!attrs?.length) return;
+  const name = attrs.findIndex((a) => a.rm_attribute_name === "name");
+  if (name !== -1 && name !== attrs.length - 1) attrs.push(...attrs.splice(name, 1));
+  for (const attr of attrs) {
+    for (const child of attr.children ?? []) moveNameConstraintsLast(child);
+  }
+}
+
 type TermBag = Record<
   string,
   Record<string, { text?: string; description?: string }>
@@ -150,12 +172,18 @@ export class WebTemplateToOptConverter {
    * times, disambiguated by name) must map to *separate* constraint objects.
    */
   private claimed = new Set<openehr_am.C_COMPLEX_OBJECT>();
+  /**
+   * Occurrence scope (`<archetype id>#<n>`) of an archetype-root Web Template
+   * node whose names differ from the first occurrence of its archetype.
+   */
+  private occurrenceOf = new Map<WebTemplateNode, string>();
 
   convert(webTemplate: WebTemplate): openehr_am.OPERATIONAL_TEMPLATE {
     this.terms = {};
     this.scopedTerms = {};
     this.claimed = new Set();
     this.defaultLang = webTemplate.defaultLanguage || "en";
+    this.occurrenceOf = occurrenceScopes(webTemplate.tree, this.defaultLang);
 
     const opt = new openehr_am.OPERATIONAL_TEMPLATE();
     opt.adl_version = "1.4";
@@ -199,6 +227,7 @@ export class WebTemplateToOptConverter {
       this.insertNode(root, child, 0);
     }
 
+    moveNameConstraintsLast(root);
     opt.definition = root;
 
     const ontology = new openehr_am.ARCHETYPE_ONTOLOGY();
@@ -209,11 +238,15 @@ export class WebTemplateToOptConverter {
     opt.ontology = ontology;
 
     const index: Record<string, TermDefinitionTable> = {};
-    for (const [archId, table] of Object.entries(this.scopedTerms)) {
-      index[archId] = table;
+    const occurrences: Record<string, TermDefinitionTable> = {};
+    for (const [scope, table] of Object.entries(this.scopedTerms)) {
+      (scope.includes("#") ? occurrences : index)[scope] = table;
     }
-    (opt as OperationalTemplateWithTermScopes).archetype_term_definitions =
-      index;
+    const scoped = opt as OperationalTemplateWithTermScopes;
+    scoped.archetype_term_definitions = index;
+    if (Object.keys(occurrences).length) {
+      scoped.occurrence_term_definitions = occurrences;
+    }
 
     // OPT cannot store per-occurrence translations in component_ontologies;
     // emit Better/AD L10n.{lang} path annotations from localizedNames.
@@ -226,9 +259,10 @@ export class WebTemplateToOptConverter {
   }
 
   private recordTerms(node: WebTemplateNode, archetypeScope?: string): void {
-    const scope = node.nodeId && isArchetypeId(node.nodeId)
-      ? node.nodeId
-      : archetypeScope;
+    const scope = this.occurrenceOf.get(node) ??
+      (node.nodeId && isArchetypeId(node.nodeId)
+        ? node.nodeId
+        : archetypeScope);
     const code = node.nodeId;
     if (!code) return;
 
@@ -247,7 +281,8 @@ export class WebTemplateToOptConverter {
       if (description != null) {
         this.terms[lang][code].description = description;
       }
-      if (scope && !isArchetypeId(code)) {
+      // An archetype root's own name goes in its own scope only.
+      if (scope && (!isArchetypeId(code) || code === scope.split("#")[0])) {
         this.scopedTerms[scope] ??= {};
         this.scopedTerms[scope][lang] ??= {};
         this.scopedTerms[scope][lang][code] ??= {};
@@ -296,6 +331,7 @@ export class WebTemplateToOptConverter {
           wrapperRmType(current.rm_type_name ?? "", seg.attr),
           false,
           this.scopeOf(current),
+          seg.nameValue,
         );
         continue;
       }
@@ -304,7 +340,8 @@ export class WebTemplateToOptConverter {
         // Both leaf styles produce ELEMENT { value: <DV constraint> },
         // except when the leaf itself is a non-ELEMENT RM attribute value
         // (e.g. /time on an EVENT) — then the DV constraint sits directly.
-        const elementLike = leafValueStyle || seg.attr === "items";
+        const elementLike = leafValueStyle || seg.attr === "items" ||
+          seg.attr === "item";
         if (elementLike) {
           const element = this.ensureObject(
             attr,
@@ -312,6 +349,7 @@ export class WebTemplateToOptConverter {
             "ELEMENT",
             false,
             this.scopeOf(current),
+            seg.nameValue,
           );
           element.occurrences = multiplicity(node.min ?? 0, node.max ?? 1);
           const valueAttr = this.ensureAttribute(element, "value");
@@ -340,8 +378,11 @@ export class WebTemplateToOptConverter {
         node.rmType,
         /* forceUnclaimed */ true,
         this.scopeOf(current),
+        seg.nameValue,
       );
       this.claimed.add(obj);
+      const occurrence = this.occurrenceOf.get(node);
+      if (occurrence) this.stampScope(obj, occurrence);
       obj.occurrences = multiplicity(node.min ?? 0, node.max ?? 1);
       for (const child of node.children ?? []) {
         if (child.inContext) continue;
@@ -393,10 +434,14 @@ export class WebTemplateToOptConverter {
     return dv;
   }
 
+  /** Stamp an archetype scope, or an occurrence scope `<id>#<n>`. */
   private stampScope(obj: openehr_am.C_OBJECT, scope?: string): void {
-    if (scope) {
-      (obj as TermScopeMeta)[TERM_ARCHETYPE_SCOPE_KEY] = scope;
-    }
+    if (!scope) return;
+    const meta = obj as TermScopeMeta;
+    const hash = scope.indexOf("#");
+    meta[TERM_ARCHETYPE_SCOPE_KEY] = hash < 0 ? scope : scope.slice(0, hash);
+    if (hash < 0) delete meta[TERM_OCCURRENCE_SCOPE_KEY];
+    else meta[TERM_OCCURRENCE_SCOPE_KEY] = scope;
   }
 
   private newTerminologyCode(
@@ -546,7 +591,8 @@ export class WebTemplateToOptConverter {
   }
 
   private scopeOf(obj: openehr_am.C_OBJECT): string | undefined {
-    return (obj as TermScopeMeta)[TERM_ARCHETYPE_SCOPE_KEY] ??
+    const meta = obj as TermScopeMeta;
+    return meta[TERM_OCCURRENCE_SCOPE_KEY] ?? meta[TERM_ARCHETYPE_SCOPE_KEY] ??
       (obj instanceof openehr_am.C_ARCHETYPE_ROOT
         ? obj.archetype_ref
         : undefined);
@@ -558,10 +604,12 @@ export class WebTemplateToOptConverter {
     rmType: string,
     forceUnclaimed = false,
     inheritedScope?: string,
+    nameValue?: string,
   ): openehr_am.C_COMPLEX_OBJECT {
     attr.children ??= [];
     const existing = attr.children.find((c) =>
       (nodeId ? c.node_id === nodeId : c.rm_type_name === rmType) &&
+      fixedNameConstraint(c) === nameValue &&
       !(forceUnclaimed &&
         this.claimed.has(c as openehr_am.C_COMPLEX_OBJECT))
     );
@@ -576,12 +624,98 @@ export class WebTemplateToOptConverter {
     obj.rm_type_name = rmType;
     if (nodeId) obj.node_id = nodeId;
     const scope = isArchetypeId(nodeId) ? nodeId : inheritedScope;
-    if (scope) {
-      (obj as TermScopeMeta)[TERM_ARCHETYPE_SCOPE_KEY] = scope;
-    }
+    this.stampScope(obj, scope);
+    if (nameValue !== undefined) this.addNameConstraint(obj, nameValue, scope);
     attr.children.push(obj);
     return obj;
   }
+
+  /**
+   * `name matches {DV_TEXT matches {value matches {"…"}}}`, as template
+   * tools write it for a renamed archetype or node occurrence; it is what
+   * gives the sibling its `name/value` path predicate.
+   */
+  private addNameConstraint(
+    obj: openehr_am.C_COMPLEX_OBJECT,
+    name: string,
+    scope?: string,
+  ): void {
+    const nameAttr = this.ensureAttribute(obj, "name");
+    nameAttr.existence = multiplicity(1, 1);
+    const text = new openehr_am.C_COMPLEX_OBJECT();
+    text.rm_type_name = "DV_TEXT";
+    text.occurrences = multiplicity(1, 1);
+    this.stampScope(text, scope);
+    const valueAttr = this.ensureAttribute(text, "value");
+    valueAttr.existence = multiplicity(1, 1);
+    const prim = new openehr_am.C_PRIMITIVE_OBJECT();
+    prim.rm_type_name = "STRING";
+    prim.occurrences = multiplicity(1, 1);
+    this.stampScope(prim, scope);
+    const str = new openehr_am.C_STRING();
+    (str as { list?: string[] }).list = [name];
+    (str as unknown as { rm_type_name?: string }).rm_type_name = "STRING";
+    prim.item = str;
+    valueAttr.children = [prim];
+    nameAttr.children = [text];
+  }
+}
+
+/** Names of an archetype occurrence by node id, down to nested archetypes. */
+function occurrenceNames(
+  root: WebTemplateNode,
+  lang: string,
+): Map<string, string> {
+  const names = new Map<string, string>();
+  const visit = (node: WebTemplateNode) => {
+    const name = node.localizedNames?.[lang] ?? node.name;
+    if (node.nodeId && name != null && !names.has(node.nodeId)) {
+      names.set(node.nodeId, name);
+    }
+    for (const child of node.children ?? []) {
+      if (child.inContext || isArchetypeId(child.nodeId)) continue;
+      visit(child);
+    }
+  };
+  visit(root);
+  return names;
+}
+
+/**
+ * Give each archetype-root node whose names differ from the first
+ * occurrence of its archetype an occurrence scope `<id>#<n>`, so a reused
+ * archetype (ACTION.medication as "Medication statement" and "Immunization
+ * statement") keeps each occurrence's names.
+ */
+function occurrenceScopes(
+  tree: WebTemplateNode,
+  lang: string,
+): Map<WebTemplateNode, string> {
+  const out = new Map<WebTemplateNode, string>();
+  const first = new Map<string, Map<string, string>>();
+  const counts = new Map<string, number>();
+  const visit = (node: WebTemplateNode) => {
+    const id = node.nodeId;
+    if (id && isArchetypeId(id)) {
+      const names = occurrenceNames(node, lang);
+      const seen = first.get(id);
+      if (!seen) first.set(id, names);
+      else if (
+        [...names].some(([code, name]) =>
+          seen.has(code) && seen.get(code) !== name
+        )
+      ) {
+        const n = (counts.get(id) ?? 1) + 1;
+        counts.set(id, n);
+        out.set(node, `${id}#${n}`);
+      }
+    }
+    for (const child of node.children ?? []) {
+      if (!child.inContext) visit(child);
+    }
+  };
+  visit(tree);
+  return out;
 }
 
 export function webTemplateToOpt(

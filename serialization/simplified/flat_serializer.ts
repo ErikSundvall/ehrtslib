@@ -10,6 +10,12 @@ import {
   resolveChildWebTemplateNodeValues,
 } from "./instance_nav.ts";
 import { extractValueFields } from "./value_extract.ts";
+import {
+  elementValueChoiceNode,
+  isUnconstrainedElement,
+  isValueChoiceElement,
+  valueChoiceFor,
+} from "./element_value_choice.ts";
 import { getFieldMap } from "./dv_field_maps.ts";
 import {
   baseType,
@@ -158,40 +164,36 @@ export class FlatSerializer {
     const base = nextPath.join("/");
     const isLeaf = node.inputs?.length && !node.children?.length;
 
+    if (isUnconstrainedElement(node) && element && rmTypeOf(data) !== "ELEMENT") {
+      // Any data value: its type is the `<type>_value` segment.
+      this.writeElementAttributes(node, base, element);
+      const choice = elementValueChoiceNode(node, dataValueType(data));
+      this.writeLeafValue(choice, `${base}/${choice.id}`, data);
+      return;
+    }
+
+    if (isValueChoiceElement(node)) {
+      // One of several value types: written under its `<type>_value` child.
+      if (rmTypeOf(data) === "ELEMENT") {
+        for (const [k, v] of nullFlavourFields(data)) this.out[`${base}/${k}`] = v;
+        this.writeElementAttributes(node, base, data);
+        return;
+      }
+      if (element) this.writeElementAttributes(node, base, element);
+      const type = dataValueType(data);
+      const choice = valueChoiceFor(node, type) ?? elementValueChoiceNode(node, type);
+      this.writeLeafValue(choice, `${base}/${choice.id}`, data);
+      return;
+    }
+
     if (isLeaf) {
       if (rmTypeOf(data) === "ELEMENT") {
         for (const [k, v] of nullFlavourFields(data)) this.out[`${base}/${k}`] = v;
         this.writeElementAttributes(node, base, data);
         return;
       }
-      if (typeof data !== "object") {
-        this.out[base] = data as string | number | boolean;
-        return;
-      }
       if (element) this.writeElementAttributes(node, base, element);
-      if (hasStructuredForm(rmTypeOf(data) || node.rmType) && !getFieldMap(rmTypeOf(data))) {
-        // e.g. DV_INTERVAL: `/lower`, `/upper`, `|lower_included`, …
-        emitFlatTree(base, encodeRmObject(data, node.rmType), this.out);
-        return;
-      }
-      if (node.rmType === "DV_CODED_TEXT" && rmTypeOf(data) === "DV_TEXT") {
-        // Free text on an open coded value set.
-        this.out[`${base}|other`] = (data as { value?: string }).value ?? "";
-        this.writeValueAttributes(base, data);
-        return;
-      }
-      const fields = rmTypeOf(data).startsWith("PARTY_")
-        ? partyFields(data)
-        : allValueFields(data, node);
-      if (node.aqlPath === "/composer" && rmTypeOf(data) === "PARTY_SELF") {
-        // No ctx/composer_self in output: mark the subtype at its path
-        // (ehrtslib convention, docs/SIMPLIFIED_FORMATS.md "Composer").
-        fields._type = "PARTY_SELF";
-      }
-      for (const [suffix, value] of Object.entries(fields)) {
-        this.out[suffix === "" ? base : `${base}|${suffix}`] = value;
-      }
-      this.writeValueAttributes(base, data);
+      this.writeLeafValue(node, base, data);
       return;
     }
 
@@ -207,6 +209,37 @@ export class FlatSerializer {
       }
     }
     this.writeAttributes(node, base, data);
+  }
+
+  /** The `|suffix` fields and `_<attribute>` paths of a leaf value. */
+  private writeLeafValue(node: WebTemplateNode, base: string, data: unknown): void {
+    if (typeof data !== "object") {
+      this.out[base] = data as string | number | boolean;
+      return;
+    }
+    if (hasStructuredForm(rmTypeOf(data) || node.rmType) && !getFieldMap(rmTypeOf(data))) {
+      // e.g. DV_INTERVAL: `/lower`, `/upper`, `|lower_included`, …
+      emitFlatTree(base, encodeRmObject(data, node.rmType), this.out);
+      return;
+    }
+    if (node.rmType === "DV_CODED_TEXT" && rmTypeOf(data) === "DV_TEXT") {
+      // Free text on an open coded value set.
+      this.out[`${base}|other`] = (data as { value?: string }).value ?? "";
+      this.writeValueAttributes(base, data);
+      return;
+    }
+    const fields = rmTypeOf(data).startsWith("PARTY_")
+      ? partyFields(data)
+      : allValueFields(data, node);
+    if (node.aqlPath === "/composer" && rmTypeOf(data) === "PARTY_SELF") {
+      // No ctx/composer_self in output: mark the subtype at its path
+      // (ehrtslib convention, docs/SIMPLIFIED_FORMATS.md "Composer").
+      fields._type = "PARTY_SELF";
+    }
+    for (const [suffix, value] of Object.entries(fields)) {
+      this.out[suffix === "" ? base : `${base}|${suffix}`] = value;
+    }
+    this.writeValueAttributes(base, data);
   }
 
   /** `_<attribute>` paths for RM attributes no Web Template node writes. */
@@ -260,4 +293,13 @@ export function serializeToFlatJson(
   options?: FlatSerializerOptions,
 ): string {
   return new FlatSerializer(webTemplate, options).serializeJson(instance);
+}
+
+/** RM type of a data value, with the interval's parameter (`DV_INTERVAL<DV_QUANTITY>`). */
+function dataValueType(data: unknown): string {
+  const type = rmTypeOf(data) || "DV_TEXT";
+  if (type !== "DV_INTERVAL") return type;
+  const bounds = data as { lower?: unknown; upper?: unknown };
+  const bound = rmTypeOf(bounds.lower ?? bounds.upper);
+  return bound ? `DV_INTERVAL<${bound}>` : type;
 }

@@ -18,6 +18,7 @@ import type {
   WebTemplateNode,
 } from "./types.ts";
 import { getFieldMap, resolveDvType } from "./dv_field_maps.ts";
+import { nodeForChain } from "./element_value_choice.ts";
 
 type StructuredValue = Record<string, unknown>;
 
@@ -158,7 +159,7 @@ class StructuredToFlatConverter {
     }
 
     if (isPlainObject(value)) {
-      const node = this.nodeByChain.get(chain);
+      const node = nodeForChain(this.nodeByChain, chain);
       emitPipeFields(this.flat, base, value, valueIsRealSuffix(node?.rmType));
       for (const [k, v] of Object.entries(value)) {
         if (k.startsWith("|")) continue;

@@ -25,6 +25,13 @@ export const TERM_ARCHETYPE_SCOPE_KEY = "term_archetype_scope";
 export const TERM_NAME_FALLBACK_NODE_ID_KEY = "term_name_fallback_node_id";
 /** Per-root term bag parsed from legacy OPT XML `<term_definitions>` on C_ARCHETYPE_ROOT. */
 export const COMPONENT_TERM_DEFINITIONS_KEY = "opt_component_term_definitions";
+/**
+ * Term scope of one occurrence of an archetype whose OPT terms differ from
+ * its first occurrence (two `SECTION.adhoc` roots with at0000 "Vital signs"
+ * and "Calculated scales"): `<archetype id>#<n>`, n = 2, 3, …. Set on the
+ * root and its descendants; {@link termScopeOf} prefers it.
+ */
+export const TERM_OCCURRENCE_SCOPE_KEY = "term_occurrence_scope";
 
 export interface TermEntry {
   text?: string;
@@ -35,10 +42,16 @@ export interface TermScopeMeta {
   term_archetype_scope?: string;
   term_name_fallback_node_id?: string;
   opt_component_term_definitions?: TermBag;
+  term_occurrence_scope?: string;
 }
 
 export interface OperationalTemplateWithTermScopes {
   archetype_term_definitions?: Record<string, TermDefinitionTable>;
+  /**
+   * Term tables of archetype occurrences whose terms differ from the first
+   * occurrence, keyed by {@link TERM_OCCURRENCE_SCOPE_KEY} (`<id>#<n>`).
+   */
+  occurrence_term_definitions?: Record<string, TermDefinitionTable>;
   definition?: openehr_am.C_COMPLEX_OBJECT;
   original_language?: unknown;
 }
@@ -227,7 +240,7 @@ export function archetypeTermBagsForLanguage(
   language: string,
   originalLanguage?: string,
 ): Record<string, TermBag> {
-  const index = template.archetype_term_definitions ?? {};
+  const index = termTablesByScope(template);
   const original = originalLanguage ?? languageCode(template.original_language);
   const out: Record<string, TermBag> = {};
   for (const [archId, table] of Object.entries(index)) {
@@ -237,8 +250,30 @@ export function archetypeTermBagsForLanguage(
 }
 
 /**
+ * Term tables by scope: archetype ids and occurrence scopes (`<id>#<n>`).
+ * Look a node up with {@link termScopeOf}.
+ */
+export function termTablesByScope(
+  template: OperationalTemplateWithTermScopes,
+): Record<string, TermDefinitionTable> {
+  return {
+    ...(template.archetype_term_definitions ?? {}),
+    ...(template.occurrence_term_definitions ?? {}),
+  };
+}
+
+/** Term scope of a constraint node: its occurrence scope, else its archetype id. */
+export function termScopeOf(obj: unknown): string | undefined {
+  const meta = obj as TermScopeMeta | undefined;
+  return meta?.[TERM_OCCURRENCE_SCOPE_KEY] ?? meta?.[TERM_ARCHETYPE_SCOPE_KEY];
+}
+
+/**
  * Tag constraint nodes with `term_archetype_scope` and build
  * `archetype_term_definitions` from per-`C_ARCHETYPE_ROOT` OPT XML term bags.
+ * A later occurrence of an archetype whose OPT terms differ from the first
+ * gets its own table in `occurrence_term_definitions` and an occurrence scope
+ * ({@link TERM_OCCURRENCE_SCOPE_KEY}) on its nodes.
  *
  * Inline `<term_definitions>` on a `C_ARCHETYPE_ROOT` are the template's
  * original language. They are stored under that language. `language` is used
@@ -258,39 +293,86 @@ export function applyOperationalTemplateTermScopes(
   };
   const inlineLanguage = languageCode(opt.original_language) || language ||
     "en";
+  const walk: TermScopeWalk = {
+    language: inlineLanguage,
+    index,
+    occurrences: {},
+    first: new Map(),
+    counts: new Map(),
+  };
   if (opt.definition) {
-    walkTermScopes(opt.definition, undefined, inlineLanguage, index);
+    walkTermScopes(opt.definition, undefined, undefined, walk);
   }
   opt.archetype_term_definitions = index;
+  if (Object.keys(walk.occurrences).length) {
+    opt.occurrence_term_definitions = walk.occurrences;
+  } else {
+    delete opt.occurrence_term_definitions;
+  }
+}
+
+interface TermScopeWalk {
+  language: string;
+  index: Record<string, TermDefinitionTable>;
+  occurrences: Record<string, TermDefinitionTable>;
+  /** Archetype id → local bag of its first occurrence. */
+  first: Map<string, TermBag>;
+  counts: Map<string, number>;
+}
+
+/** Some code has another text in `b` than in `a`. */
+function termsDiffer(a: TermBag, b: TermBag): boolean {
+  return Object.entries(b).some(([code, entry]) =>
+    a[code] !== undefined && termLabel(a[code]?.text) !== termLabel(entry?.text)
+  );
 }
 
 function walkTermScopes(
   obj: openehr_am.C_OBJECT,
   inheritedScope: string | undefined,
-  language: string,
-  index: Record<string, TermDefinitionTable>,
+  inheritedOccurrence: string | undefined,
+  walk: TermScopeWalk,
 ): void {
   let scope = inheritedScope;
+  let occurrence = inheritedOccurrence;
   if (obj instanceof openehr_am.C_ARCHETYPE_ROOT && obj.archetype_ref) {
     scope = obj.archetype_ref;
+    occurrence = undefined;
     const local = (obj as TermScopeMeta)[COMPONENT_TERM_DEFINITIONS_KEY];
     if (local && Object.keys(local).length) {
-      index[scope] ??= {};
-      index[scope][language] = {
-        ...(index[scope][language] ?? {}),
-        ...local,
-      };
+      const first = walk.first.get(scope);
+      if (first && termsDiffer(first, local)) {
+        // Same archetype, other terms: a scope of its own.
+        const n = (walk.counts.get(scope) ?? 1) + 1;
+        walk.counts.set(scope, n);
+        occurrence = `${scope}#${n}`;
+        walk.occurrences[occurrence] = {
+          ...(walk.index[scope] ?? {}),
+          [walk.language]: {
+            ...(walk.index[scope]?.[walk.language] ?? {}),
+            ...local,
+          },
+        };
+      } else {
+        if (!first) walk.first.set(scope, local);
+        walk.index[scope] ??= {};
+        walk.index[scope][walk.language] = {
+          ...(walk.index[scope][walk.language] ?? {}),
+          ...local,
+        };
+      }
     }
   }
-  if (scope) {
-    (obj as TermScopeMeta)[TERM_ARCHETYPE_SCOPE_KEY] = scope;
-  }
+  const meta = obj as TermScopeMeta;
+  if (scope) meta[TERM_ARCHETYPE_SCOPE_KEY] = scope;
+  if (occurrence) meta[TERM_OCCURRENCE_SCOPE_KEY] = occurrence;
+  else delete meta[TERM_OCCURRENCE_SCOPE_KEY];
   if (obj instanceof openehr_am.C_COMPLEX_OBJECT) {
     for (const attr of obj.attributes ?? []) {
       const children = (attr as { children?: openehr_am.C_OBJECT[] }).children;
       if (!children) continue;
       for (const child of children) {
-        walkTermScopes(child, scope, language, index);
+        walkTermScopes(child, scope, occurrence, walk);
       }
     }
   }
