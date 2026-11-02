@@ -24,7 +24,7 @@ Library support for **Web Template**, **FLAT**, and **STRUCTURED** simplified co
 | `deserializeFromStructured(structured, wt, options)` | STRUCTURED → RM instance |
 | `deserializeFromStructuredWithIssues(structured, wt, options)` | STRUCTURED → RM instance plus issues |
 | `structuredToFlat(structured, wt)` / `flatToStructured(flat)` | STRUCTURED ↔ FLAT (shared path) |
-| `validateFlatPayload(flat, wt)` | Validate FLAT keys against template schema |
+| `validateFlatPayload(flat, wt)` | Validate FLAT keys against the template, and report what the FLAT reader rejects (coded-text, element-value and unknown-key errors), so a payload `deserializeFromFlat` throws on is not valid. Unknown keys are errors unless `strictUnknownKeys: false` (#266) |
 | `toTypedRm(plain)` | Plain `_type` tree → typed RM class instances |
 
 Re-exported from `serialization/mod.ts`.

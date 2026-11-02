@@ -4,7 +4,11 @@
  * Checks that each key resolves to a web template node (accepting `:n`
  * instance indices, `|suffix` attributes including the `|value` alias,
  * `|raw`, `|other` on open coded lists, and `_`-prefixed RM attribute
- * segments), and that mandatory context/leaf fields are present.
+ * segments), and that mandatory context/leaf fields are present. Then reads
+ * the payload with {@link FlatDeserializer} and reports its errors (coded
+ * text without a code, two values on one ELEMENT, a value with
+ * `_null_flavour`, the untyped `_value`, keys or fields the reader rejects),
+ * so a payload the reader rejects is not valid.
  */
 
 import type {
@@ -17,6 +21,7 @@ import type {
 import { templateRootId } from "./normalize.ts";
 import { getFieldMap } from "./dv_field_maps.ts";
 import { nodeForChain } from "./element_value_choice.ts";
+import { FlatDeserializer } from "./flat_deserializer.ts";
 
 const CTX_FIELDS = new Set([
   "language",
@@ -76,8 +81,17 @@ function knownSuffixes(node: WebTemplateNode): Set<string> {
   return suffixes;
 }
 
+const READER_REJECTS = new Set<string>([
+  "coded-text-mismatch",
+  "element-value",
+  "unknown-key",
+]);
+
 export interface FlatValidatorOptions {
-  /** Treat unknown keys as errors (default: warnings). */
+  /**
+   * Treat unknown keys as errors (default `true`, as the FLAT reader does);
+   * `false` reports them as warnings.
+   */
   strictUnknownKeys?: boolean;
 }
 
@@ -91,8 +105,9 @@ export function validateFlatPayload(
   const rootId = templateRootId(webTemplate.templateId);
   const chains = buildChainSet(webTemplate);
 
+  const strict = options.strictUnknownKeys ?? true;
   const report = (path: string, message: string) => {
-    if (options.strictUnknownKeys) {
+    if (strict) {
       errors.push({ path, message, severity: "error" });
     } else {
       warnings.push({ path, message, severity: "warning" });
@@ -219,6 +234,32 @@ export function validateFlatPayload(
     }
   };
   requireChains(webTemplate.tree.children ?? [], "", true);
+
+  // What the reader rejects. Unknown keys are reported above.
+  const known = new Set([...errors, ...warnings].map((m) => m.path));
+  try {
+    const reader = new FlatDeserializer(webTemplate, {
+      unknownKeys: strict ? "error" : "warning",
+    });
+    reader.deserialize(payload);
+    for (const issue of reader.issues) {
+      // The kinds that make deserializeFromFlat throw.
+      if (!issue.kind || !READER_REJECTS.has(issue.kind)) continue;
+      if (issue.kind === "unknown-key" && known.has(issue.path)) continue;
+      if (issue.severity !== "error" && issue.kind !== "unknown-key") continue;
+      (issue.severity === "error" ? errors : warnings).push({
+        path: issue.path,
+        message: issue.message,
+        severity: issue.severity,
+      });
+    }
+  } catch (e) {
+    errors.push({
+      path: rootId,
+      message: `FLAT reader failed: ${e instanceof Error ? e.message : String(e)}`,
+      severity: "error",
+    });
+  }
 
   return {
     valid: errors.length === 0,
