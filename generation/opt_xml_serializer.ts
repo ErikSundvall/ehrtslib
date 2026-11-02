@@ -357,6 +357,9 @@ function serializeCObject(
     if (obj.item instanceof openehr_am.C_OBJECT) {
       return serializeCObject(obj.item, ctx);
     }
+    if (obj.rm_type_name === "CODE_PHRASE") {
+      return serializeCTerminologyCode(obj as TerminologyCodeRuntime, base);
+    }
     base["@_xsi:type"] = "C_DV_TEXT";
     base.rm_type_name = obj.rm_type_name ?? "DV_TEXT";
     return base;

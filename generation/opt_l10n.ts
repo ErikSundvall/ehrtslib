@@ -69,6 +69,16 @@ export function stripNamePredicates(path: string): string {
     .replace(/,"[^"]*"/g, "");
 }
 
+/** `[id and name/value='X']` → `[id,'X']`. */
+function shortNamePredicates(path: string): string {
+  return path.replace(/\s+and\s+name\/value\s*=\s*'([^']*)'/gi, ",'$1'");
+}
+
+/** `[id,'X']` → `[id and name/value='X']`. */
+function aqlNamePredicates(path: string): string {
+  return path.replace(/\s*,\s*'([^']*)'\s*\]/g, " and name/value='$1']");
+}
+
 export function normalizeAnnotationPath(path: string): string {
   return stripNamePredicates(stripLeadingArchetypeId(path.trim()));
 }
@@ -113,6 +123,10 @@ export function annotationsForAqlPath(
   if (!aqlPath) return undefined;
 
   const candidates: string[] = [aqlPath, stripLeadingArchetypeId(aqlPath)];
+  // The same name predicates in the other spelling (`and name/value='X'` ⇄ `,'X'`).
+  for (const spelled of [shortNamePredicates(aqlPath), aqlNamePredicates(aqlPath)]) {
+    if (spelled !== aqlPath) candidates.push(spelled, stripLeadingArchetypeId(spelled));
+  }
   if (nodeName) {
     // OPT-style name predicate on the last path segment.
     const named = aqlPath.replace(
@@ -251,7 +265,9 @@ export function collectL10nAnnotationsFromWebTemplateTree(
   if (path && path !== "/") {
     const items = l10nItemsFromLocalizedNames(node.localizedNames);
     if (Object.keys(items).length) {
-      const key = normalizeAnnotationPath(path);
+      // Keep name predicates: name-constrained siblings (two SECTION.adhoc)
+      // share the predicate-free path.
+      const key = stripLeadingArchetypeId(path.trim());
       out[key] = { ...(out[key] ?? {}), ...items };
     }
   }

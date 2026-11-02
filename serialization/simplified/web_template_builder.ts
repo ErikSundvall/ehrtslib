@@ -30,13 +30,17 @@ import {
   templateRootId,
 } from "./normalize.ts";
 import { inputsForRmType, resolveDvType } from "./dv_field_maps.ts";
+import { valueChoiceId } from "./element_value_choice.ts";
 import {
   type OperationalTemplateWithTermScopes,
   resolveTermEntry,
   TERM_ARCHETYPE_SCOPE_KEY,
   TERM_NAME_FALLBACK_NODE_ID_KEY,
+  TERM_OCCURRENCE_SCOPE_KEY,
   type TermEntry,
+  termScopeOf,
   type TermScopeMeta,
+  termTablesByScope,
 } from "../../generation/term_scope.ts";
 import { languageCode } from "../../generation/term_codes.ts";
 import {
@@ -69,6 +73,9 @@ function complexShellFromSlot(
   obj.occurrences = slot.occurrences;
   const src = slot as TermScopeMeta;
   const dest = obj as TermScopeMeta;
+  if (src[TERM_OCCURRENCE_SCOPE_KEY]) {
+    dest[TERM_OCCURRENCE_SCOPE_KEY] = src[TERM_OCCURRENCE_SCOPE_KEY];
+  }
   if (src[TERM_ARCHETYPE_SCOPE_KEY]) {
     dest[TERM_ARCHETYPE_SCOPE_KEY] = src[TERM_ARCHETYPE_SCOPE_KEY];
   }
@@ -544,6 +551,19 @@ function childPathPredicate(
 }
 
 /** Copy node metadata without inheriting `children`/`inputs` from base. */
+/**
+ * Several value types for one ELEMENT. The coded/plain text pair
+ * ({DV_CODED_TEXT, DV_TEXT}) is not split: it stays one node, as before
+ * (whether to split it is open; EHRbase merges it, Better splits it).
+ */
+function isTypeChoice(alternatives: openehr_am.C_OBJECT[]): boolean {
+  const types = new Set(alternatives.map((a) => a.rm_type_name ?? ""));
+  if (types.size < 2) return false;
+  const textPair = types.size === 2 && types.has("DV_TEXT") &&
+    types.has("DV_CODED_TEXT");
+  return !textPair;
+}
+
 function nodeShell(
   base: WebTemplateNode,
   patch: Partial<WebTemplateNode>,
@@ -645,8 +665,8 @@ export class WebTemplateBuilder {
       meta[TERM_NAME_FALLBACK_NODE_ID_KEY],
       bags.template,
       bags.archetype,
-      meta[TERM_ARCHETYPE_SCOPE_KEY],
-    ) ?? (scopedBagFor(bags.archetype, meta[TERM_ARCHETYPE_SCOPE_KEY])
+      termScopeOf(meta),
+    ) ?? (scopedBagFor(bags.archetype, termScopeOf(meta))
       ? undefined
       : lookupTerm(bags.template, obj.node_id));
   }
@@ -810,8 +830,7 @@ export class WebTemplateBuilder {
     }
     const term = nestedTerminologyCode(cObj);
     if (term) {
-      const scope = (term as TermScopeMeta)[TERM_ARCHETYPE_SCOPE_KEY] ??
-        (cObj as TermScopeMeta | undefined)?.[TERM_ARCHETYPE_SCOPE_KEY];
+      const scope = termScopeOf(term) ?? termScopeOf(cObj);
       applyTerminologyInputs(
         inputs,
         term,
@@ -821,8 +840,7 @@ export class WebTemplateBuilder {
     }
     this.mapLocalValueCodes(
       inputs,
-      (term as TermScopeMeta | undefined)?.[TERM_ARCHETYPE_SCOPE_KEY] ??
-        (cObj as TermScopeMeta | undefined)?.[TERM_ARCHETYPE_SCOPE_KEY],
+      termScopeOf(term) ?? termScopeOf(cObj),
     );
 
     return inputs;
@@ -893,7 +911,7 @@ export class WebTemplateBuilder {
       string,
       TermBag
     >;
-    this.archetypeTerms = scoped.archetype_term_definitions ?? {};
+    this.archetypeTerms = termTablesByScope(scoped);
     this.opt = adl2CodingSystemOf(opt) === "id-coded" ? opt : undefined;
     this.bagCache.clear();
     this.pathAnnotations = this.applyL10n ? flattenOptPathAnnotations(opt) : {};
@@ -1402,7 +1420,7 @@ export class WebTemplateBuilder {
       if (!(ev instanceof openehr_am.C_COMPLEX_OBJECT)) continue;
       const evPath = joinAqlPath(
         aqlPath,
-        pathSegment("events", constraintNodeId(ev)),
+        pathSegment("events", childPathPredicate(ev, events)),
       );
       const { min, max } = multiplicityBounds(ev.occurrences);
       const eventShell: WebTemplateNode = this.decorateWithAnnotations({
@@ -1480,10 +1498,18 @@ export class WebTemplateBuilder {
     const valueAttr = obj.attributes?.find((a) =>
       a.rm_attribute_name === "value"
     );
-    const valueChild = (valueAttr as { children?: openehr_am.C_OBJECT[] })
-      ?.children?.[0];
+    const alternatives = (valueAttr as { children?: openehr_am.C_OBJECT[] })
+      ?.children ?? [];
+    if (isTypeChoice(alternatives)) {
+      return this.buildValueChoice(obj, aqlPath, shell, alternatives);
+    }
+    const valueChild = alternatives[0];
     if (valueChild) {
       const leaf = this.buildLeaf(valueChild, aqlPath, shell.id);
+      // The collapsed node is the ELEMENT: its occurrences, not the value's
+      // (always 1..1 under an existing ELEMENT), as Better and EHRbase give.
+      leaf.min = shell.min;
+      leaf.max = shell.max;
       // Data values are not LOCATABLE and have no node id in the Web
       // Template; keep the ELEMENT's at-code so instances can be
       // matched/rebuilt correctly.
@@ -1506,6 +1532,41 @@ export class WebTemplateBuilder {
       return leaf;
     }
     return nodeShell(shell, { aqlPath, rmType: shell.rmType ?? "ELEMENT" });
+  }
+
+  /**
+   * ELEMENT whose value may have one of several types: one child per type,
+   * id `<type>_value` (`quantity_value`, `interval_of_quantity_value`), at
+   * `<element>/value`, as EHRbase (`OPTParser.updateChoiceId`) and Better
+   * build it. Only one of them can hold the value, so each has min 0.
+   */
+  private buildValueChoice(
+    obj: openehr_am.C_COMPLEX_OBJECT,
+    aqlPath: string,
+    shell: WebTemplateNode,
+    alternatives: openehr_am.C_OBJECT[],
+  ): WebTemplateNode {
+    const element = nodeShell(shell, { aqlPath, rmType: "ELEMENT" });
+    const fields = this.termFields(obj, shell.id);
+    element.children = alternatives.map((alternative) => {
+      const leaf = this.buildLeaf(alternative, `${aqlPath}/value`, shell.id);
+      const named: WebTemplateNode = {
+        ...leaf,
+        id: valueChoiceId(leaf.rmType),
+        min: 0,
+        max: 1,
+      };
+      if (fields.localizedName) {
+        named.name = fields.name;
+        named.localizedName = fields.localizedName;
+        named.localizedNames = fields.localizedNames;
+      }
+      if (fields.localizedDescriptions && !named.localizedDescriptions) {
+        named.localizedDescriptions = fields.localizedDescriptions;
+      }
+      return named;
+    });
+    return element;
   }
 
   private buildLeaf(

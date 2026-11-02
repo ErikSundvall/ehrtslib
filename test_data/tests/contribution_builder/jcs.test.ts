@@ -219,8 +219,8 @@ Deno.test("JCS — golden template hashes (at-coded default; id-coded alternate)
       binding: "ba9572bd8464f035694ff1d9ab32e79982a3cb6ce02608c4bc234918d8b6aed4",
     },
     "Test_all_types.opt": {
-      content: "acdbff1550beebf0d9eab3983e5ec81c6da960d982e4584841db11120938ffff",
-      binding: "dd70ad78269164bcee95e4fadd6869a51874292a99539aaacfd46a2f12b24eb1",
+      content: "440097b30e5b669e8dc0eff76c6c527bf681ba147ec7cab5f67edfc3c8371945",
+      binding: "0058e23ba2081d66e72f4f241e63ab4af4aabd80d1ebcc8c93d445b667e0c36c",
     },
     "multilingual_en_sv_de.opt": {
       content: "674b6c349c30c03c5f5bfd261f1de6a02c6130640d5fd5f7c71ad21c99abcfc9",
@@ -231,7 +231,7 @@ Deno.test("JCS — golden template hashes (at-coded default; id-coded alternate)
     "ehrbase_blood_pressure_simple.de.v0.opt":
       "d87bfd47d0a6f21589675564be427c652a41d03ecd6567cfa2e9e8ab8d5227d5",
     "Test_all_types.opt":
-      "7294a8e58a33641e4e17699d7042818c98cda47006c6422a81db7bdb512a292d",
+      "99af08842891b87bfe2113985d10de95df5216deb837c07f3d134ad6861dc809",
     "multilingual_en_sv_de.opt":
       "00adf6744dff3b4df5f8eb9e5bfba43fb1e594269d297b712d3010157f5206d1",
   };

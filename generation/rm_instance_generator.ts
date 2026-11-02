@@ -17,9 +17,10 @@ import {
   lookupTermInBag,
   type OperationalTemplateWithTermScopes,
   resolveLocatableLabel,
-  TERM_ARCHETYPE_SCOPE_KEY,
   TERM_NAME_FALLBACK_NODE_ID_KEY,
+  termScopeOf,
   type TermScopeMeta,
+  termTablesByScope,
 } from "./term_scope.ts";
 
 type MultiplicityLike = {
@@ -133,7 +134,7 @@ export class RMInstanceGenerator {
   ): TermContext {
     const meta = cObject as TermScopeMeta;
     return {
-      scope: meta[TERM_ARCHETYPE_SCOPE_KEY] ?? parent?.scope,
+      scope: termScopeOf(meta) ?? parent?.scope,
       // The fallback is only for the inlined archetype root whose template slot
       // node id (for example at0.2) has no local term. It must not leak to
       // descendants, otherwise every unresolved child inherits the parent name.
@@ -611,7 +612,7 @@ export class RMInstanceGenerator {
     const code = ((cObject as { code_list?: string[] }).code_list ?? [])[0] ??
       (cObject as { constraint?: string }).constraint ??
       cObject.node_id;
-    const scope = (cObject as TermScopeMeta)[TERM_ARCHETYPE_SCOPE_KEY];
+    const scope = termScopeOf(cObject);
     return this.dvCodedText(
       this.termText(code, scope) ?? "Generated coded value",
       (cObject as { terminology?: string }).terminology ?? "local",
@@ -758,8 +759,9 @@ export class RMInstanceGenerator {
   private collectArchetypeTerms(
     template: openehr_am.OPERATIONAL_TEMPLATE | openehr_am.ARCHETYPE,
   ): Record<string, TermBag> {
-    const index = (template as OperationalTemplateWithTermScopes)
-      .archetype_term_definitions ?? {};
+    const index = termTablesByScope(
+      template as OperationalTemplateWithTermScopes,
+    );
     const out: Record<string, TermBag> = {};
     for (const [archId, table] of Object.entries(index)) {
       out[archId] = table[this.language] ?? table.en ??
@@ -777,7 +779,7 @@ export class RMInstanceGenerator {
       cObject.node_id,
       meta[TERM_NAME_FALLBACK_NODE_ID_KEY] ?? termContext.nameFallback,
       cObject.rm_type_name ?? "",
-      meta[TERM_ARCHETYPE_SCOPE_KEY] ?? termContext.scope,
+      termScopeOf(meta) ?? termContext.scope,
     );
   }
 

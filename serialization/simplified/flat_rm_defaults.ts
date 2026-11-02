@@ -28,13 +28,17 @@ export interface FlatRmDefaultIssue {
    * `unknownKeys`). `missing-mandatory`: an RM-mandatory value that is neither
    * in the payload nor in `ctx/` and that no default filled. `context-rule`:
    * ctx/ context keys ignored because the composition has no EVENT_CONTEXT
-   * (see docs/SIMPLIFIED_FORMATS.md "Event context").
+   * (see docs/SIMPLIFIED_FORMATS.md "Event context"). `element-value`: an
+   * ELEMENT given more than one typed value (`text_value` and
+   * `quantity_value`), a value together with `_null_flavour`/`_null_reason`,
+   * or the untyped `_value`; always an error.
    */
   kind?:
     | "coded-text-mismatch"
     | "unknown-key"
     | "missing-mandatory"
-    | "context-rule";
+    | "context-rule"
+    | "element-value";
 }
 
 /**

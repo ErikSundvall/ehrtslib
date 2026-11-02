@@ -10,6 +10,13 @@
  * @see docs/vendor/simplified_formats.md
  */
 
+import {
+  archetypeOfNode,
+  elementValueChoiceNode,
+  isUnconstrainedElement,
+  localCodesByArchetype,
+  valueChoiceType,
+} from "./element_value_choice.ts";
 import { templateAttributes } from "./flat_serializer.ts";
 import type { FlatPayload, WebTemplate, WebTemplateNode } from "./types.ts";
 import {
@@ -133,6 +140,26 @@ export class UnknownFlatKeyError extends Error {
   }
 }
 
+/**
+ * Thrown by the non-collecting FLAT APIs when an ELEMENT gets more than one
+ * value (two `<type>_value` children, a value and `_null_flavour`) or the
+ * untyped `_value`.
+ */
+export class FlatElementValueError extends Error {
+  constructor(readonly issues: FlatRmDefaultIssue[]) {
+    super(issues.map((issue) => `${issue.path}: ${issue.message}`).join("\n"));
+    this.name = "FlatElementValueError";
+  }
+}
+
+/** Throw {@link FlatElementValueError} when `issues` has an element-value error. */
+export function throwOnElementValueIssue(issues: FlatRmDefaultIssue[]): void {
+  const errors = issues.filter((issue) =>
+    issue.kind === "element-value" && issue.severity === "error"
+  );
+  if (errors.length) throw new FlatElementValueError(errors);
+}
+
 /** Throw {@link UnknownFlatKeyError} when `issues` has an unknown-key error. */
 export function throwOnUnknownFlatKey(issues: FlatRmDefaultIssue[]): void {
   const errors = issues.filter((issue) =>
@@ -179,6 +206,8 @@ export class FlatDeserializer {
   private nodeByChain = new Map<string, WebTemplateNode>();
   /** id-chain → chain of nodes from tree root (exclusive) to node (inclusive) */
   private pathNodes = new Map<string, WebTemplateNode[]>();
+  /** Archetype id → local codes the Web Template shows for it. */
+  private localCodes: Map<string, Set<string>>;
 
   constructor(
     private webTemplate: WebTemplate,
@@ -192,6 +221,7 @@ export class FlatDeserializer {
       if (name) this.roots.add(normalizeWebTemplateId(name));
     }
     this.indexNodes(tree.children ?? [], "", []);
+    this.localCodes = localCodesByArchetype(tree);
   }
 
   private indexNodes(
@@ -266,6 +296,18 @@ export class FlatDeserializer {
       const node = resolved.node;
       segments.splice(0, segments.length, ...resolved.segments);
 
+      // `…/_value` names ELEMENT.value without its type.
+      if (resolved.attr[0]?.id === "_value" && node.rmType === "ELEMENT") {
+        this.issues.push({
+          path: key,
+          severity: "error",
+          kind: "element-value",
+          message:
+            "ELEMENT value without a type: write it as <type>_value (text_value, quantity_value|magnitude, …)",
+        });
+        continue;
+      }
+
       // `…/_null_flavour|code`, `…/_null_reason` of an ELEMENT without value.
       const attrName = resolved.attr.length === 1 ? resolved.attr[0].id : undefined;
       const nullAttr = attrName === "_null_flavour" || attrName === "_null_reason";
@@ -293,12 +335,13 @@ export class FlatDeserializer {
       }
     }
 
+    const rejected = this.checkElementValues(groups);
     for (const group of groups.values()) {
-      this.assignGroup(comp, group);
+      if (!rejected.has(group)) this.assignGroup(comp, group);
     }
     // RM attributes after the values, so they land on existing objects.
     for (const group of groups.values()) {
-      this.applyAttributes(comp, group);
+      if (!rejected.has(group)) this.applyAttributes(comp, group);
     }
 
     // ctx/ and RM defaults fill only what the paths did not set.
@@ -311,6 +354,73 @@ export class FlatDeserializer {
 
   deserializeJson(json: string): RmObject {
     return this.deserialize(JSON.parse(json) as FlatPayload);
+  }
+
+  /** `<type>_value` child of an ELEMENT (choice or unconstrained). */
+  private isValueChoiceGroup(group: LeafGroup): boolean {
+    const lineage = this.pathNodes.get(group.segments.map((s) => s.id).join("/"));
+    const parent = lineage?.[lineage.length - 2];
+    return parent?.rmType === "ELEMENT" && valueChoiceType(group.node.id) !== undefined;
+  }
+
+  /**
+   * One value per ELEMENT instance: reject two `<type>_value` children, and a
+   * value together with `_null_flavour`/`_null_reason` (RM invariant
+   * `Inv_null_flavour_indicated`). Returns the groups not to build.
+   */
+  private checkElementValues(groups: Map<string, LeafGroup>): Set<LeafGroup> {
+    interface ElementEntry {
+      key: string;
+      typed: LeafGroup[];
+      values: LeafGroup[];
+      nulls: LeafGroup[];
+    }
+    const elements = new Map<string, ElementEntry>();
+    for (const group of groups.values()) {
+      const typed = this.isValueChoiceGroup(group);
+      const segs = typed ? group.segments.slice(0, -1) : group.segments;
+      const key = segs.map((s) => `${s.id}:${s.index}`).join("/");
+      let entry = elements.get(key);
+      if (!entry) elements.set(key, entry = { key, typed: [], values: [], nulls: [] });
+      if (typed) entry.typed.push(group);
+      if (group.nullFlavour || group.nullReason != null) entry.nulls.push(group);
+      const hasValue = Object.keys(group.fields).length > 0 || group.raw ||
+        group.other !== undefined || !!group.attributes?.children.size;
+      if (hasValue && (typed || !group.node.children?.length)) entry.values.push(group);
+    }
+    const rejected = new Set<LeafGroup>();
+    const path = (key: string) =>
+      `${this.rootId}/${key.split("/").map((s) => s.replace(/:0$/, "")).join("/")}`;
+    for (const entry of elements.values()) {
+      if (entry.typed.length > 1) {
+        this.issues.push({
+          path: path(entry.key),
+          severity: "error",
+          kind: "element-value",
+          message: `ELEMENT has more than one typed value (${
+            entry.typed.map((g) => g.node.id).join(", ")
+          }); it holds one value`,
+        });
+        for (const group of entry.typed) rejected.add(group);
+      }
+      if (entry.values.length && entry.nulls.length) {
+        this.issues.push({
+          path: path(entry.key),
+          severity: "error",
+          kind: "element-value",
+          message:
+            "ELEMENT has both a value and _null_flavour/_null_reason; give one or the other",
+        });
+        for (const group of entry.nulls) {
+          if (!entry.values.includes(group)) rejected.add(group);
+          else {
+            delete group.nullFlavour;
+            delete group.nullReason;
+          }
+        }
+      }
+    }
+    return rejected;
   }
 
   private group(groups: Map<string, LeafGroup>, node: WebTemplateNode, segments: ParsedSegment[]): LeafGroup {
@@ -328,6 +438,29 @@ export class FlatDeserializer {
     if (!segments.length) return { node: this.webTemplate.tree, segments: [] };
     const node = this.nodeByChain.get(segments.map((s) => s.id).join("/"));
     return node ? { node, segments } : undefined;
+  }
+
+  /**
+   * Leaf node for `<type>_value` below an ELEMENT without a value
+   * constraint; indexed like a template node once it has been seen.
+   */
+  private valueChoice(
+    elementSegments: ParsedSegment[],
+    element: WebTemplateNode,
+    segmentId: string,
+  ): WebTemplateNode | undefined {
+    if (!isUnconstrainedElement(element)) return undefined;
+    const rmType = valueChoiceType(segmentId);
+    if (!rmType) return undefined;
+    const chain = [...elementSegments.map((s) => s.id), segmentId].join("/");
+    let node = this.nodeByChain.get(chain);
+    if (!node) {
+      node = elementValueChoiceNode(element, rmType);
+      const elementChain = elementSegments.map((s) => s.id).join("/");
+      this.nodeByChain.set(chain, node);
+      this.pathNodes.set(chain, [...this.pathNodes.get(elementChain) ?? [], node]);
+    }
+    return node;
   }
 
   /** RM types an attribute segment below `node` may belong to (ELEMENT first for a leaf). */
@@ -356,6 +489,10 @@ export class FlatDeserializer {
       const prefix = this.matchChain(segments.slice(0, j));
       if (!prefix) continue;
       const seg = segments[j].id;
+      const choice = this.valueChoice(segments.slice(0, j), prefix.node, seg);
+      if (choice) {
+        return { node: choice, segments: segments.slice(0, j + 1), attr: segments.slice(j + 1) };
+      }
       // An attribute the template already covers (OBSERVATION `data`, …) has
       // no FLAT path of its own.
       if (templateAttributes(prefix.node, this.webTemplate).has(seg)) return undefined;
@@ -493,8 +630,12 @@ export class FlatDeserializer {
   private assignGroup(comp: RmObject, group: LeafGroup): void {
     const { node } = group;
     if (node === this.webTemplate.tree) return;
-    // Fields of a node with children are its form fields (applyAttributes).
-    if (node.children?.length && !group.raw) return;
+    // Fields of a node with children are its form fields (applyAttributes),
+    // except `_null_flavour` on a choice ELEMENT.
+    if (
+      node.children?.length && !group.raw &&
+      !(node.rmType === "ELEMENT" && (group.nullFlavour || group.nullReason != null))
+    ) return;
     const hints = this.occurrenceHints(group);
     const typeHints = this.rmTypeHints(group);
 
@@ -572,10 +713,8 @@ export class FlatDeserializer {
 
     if (!Object.keys(group.fields).length) return;
 
-    assignAtAqlPath(
-      comp,
-      node.aqlPath,
-      buildRmValue(node.rmType, group.fields, {
+    const issueCount = this.issues.length;
+    const value = buildRmValue(node.rmType, group.fields, {
         node,
         language: this.language,
         issues: this.issues,
@@ -583,12 +722,28 @@ export class FlatDeserializer {
         codedTextMismatch: this.options.codedTextMismatch,
         codedTextDisplayValue: this.options.codedTextDisplayValue,
         unknownKeys: this.options.unknownKeys ?? "error",
-      }),
-      node.rmType,
-      node.nodeId,
-      hints,
-      typeHints,
-    );
+        archetypeCodes: this.localCodes.get(
+          archetypeOfNode(node, this.webTemplate.tree.nodeId) ?? "",
+        ) ?? new Set(),
+      });
+    // A DV_CODED_TEXT needs a code. Plain text on a node that also allows
+    // DV_TEXT goes in `|other`.
+    const dc = (value as RmObject | undefined)?.defining_code as RmObject | undefined;
+    if (
+      (value as RmObject | undefined)?._type === "DV_CODED_TEXT" && !dc?.code_string &&
+      !this.issues.slice(issueCount).some((issue) => issue.path === node.aqlPath)
+    ) {
+      const reject = (this.options.codedTextMismatch ?? "reject") !== "keep";
+      this.issues.push({
+        path: node.aqlPath,
+        severity: reject ? "error" : "warning",
+        kind: "coded-text-mismatch",
+        message: `DV_CODED_TEXT "${
+          String((value as RmObject).value ?? "")
+        }" has no |code; send |code, |value and |terminology, or plain text as |other where the node allows DV_TEXT`,
+      });
+    }
+    assignAtAqlPath(comp, node.aqlPath, value, node.rmType, node.nodeId, hints, typeHints);
   }
 }
 
@@ -600,6 +755,7 @@ export function deserializeFromFlat(
   const deserializer = new FlatDeserializer(webTemplate, options);
   const composition = deserializer.deserialize(flat);
   throwOnCodedTextMismatch(deserializer.issues);
+  throwOnElementValueIssue(deserializer.issues);
   throwOnUnknownFlatKey(deserializer.issues);
   return composition;
 }

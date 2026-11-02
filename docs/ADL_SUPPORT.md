@@ -110,7 +110,7 @@ Archetype at-codes (`at0001`, `at0000`, …) are **local to one archetype**. A b
 
 `RMInstanceGenerator.locatableLabel` looks up labels with:
 
-1. `term_archetype_scope` on the constraint node (archetype id, or a Better template id such as `ChemoQ-fatigue` when the slot's `archetypeRef` is a template id)
+1. `term_occurrence_scope`, else `term_archetype_scope`, on the constraint node (`termScopeOf`). The archetype scope is the archetype id, or a Better template id such as `ChemoQ-fatigue` when the slot's `archetypeRef` is a template id. The occurrence scope `<archetype id>#<n>` marks a later OPT 1.4 occurrence of an archetype whose inline terms differ from the first (two `SECTION.adhoc` roots with at0000 "Vital signs" and "Calculated scales"); its table is in `occurrence_term_definitions`. `termTablesByScope` and `archetypeTermBagsForLanguage` return both kinds of table
 2. `archetype_term_definitions[scope][language][atCode]` — one bag per scope key. A second template that specialises the same archetype id keeps its own bag under its `templateId` (and under the `.t.json` basename when that string was the reference). The shared archetype id keeps the first bag and does not erase the others
 3. `term_name_fallback_node_id` on an inlined root, the embedded concept code (`at0000` / `at0000.1`), so a use-site id such as `at0039.1` is named **Fatigue** rather than left as a raw id or another template's question
 4. only then the merged `ontology.term_definitions` map

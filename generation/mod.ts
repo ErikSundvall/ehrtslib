@@ -33,6 +33,9 @@ export {
   COMPONENT_TERM_DEFINITIONS_KEY,
   TERM_ARCHETYPE_SCOPE_KEY,
   TERM_NAME_FALLBACK_NODE_ID_KEY,
+  TERM_OCCURRENCE_SCOPE_KEY,
+  termScopeOf,
+  termTablesByScope,
 } from "./term_scope.ts";
 export type {
   OperationalTemplateWithTermScopes,
