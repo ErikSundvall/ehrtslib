@@ -36,8 +36,11 @@ import {
   resolveTermEntry,
   TERM_ARCHETYPE_SCOPE_KEY,
   TERM_NAME_FALLBACK_NODE_ID_KEY,
+  TERM_OCCURRENCE_SCOPE_KEY,
   type TermEntry,
+  termScopeOf,
   type TermScopeMeta,
+  termTablesByScope,
 } from "../../generation/term_scope.ts";
 import { languageCode } from "../../generation/term_codes.ts";
 import {
@@ -70,6 +73,9 @@ function complexShellFromSlot(
   obj.occurrences = slot.occurrences;
   const src = slot as TermScopeMeta;
   const dest = obj as TermScopeMeta;
+  if (src[TERM_OCCURRENCE_SCOPE_KEY]) {
+    dest[TERM_OCCURRENCE_SCOPE_KEY] = src[TERM_OCCURRENCE_SCOPE_KEY];
+  }
   if (src[TERM_ARCHETYPE_SCOPE_KEY]) {
     dest[TERM_ARCHETYPE_SCOPE_KEY] = src[TERM_ARCHETYPE_SCOPE_KEY];
   }
@@ -659,8 +665,8 @@ export class WebTemplateBuilder {
       meta[TERM_NAME_FALLBACK_NODE_ID_KEY],
       bags.template,
       bags.archetype,
-      meta[TERM_ARCHETYPE_SCOPE_KEY],
-    ) ?? (scopedBagFor(bags.archetype, meta[TERM_ARCHETYPE_SCOPE_KEY])
+      termScopeOf(meta),
+    ) ?? (scopedBagFor(bags.archetype, termScopeOf(meta))
       ? undefined
       : lookupTerm(bags.template, obj.node_id));
   }
@@ -824,8 +830,7 @@ export class WebTemplateBuilder {
     }
     const term = nestedTerminologyCode(cObj);
     if (term) {
-      const scope = (term as TermScopeMeta)[TERM_ARCHETYPE_SCOPE_KEY] ??
-        (cObj as TermScopeMeta | undefined)?.[TERM_ARCHETYPE_SCOPE_KEY];
+      const scope = termScopeOf(term) ?? termScopeOf(cObj);
       applyTerminologyInputs(
         inputs,
         term,
@@ -835,8 +840,7 @@ export class WebTemplateBuilder {
     }
     this.mapLocalValueCodes(
       inputs,
-      (term as TermScopeMeta | undefined)?.[TERM_ARCHETYPE_SCOPE_KEY] ??
-        (cObj as TermScopeMeta | undefined)?.[TERM_ARCHETYPE_SCOPE_KEY],
+      termScopeOf(term) ?? termScopeOf(cObj),
     );
 
     return inputs;
@@ -907,7 +911,7 @@ export class WebTemplateBuilder {
       string,
       TermBag
     >;
-    this.archetypeTerms = scoped.archetype_term_definitions ?? {};
+    this.archetypeTerms = termTablesByScope(scoped);
     this.opt = adl2CodingSystemOf(opt) === "id-coded" ? opt : undefined;
     this.bagCache.clear();
     this.pathAnnotations = this.applyL10n ? flattenOptPathAnnotations(opt) : {};

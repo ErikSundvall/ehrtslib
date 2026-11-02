@@ -8,6 +8,7 @@ import {
   COMPONENT_TERM_DEFINITIONS_KEY,
   TERM_ARCHETYPE_SCOPE_KEY,
   TERM_NAME_FALLBACK_NODE_ID_KEY,
+  TERM_OCCURRENCE_SCOPE_KEY,
   type TermScopeMeta,
 } from "../../generation/term_scope.ts";
 
@@ -88,6 +89,9 @@ function copyObjectFields(
   }
   const srcMeta = src as TermScopeMeta;
   const destMeta = dest as TermScopeMeta;
+  if (srcMeta[TERM_OCCURRENCE_SCOPE_KEY]) {
+    destMeta[TERM_OCCURRENCE_SCOPE_KEY] = srcMeta[TERM_OCCURRENCE_SCOPE_KEY];
+  }
   if (srcMeta[TERM_ARCHETYPE_SCOPE_KEY]) {
     destMeta[TERM_ARCHETYPE_SCOPE_KEY] = srcMeta[TERM_ARCHETYPE_SCOPE_KEY];
   }

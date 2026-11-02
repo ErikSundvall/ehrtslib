@@ -16,6 +16,7 @@ Add an entry under **Unreleased** in every PR that changes user-visible behaviou
 - `validateFlatPayload` accepts the bounds of a DV_INTERVAL<T> node (`…/interval_quantity/lower|magnitude`, `…/interval_count/upper`) and checks their suffixes against T. They were reported as unknown keys, although the reader reads them ([#259](https://github.com/ErikSundvall/ehrtslib/issues/259)).
 
 - **Behaviour change.** An ELEMENT whose value may have one of several types (DV_QUANTITY or DV_COUNT, say) gets one Web Template child per type: `<type>_value` at `<element>/value`, min 0, as EHRbase and Better build it. FLAT and STRUCTURED write and read the value under that child (`…/choice/quantity_value|magnitude`). Before, the Web Template had only the first type, and the writer wrote `…/choice|magnitude`. The DV_CODED_TEXT/DV_TEXT pair stays one node ([#260](https://github.com/ErikSundvall/ehrtslib/issues/260)).
+- A template that uses one archetype more than once with different OPT terms (two `SECTION.adhoc` roots, "Vital signs" and "Calculated scales") keeps each occurrence's terms. Later occurrences get an occurrence scope `<archetype id>#<n>` (`term_occurrence_scope`, table in `occurrence_term_definitions`); look them up with `termScopeOf` and `termTablesByScope`, or `archetypeTermBagsForLanguage`. The last occurrence's terms used to win for all ([#261](https://github.com/ErikSundvall/ehrtslib/issues/261)).
 
 ## [0.10.0] - 2026-11-01
 

@@ -331,6 +331,18 @@ export function upconvertOpt14ToAdl2(
     }
     (opt as unknown as Meta).archetype_term_definitions = out;
   }
+  const occurrenceIndex = (opt as unknown as Meta)
+    .occurrence_term_definitions as
+      | Record<string, Record<string, Record<string, unknown>>>
+      | undefined;
+  if (occurrenceIndex) {
+    const out: typeof occurrenceIndex = {};
+    for (const [key, byLang] of Object.entries(occurrenceIndex)) {
+      const archId = key.replace(/#\d+$/, "");
+      out[key] = remapByLang(byLang, scopes.get(archId))!;
+    }
+    (opt as unknown as Meta).occurrence_term_definitions = out;
+  }
   const ontology = opt.ontology as unknown as Meta | undefined;
   const rootCodes = scopes.get(rootScope);
   if (ontology) {
