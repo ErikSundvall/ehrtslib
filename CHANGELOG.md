@@ -8,6 +8,8 @@ Add an entry under **Unreleased** in every PR that changes user-visible behaviou
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-11-02
+
 - An ELEMENT with no value constraint lists the 16 `<type>_value` children EHRbase and FerroEHR both list (no `state_value`, no `scale_value`). `interval_of_<t>_value` is still read though it is not listed. `webTemplateToOpt` turns that list back into an ELEMENT with no value constraint ([#267](https://github.com/ErikSundvall/ehrtslib/issues/267)).
 - **Contribution Builder.** The remaining draft operations are in the log: `move-instance`, `assign-uid`, `set-participation`, `set-lifecycle`, `migrate-template`, `import` (canonical, FLAT or STRUCTURED), `discard`, `edit-text`, and build membership (`join-build`, `leave-build`, `set-role`). A `committer` may edit; a `viewer` may not. Before the commit hash, text edits compact to one `set-value` per author and field, and each author who changed an entry is recorded in `other_participations` with function `data entry` ([#171](https://github.com/ErikSundvall/ehrtslib/issues/171)).
 - **Contribution Builder.** `rev` on `set-value` and `edit-text` is optional. Omitted, the write applies (single caller). Present, a field changed since that `rev` is refused with `changed-by-someone-else` and the current value. A multi-caller build can require `rev` ([#243](https://github.com/ErikSundvall/ehrtslib/issues/243)).
