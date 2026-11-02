@@ -19,6 +19,7 @@ Check these consumers when the public API changes:
 
 ## Unreleased
 
+- **Behaviour.** An ELEMENT with no value constraint lists `UNCONSTRAINED_ELEMENT_VALUE_TYPES` (the 16 `<type>_value` children EHRbase and FerroEHR share) on its Web Template. `isUnconstrainedElement` is that expansion, or an ELEMENT with no children and no inputs. `interval_of_<t>_value` is still read. `webTemplateToOpt` does not turn the expansion into a value choice ([#267](https://github.com/ErikSundvall/ehrtslib/issues/267)).
 - **Contribution Builder operations** (#171, #243, #173, #177, #176). New log operations `edit-text`, `move-instance`, `assign-uid`, `set-participation`, `set-lifecycle`, `migrate-template`, `import`, `discard`, `join-build`, `leave-build`, `set-role`, `resolve`. `set-value` and `edit-text` take optional `rev`. `CbOperationError.code` is `apply` when omitted. `prepareContribution` compacts text edits and adds data-entry participations; `memberId` is required once the build has members; a discarded draft cannot be committed. `ContributionBuild.rebase`, `trackValidation` / `validationState`, `CDR_INCOMPLETE_PROFILES`. `record-commit` may carry `storedObjectUuid`. No aliases for older names.
 - **Automerge add-on** (#170). Import `addons/cb_automerge/mod.ts` or the `ehrtslib/contribution-builder-automerge` export. It is not re-exported from `mod.ts` or `contribution_builder/mod.ts`.
 

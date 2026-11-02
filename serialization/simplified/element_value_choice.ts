@@ -12,10 +12,60 @@
 import type { WebTemplateNode } from "./types.ts";
 import { hasRmType, isAbstractType, isSubtypeOf } from "../../meta/mod.ts";
 
-/** An ELEMENT leaf: no value constraint, so no inputs and no children. */
+/**
+ * Data-value types an ELEMENT with no value constraint lists as
+ * `<type>_value` children. The 16 types EHRbase 2.36 and FerroEHR 5.4.1/5.5
+ * both list: no DV_STATE (EHRbase advertises it and its reader rejects it)
+ * and no DV_SCALE (FerroEHR reads it; the spec has no FLAT form for either).
+ * DV_INTERVAL is not listed; the reader still accepts `interval_of_<t>_value`.
+ */
+export const UNCONSTRAINED_ELEMENT_VALUE_TYPES = [
+  "DV_TEXT",
+  "DV_CODED_TEXT",
+  "DV_MULTIMEDIA",
+  "DV_PARSABLE",
+  "DV_BOOLEAN",
+  "DV_IDENTIFIER",
+  "DV_URI",
+  "DV_EHR_URI",
+  "DV_DURATION",
+  "DV_QUANTITY",
+  "DV_COUNT",
+  "DV_PROPORTION",
+  "DV_DATE_TIME",
+  "DV_TIME",
+  "DV_ORDINAL",
+  "DV_DATE",
+] as const;
+
+/** The `<type>_value` ids of {@link UNCONSTRAINED_ELEMENT_VALUE_TYPES}, in that order. */
+export function unconstrainedElementValueIds(): string[] {
+  return UNCONSTRAINED_ELEMENT_VALUE_TYPES.map(valueChoiceId);
+}
+
+/**
+ * Children are exactly the shared expansion, each at `<element>/value`.
+ * A real choice is a different set, so it is not this.
+ */
+export function isUnconstrainedValueExpansion(node: WebTemplateNode): boolean {
+  const children = node.children ?? [];
+  const expected = unconstrainedElementValueIds();
+  if (children.length !== expected.length) return false;
+  if (!children.every((c) => c.aqlPath === `${node.aqlPath}/value`)) {
+    return false;
+  }
+  const ids = children.map((c) => c.id);
+  return expected.every((id) => ids.includes(id));
+}
+
+/**
+ * An ELEMENT with no value constraint. Older Web Templates have no children.
+ * One built here lists the shared `<type>_value` expansion.
+ */
 export function isUnconstrainedElement(node: WebTemplateNode): boolean {
-  return node.rmType === "ELEMENT" && !node.children?.length &&
-    !node.inputs?.length;
+  if (node.rmType !== "ELEMENT" || node.inputs?.length) return false;
+  if (!node.children?.length) return true;
+  return isUnconstrainedValueExpansion(node);
 }
 
 /**
@@ -55,9 +105,11 @@ export function valueChoiceType(segmentId: string): string | undefined {
  * the `<type>_value` leaves at `<element>/value`.
  */
 export function isValueChoiceElement(node: WebTemplateNode): boolean {
+  if (isUnconstrainedElement(node)) return false;
   return node.rmType === "ELEMENT" && !!node.children?.length &&
     node.children.every((c) =>
-      c.aqlPath === `${node.aqlPath}/value` && valueChoiceType(c.id) !== undefined
+      c.aqlPath === `${node.aqlPath}/value` &&
+      valueChoiceType(c.id) !== undefined
     );
 }
 

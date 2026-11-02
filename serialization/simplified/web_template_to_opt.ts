@@ -28,6 +28,7 @@
 import * as openehr_am from "../../am/openehr_am.ts";
 import * as openehr_base from "../../base/openehr_base.ts";
 import { aqlPathSegments } from "./normalize.ts";
+import { isUnconstrainedElement } from "./element_value_choice.ts";
 import { fixedNameConstraint } from "./web_template_builder.ts";
 import type {
   QuantityItemInterval,
@@ -139,7 +140,9 @@ function moveNameConstraintsLast(obj: openehr_am.C_OBJECT): void {
   const attrs = (obj as { attributes?: openehr_am.C_ATTRIBUTE[] }).attributes;
   if (!attrs?.length) return;
   const name = attrs.findIndex((a) => a.rm_attribute_name === "name");
-  if (name !== -1 && name !== attrs.length - 1) attrs.push(...attrs.splice(name, 1));
+  if (name !== -1 && name !== attrs.length - 1) {
+    attrs.push(...attrs.splice(name, 1));
+  }
   for (const attr of attrs) {
     for (const child of attr.children ?? []) moveNameConstraintsLast(child);
   }
@@ -386,6 +389,8 @@ export class WebTemplateToOptConverter {
       obj.occurrences = multiplicity(node.min ?? 0, node.max ?? 1);
       for (const child of node.children ?? []) {
         if (child.inContext) continue;
+        // The shared `<type>_value` list is not a value choice (#267).
+        if (isUnconstrainedElement(node)) continue;
         this.insertNode(obj, child, allSegments.length);
       }
       return;
