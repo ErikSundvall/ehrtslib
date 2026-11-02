@@ -13,6 +13,8 @@ import { extractValueFields } from "./value_extract.ts";
 import {
   elementValueChoiceNode,
   isUnconstrainedElement,
+  isValueChoiceElement,
+  valueChoiceFor,
 } from "./element_value_choice.ts";
 import { getFieldMap } from "./dv_field_maps.ts";
 import {
@@ -166,6 +168,20 @@ export class FlatSerializer {
       // Any data value: its type is the `<type>_value` segment.
       this.writeElementAttributes(node, base, element);
       const choice = elementValueChoiceNode(node, dataValueType(data));
+      this.writeLeafValue(choice, `${base}/${choice.id}`, data);
+      return;
+    }
+
+    if (isValueChoiceElement(node)) {
+      // One of several value types: written under its `<type>_value` child.
+      if (rmTypeOf(data) === "ELEMENT") {
+        for (const [k, v] of nullFlavourFields(data)) this.out[`${base}/${k}`] = v;
+        this.writeElementAttributes(node, base, data);
+        return;
+      }
+      if (element) this.writeElementAttributes(node, base, element);
+      const type = dataValueType(data);
+      const choice = valueChoiceFor(node, type) ?? elementValueChoiceNode(node, type);
       this.writeLeafValue(choice, `${base}/${choice.id}`, data);
       return;
     }

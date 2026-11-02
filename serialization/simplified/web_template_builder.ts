@@ -30,6 +30,7 @@ import {
   templateRootId,
 } from "./normalize.ts";
 import { inputsForRmType, resolveDvType } from "./dv_field_maps.ts";
+import { valueChoiceId } from "./element_value_choice.ts";
 import {
   type OperationalTemplateWithTermScopes,
   resolveTermEntry,
@@ -544,6 +545,19 @@ function childPathPredicate(
 }
 
 /** Copy node metadata without inheriting `children`/`inputs` from base. */
+/**
+ * Several value types for one ELEMENT. The coded/plain text pair
+ * ({DV_CODED_TEXT, DV_TEXT}) is not split: it stays one node, as before
+ * (whether to split it is open; EHRbase merges it, Better splits it).
+ */
+function isTypeChoice(alternatives: openehr_am.C_OBJECT[]): boolean {
+  const types = new Set(alternatives.map((a) => a.rm_type_name ?? ""));
+  if (types.size < 2) return false;
+  const textPair = types.size === 2 && types.has("DV_TEXT") &&
+    types.has("DV_CODED_TEXT");
+  return !textPair;
+}
+
 function nodeShell(
   base: WebTemplateNode,
   patch: Partial<WebTemplateNode>,
@@ -1480,8 +1494,12 @@ export class WebTemplateBuilder {
     const valueAttr = obj.attributes?.find((a) =>
       a.rm_attribute_name === "value"
     );
-    const valueChild = (valueAttr as { children?: openehr_am.C_OBJECT[] })
-      ?.children?.[0];
+    const alternatives = (valueAttr as { children?: openehr_am.C_OBJECT[] })
+      ?.children ?? [];
+    if (isTypeChoice(alternatives)) {
+      return this.buildValueChoice(obj, aqlPath, shell, alternatives);
+    }
+    const valueChild = alternatives[0];
     if (valueChild) {
       const leaf = this.buildLeaf(valueChild, aqlPath, shell.id);
       // Data values are not LOCATABLE and have no node id in the Web
@@ -1506,6 +1524,41 @@ export class WebTemplateBuilder {
       return leaf;
     }
     return nodeShell(shell, { aqlPath, rmType: shell.rmType ?? "ELEMENT" });
+  }
+
+  /**
+   * ELEMENT whose value may have one of several types: one child per type,
+   * id `<type>_value` (`quantity_value`, `interval_of_quantity_value`), at
+   * `<element>/value`, as EHRbase (`OPTParser.updateChoiceId`) and Better
+   * build it. Only one of them can hold the value, so each has min 0.
+   */
+  private buildValueChoice(
+    obj: openehr_am.C_COMPLEX_OBJECT,
+    aqlPath: string,
+    shell: WebTemplateNode,
+    alternatives: openehr_am.C_OBJECT[],
+  ): WebTemplateNode {
+    const element = nodeShell(shell, { aqlPath, rmType: "ELEMENT" });
+    const fields = this.termFields(obj, shell.id);
+    element.children = alternatives.map((alternative) => {
+      const leaf = this.buildLeaf(alternative, `${aqlPath}/value`, shell.id);
+      const named: WebTemplateNode = {
+        ...leaf,
+        id: valueChoiceId(leaf.rmType),
+        min: 0,
+        max: 1,
+      };
+      if (fields.localizedName) {
+        named.name = fields.name;
+        named.localizedName = fields.localizedName;
+        named.localizedNames = fields.localizedNames;
+      }
+      if (fields.localizedDescriptions && !named.localizedDescriptions) {
+        named.localizedDescriptions = fields.localizedDescriptions;
+      }
+      return named;
+    });
+    return element;
   }
 
   private buildLeaf(

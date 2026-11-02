@@ -51,6 +51,30 @@ export function valueChoiceType(segmentId: string): string | undefined {
 }
 
 /**
+ * ELEMENT node whose value may have one of several types: its children are
+ * the `<type>_value` leaves at `<element>/value`.
+ */
+export function isValueChoiceElement(node: WebTemplateNode): boolean {
+  return node.rmType === "ELEMENT" && !!node.children?.length &&
+    node.children.every((c) =>
+      c.aqlPath === `${node.aqlPath}/value` && valueChoiceType(c.id) !== undefined
+    );
+}
+
+/** The choice child for a value of `rmType`: same type, else a supertype. */
+export function valueChoiceFor(
+  element: WebTemplateNode,
+  rmType: string,
+): WebTemplateNode | undefined {
+  const children = element.children ?? [];
+  return children.find((c) => c.rmType === rmType) ??
+    children.find((c) =>
+      !c.rmType.includes("<") && !rmType.includes("<") &&
+      isSubtypeOf(rmType, c.rmType)
+    );
+}
+
+/**
  * Leaf node for the value of an unconstrained ELEMENT as `rmType`: it
  * addresses `ELEMENT.value` and keeps the ELEMENT's node id and names.
  */

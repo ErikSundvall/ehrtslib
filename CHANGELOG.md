@@ -15,6 +15,8 @@ Add an entry under **Unreleased** in every PR that changes user-visible behaviou
 
 - `validateFlatPayload` accepts the bounds of a DV_INTERVAL<T> node (`…/interval_quantity/lower|magnitude`, `…/interval_count/upper`) and checks their suffixes against T. They were reported as unknown keys, although the reader reads them ([#259](https://github.com/ErikSundvall/ehrtslib/issues/259)).
 
+- **Behaviour change.** An ELEMENT whose value may have one of several types (DV_QUANTITY or DV_COUNT, say) gets one Web Template child per type: `<type>_value` at `<element>/value`, min 0, as EHRbase and Better build it. FLAT and STRUCTURED write and read the value under that child (`…/choice/quantity_value|magnitude`). Before, the Web Template had only the first type, and the writer wrote `…/choice|magnitude`. The DV_CODED_TEXT/DV_TEXT pair stays one node ([#260](https://github.com/ErikSundvall/ehrtslib/issues/260)).
+
 ## [0.10.0] - 2026-11-01
 
 - **Behaviour change.** Both ADL2 coding systems are supported in one build, with the coding system read from each artefact's root node id: at-coded (ADL 2.4, the default, experimental until AM 2.4.0) and id-coded (ADL 2.0–2.3). New `adl2CodingSystemOf`, `isAdl14Artefact`, `adl2VersionFor` and `AT_CODED_ADL_VERSION`; `hasAdl14NodeIds` is removed (use `isAdl14Artefact`). See docs/ADL_SUPPORT.md "ADL2 coding systems" and ADR 0015 ([#246](https://github.com/ErikSundvall/ehrtslib/issues/246)).
