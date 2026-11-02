@@ -46,11 +46,23 @@ export function cloneCObject(obj: openehr_am.C_OBJECT): openehr_am.C_OBJECT {
     return slot;
   }
   if (obj instanceof openehr_am.C_PRIMITIVE_OBJECT) {
-    const prim = new openehr_am.C_PRIMITIVE_OBJECT();
-    copyObjectFields(obj, prim);
-    return prim;
+    // Keep the subclass (C_TERMINOLOGY_CODE, C_STRING, …) and its constraint
+    // fields (`constraint`, `code_list`, `item`, `assumed_value`, …).
+    return clonePrimitive(obj);
   }
   return obj;
+}
+
+/** Deep copy of a primitive constraint, preserving class instances. */
+function clonePrimitive<T>(value: T): T {
+  if (value === null || typeof value !== "object") return value;
+  if (Array.isArray(value)) return value.map(clonePrimitive) as T;
+  if (value instanceof Date) return new Date(value.getTime()) as T;
+  const out = Object.create(Object.getPrototypeOf(value));
+  for (const [key, field] of Object.entries(value)) {
+    out[key] = clonePrimitive(field);
+  }
+  return out;
 }
 
 function cloneArchetypeIdConstraint(

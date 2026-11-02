@@ -206,6 +206,11 @@ export function parseCObject(node: unknown): openehr_am.C_OBJECT {
     return parseCPrimitiveObject(n);
   }
 
+  // ehrtslib up to 0.10 wrote an open CODE_PHRASE constraint as
+  // `C_DV_TEXT`; the RM type, not the xsi type, says what it constrains.
+  if (amFieldString(n, "rm_type_name", "rmTypeName") === "CODE_PHRASE") {
+    return parseCTerminologyCode(n);
+  }
   const mapped = mapPrimitiveType(type);
   if (mapped === "C_QUANTITY") return parseCQuantity(n);
   if (mapped === "C_TERMINOLOGY_CODE") return parseCTerminologyCode(n);
