@@ -1420,7 +1420,7 @@ export class WebTemplateBuilder {
       if (!(ev instanceof openehr_am.C_COMPLEX_OBJECT)) continue;
       const evPath = joinAqlPath(
         aqlPath,
-        pathSegment("events", constraintNodeId(ev)),
+        pathSegment("events", childPathPredicate(ev, events)),
       );
       const { min, max } = multiplicityBounds(ev.occurrences);
       const eventShell: WebTemplateNode = this.decorateWithAnnotations({
