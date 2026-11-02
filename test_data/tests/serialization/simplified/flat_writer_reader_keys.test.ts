@@ -139,7 +139,11 @@ Deno.test("ELEMENT without a value constraint: the value type is the <type>_valu
   ];
   for (const [flat, type] of cases) {
     const value = roundTrip(wt, flat, element);
-    assertEquals(String(value._type).replace(/<.*$/, ""), type, JSON.stringify(flat));
+    assertEquals(
+      String(value._type).replace(/<.*$/, ""),
+      type,
+      JSON.stringify(flat),
+    );
   }
 });
 
@@ -158,4 +162,83 @@ Deno.test("ELEMENT without a value constraint: a bare key or an unknown type is 
     });
     assert(issues.some((i) => i.kind === "unknown-key"), JSON.stringify(flat));
   }
+});
+
+/** Coded-text issues for `fields` at the DV_TEXT node. */
+function codedOnTextIssues(
+  wt: WebTemplate,
+  fields: Record<string, string>,
+  options: { codedTextMismatch?: "reject" | "keep" } = {},
+) {
+  const key = `${EVAL}/dv_text`;
+  const flat: FlatPayload = { ...BASE };
+  for (const [suffix, value] of Object.entries(fields)) {
+    flat[suffix ? `${key}|${suffix}` : key] = value;
+  }
+  const result = deserializeFromFlatWithIssues(flat, wt, {
+    clock: CLOCK,
+    ...options,
+  });
+  return {
+    issues: result.issues.filter((i) => i.kind === "coded-text-mismatch"),
+    value: resolveAllAtWebTemplateNode(
+      result.composition,
+      nodeAt(wt, key),
+    )[0] as
+      | Record<string, unknown>
+      | undefined,
+  };
+}
+
+Deno.test("coded text on a DV_TEXT node needs |code, |terminology and |value", () => {
+  const wt = webTemplate();
+  for (
+    const [fields, missing] of [
+      [{ code: "J45", value: "Asthma" }, "|terminology"],
+      [{ code: "J45", terminology: "ICD10" }, "|value"],
+      [{ terminology: "ICD10", value: "Asthma" }, "|code"],
+    ] as const
+  ) {
+    const { issues, value } = codedOnTextIssues(wt, fields);
+    assertEquals(issues.length, 1, JSON.stringify(fields));
+    assertEquals(issues[0].severity, "error");
+    assert(issues[0].message.includes(`missing ${missing}`), issues[0].message);
+    // No terminology is made up.
+    const code = value?.defining_code as Record<string, unknown> | undefined;
+    if (!("terminology" in fields)) {
+      assertEquals(code?.terminology_id, undefined);
+    }
+  }
+  // The bare key counts as |value.
+  assertEquals(
+    codedOnTextIssues(wt, { code: "J45", terminology: "ICD10", "": "Asthma" })
+      .issues,
+    [],
+  );
+});
+
+Deno.test("coded text on a DV_TEXT node: local only with a code of the archetype", () => {
+  const wt = webTemplate();
+  const own = nodeAt(wt, `${EVAL}/dv_text`).nodeId!;
+  assert(/^at\d/.test(own), own);
+  assertEquals(
+    codedOnTextIssues(wt, { code: own, terminology: "local", value: "x" })
+      .issues,
+    [],
+  );
+  const { issues } = codedOnTextIssues(wt, {
+    code: "at9999",
+    terminology: "local",
+    value: "x",
+  });
+  assertEquals(issues.length, 1);
+  assert(issues[0].message.includes('local code "at9999"'), issues[0].message);
+});
+
+Deno.test("coded text on a DV_TEXT node: codedTextMismatch keep makes it a warning", () => {
+  const wt = webTemplate();
+  const { issues } = codedOnTextIssues(wt, { code: "J45", value: "Asthma" }, {
+    codedTextMismatch: "keep",
+  });
+  assertEquals(issues.map((i) => i.severity), ["warning"]);
 });

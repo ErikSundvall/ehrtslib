@@ -91,3 +91,44 @@ export function nodeForChain(
   if (!element || !rmType || !isUnconstrainedElement(element)) return undefined;
   return elementValueChoiceNode(element, rmType);
 }
+
+const ARCHETYPE_ID_IN_PATH =
+  /openEHR-[A-Z]+-[A-Za-z0-9_]+\.[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)*\.v\d+(?:\.\d+)*/g;
+
+/** Archetype a Web Template node belongs to: the last archetype id in its path. */
+export function archetypeOfNode(
+  node: WebTemplateNode,
+  rootArchetype?: string,
+): string | undefined {
+  const ids = node.aqlPath.match(ARCHETYPE_ID_IN_PATH);
+  return ids?.[ids.length - 1] ?? rootArchetype;
+}
+
+/**
+ * Local codes per archetype, as far as the Web Template shows them: node ids
+ * and `local` value-list codes. A Web Template does not carry the full
+ * archetype terminology, so codes the template does not use are missing.
+ */
+export function localCodesByArchetype(
+  tree: WebTemplateNode,
+): Map<string, Set<string>> {
+  const root = tree.nodeId;
+  const out = new Map<string, Set<string>>();
+  const add = (scope: string | undefined, code: string | undefined) => {
+    if (!scope || !code || !/^(?:at|ac)\d/.test(code)) return;
+    let codes = out.get(scope);
+    if (!codes) out.set(scope, codes = new Set());
+    codes.add(code);
+  };
+  const walk = (node: WebTemplateNode) => {
+    const scope = archetypeOfNode(node, root);
+    add(scope, node.nodeId);
+    for (const input of node.inputs ?? []) {
+      if (input.terminology && input.terminology !== "local") continue;
+      for (const item of input.list ?? []) add(scope, item.value);
+    }
+    node.children?.forEach(walk);
+  };
+  walk(tree);
+  return out;
+}

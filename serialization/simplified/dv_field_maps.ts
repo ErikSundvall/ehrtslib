@@ -65,6 +65,11 @@ export interface DvValueBuildContext {
    * (not recommended; EHRbase compatibility). See `CodedTextDisplayValue`.
    */
   codedTextDisplayValue?: CodedTextDisplayValue;
+  /**
+   * Local codes of the node's archetype. A DV_CODED_TEXT on a DV_TEXT node
+   * with terminology `local` must use one of them; unchecked when omitted.
+   */
+  archetypeCodes?: ReadonlySet<string>;
 }
 
 export type FieldKind = "string" | "number" | "integer" | "boolean";
@@ -578,6 +583,50 @@ function hasCodedTextField(
   return fields.code != null || fields.terminology != null;
 }
 
+/**
+ * A DV_CODED_TEXT on a DV_TEXT node needs `|code`, `|terminology` and
+ * `|value` (or the bare value); `local` only with a code of the archetype.
+ * Reported as `coded-text-mismatch` (an error unless `codedTextMismatch` is
+ * `"keep"` or `"correct"`); without an issue list it throws.
+ */
+function checkCodedTextOnText(
+  fields: Record<string, string | number | boolean | null | undefined>,
+  context?: DvValueBuildContext,
+): void {
+  const issues: FlatRmDefaultIssue[] = [];
+  const path = context?.path ?? context?.node?.aqlPath ?? "";
+  const severity = (context?.codedTextMismatch ?? "reject") === "reject"
+    ? "error"
+    : "warning";
+  const missing = ["code", "terminology", "value"].filter((k) =>
+    fields[k] == null || fields[k] === ""
+  );
+  if (missing.length) {
+    issues.push({
+      path,
+      severity,
+      kind: "coded-text-mismatch",
+      message: `Coded text on a DV_TEXT node needs |code, |terminology and |value; missing ${
+        missing.map((k) => `|${k}`).join(", ")
+      } (a DV_TEXT node has no code list or terminology to complete it from)`,
+    });
+  }
+  const code = fields.code == null ? undefined : String(fields.code);
+  if (
+    fields.terminology === "local" && code && context?.archetypeCodes &&
+    !context.archetypeCodes.has(code)
+  ) {
+    issues.push({
+      path,
+      severity,
+      kind: "coded-text-mismatch",
+      message: `Coded text on a DV_TEXT node: local code "${code}" is not in the archetype's terminology`,
+    });
+  }
+  if (context?.issues) context.issues.push(...issues);
+  else throwOnCodedTextMismatch(issues);
+}
+
 /** The bare DV_TEXT key is the coded text's `|value`. */
 function textBareAsValue(
   fields: Record<string, string | number | boolean | null | undefined>,
@@ -671,9 +720,15 @@ export function buildDvValue(
     }
   }
 
-  // Apply build defaults (e.g. default terminology) when the owning object
-  // was created but the defaulted leaf is missing.
-  applyBuildDefaults(resolved, root, map);
+  if (declared !== resolved) {
+    // Coded text where DV_TEXT is constrained: there is no code list or
+    // terminology to complete against, so nothing is defaulted.
+    checkCodedTextOnText(source, context);
+  } else {
+    // Apply build defaults (e.g. default terminology) when the owning object
+    // was created but the defaulted leaf is missing.
+    applyBuildDefaults(resolved, root, map);
+  }
   applyPartyType(resolved, root, source._type);
   if (codedNode && root._type === "DV_CODED_TEXT") {
     const issues = context?.issues ?? [];

@@ -11,8 +11,10 @@
  */
 
 import {
+  archetypeOfNode,
   elementValueChoiceNode,
   isUnconstrainedElement,
+  localCodesByArchetype,
   valueChoiceType,
 } from "./element_value_choice.ts";
 import { templateAttributes } from "./flat_serializer.ts";
@@ -184,6 +186,8 @@ export class FlatDeserializer {
   private nodeByChain = new Map<string, WebTemplateNode>();
   /** id-chain → chain of nodes from tree root (exclusive) to node (inclusive) */
   private pathNodes = new Map<string, WebTemplateNode[]>();
+  /** Archetype id → local codes the Web Template shows for it. */
+  private localCodes: Map<string, Set<string>>;
 
   constructor(
     private webTemplate: WebTemplate,
@@ -197,6 +201,7 @@ export class FlatDeserializer {
       if (name) this.roots.add(normalizeWebTemplateId(name));
     }
     this.indexNodes(tree.children ?? [], "", []);
+    this.localCodes = localCodesByArchetype(tree);
   }
 
   private indexNodes(
@@ -615,6 +620,9 @@ export class FlatDeserializer {
         codedTextMismatch: this.options.codedTextMismatch,
         codedTextDisplayValue: this.options.codedTextDisplayValue,
         unknownKeys: this.options.unknownKeys ?? "error",
+        archetypeCodes: this.localCodes.get(
+          archetypeOfNode(node, this.webTemplate.tree.nodeId) ?? "",
+        ) ?? new Set(),
       }),
       node.rmType,
       node.nodeId,
