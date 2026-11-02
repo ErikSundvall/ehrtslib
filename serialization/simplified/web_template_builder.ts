@@ -1506,6 +1506,10 @@ export class WebTemplateBuilder {
     const valueChild = alternatives[0];
     if (valueChild) {
       const leaf = this.buildLeaf(valueChild, aqlPath, shell.id);
+      // The collapsed node is the ELEMENT: its occurrences, not the value's
+      // (always 1..1 under an existing ELEMENT), as Better and EHRbase give.
+      leaf.min = shell.min;
+      leaf.max = shell.max;
       // Data values are not LOCATABLE and have no node id in the Web
       // Template; keep the ELEMENT's at-code so instances can be
       // matched/rebuilt correctly.
