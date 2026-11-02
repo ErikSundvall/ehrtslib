@@ -95,6 +95,11 @@ export interface PrepareContributionOptions {
   logUri?: string;
   /** Extra text after the log hash in the contribution description. */
   description?: string;
+  /**
+   * Member who commits. Required once the build has members; that member's
+   * role must be `committer` (ADR 0013).
+   */
+  memberId?: string;
 }
 
 export interface PreparedVersion {
@@ -125,7 +130,9 @@ export type CommitErrorCode =
   | "invalid-draft"
   | "bad-config"
   | "unsupported-draft"
-  | "already-committed";
+  | "already-committed"
+  | "discarded"
+  | "not-committer";
 
 export class CommitError extends Error {
   constructor(
@@ -172,7 +179,6 @@ export async function prepareContribution(
       "A committer (PARTY_PROXY) is required",
     );
   }
-  const mode = options.mode ?? "complete";
   const warnings: string[] = [];
   const originating = options.originatingSystemAudit === undefined
     ? undefined
@@ -201,29 +207,52 @@ export async function prepareContribution(
         `Draft ${d.draftId} has no composer; call setComposer before commit`,
       );
     }
-    const committed = build.getDraft(d.draftId).committed;
-    if (committed) {
+    const info = build.getDraft(d.draftId);
+    if (info.committed) {
       throw new CommitError(
         "already-committed",
-        `Draft ${d.draftId} is already committed as ${committed.versionUid}`,
+        `Draft ${d.draftId} is already committed as ${info.committed.versionUid}`,
+      );
+    }
+    if (info.discarded) {
+      throw new CommitError(
+        "discarded",
+        `Draft ${d.draftId} is discarded and is not committed`,
+      );
+    }
+  }
+  const members = build.memberList();
+  if (members.length) {
+    const member = members.find((m) => m.id === options.memberId);
+    if (!member || member.role !== "committer") {
+      throw new CommitError(
+        "not-committer",
+        "Only a member with the committer role can commit this build",
       );
     }
   }
 
-  const validation = options.drafts.map((d) =>
-    validator.validate(build, d.draftId, d.template, { mode })
-  );
+  // Participations before validation, so the committed data includes them.
+  // Text compaction after validation, so a failed check keeps the keystroke log.
+  build.ensureDataEntryParticipations();
+
+  const validation = options.drafts.map((d) => {
+    const chosen = options.mode ??
+      build.getDraft(d.draftId).lifecycle ?? "complete";
+    return validator.validate(build, d.draftId, d.template, { mode: chosen });
+  });
   for (const r of validation) {
     if (!r.valid) {
       const first = r.errors[0];
       throw new CommitError(
         "invalid-draft",
-        `Draft ${r.draftId} fails ${mode} validation (${r.errors.length} errors; first: ${first.path} ${first.message})`,
+        `Draft ${r.draftId} fails ${r.mode} validation (${r.errors.length} errors; first: ${first.path} ${first.message})`,
         r,
       );
     }
   }
 
+  build.compactTextEdits();
   const { bytes: logBytes, sha256: logSha256 } = await build.exportLogBytes();
   const feederAudit = feederAuditFor(config, originating);
   const versions: PreparedVersion[] = [];
@@ -231,6 +260,7 @@ export async function prepareContribution(
   const changeTypes = new Set<ChangeType>();
   for (const d of options.drafts) {
     const info = build.getDraft(d.draftId);
+    const draftMode = options.mode ?? info.lifecycle ?? "complete";
     // update-version is a modification (251); a new build or copy-version
     // creates a new versioned object (249).
     const changeType = d.changeType ??
@@ -260,12 +290,12 @@ export async function prepareContribution(
         ? { precedingVersionUid: info.baseVersionUid! }
         : {}),
       versionUid,
-      lifecycleState: mode === "complete" ? "532" : "553",
+      lifecycleState: draftMode === "complete" ? "532" : "553",
     });
     // UPDATE_VERSION is a REST ITS request object, not an RM type: no
     // `_type` (servers built on RM type registries reject an unknown one).
     const update: Obj = {
-      lifecycle_state: lifecycleStateFor(mode),
+      lifecycle_state: lifecycleStateFor(draftMode),
       commit_audit: updateAudit(changeType, committer, config.auditSystemId),
       data: orderRoot(data),
     };

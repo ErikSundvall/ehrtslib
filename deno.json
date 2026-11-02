@@ -4,7 +4,8 @@
   "exports": {
     ".": "./mod.ts",
     "./full": "./mod_full.ts",
-    "./contribution-builder": "./contribution_builder/mod.ts"
+    "./contribution-builder": "./contribution_builder/mod.ts",
+    "./contribution-builder-automerge": "./addons/cb_automerge/mod.ts"
   },
   "nodeModulesDir": "auto",
   "publish": {
@@ -29,6 +30,7 @@
     "fflate": "npm:fflate@^0.8.2",
     "d3": "npm:d3@7.9.0",
     "canonicalize": "npm:canonicalize@5.1.0",
+    "@automerge/automerge": "npm:@automerge/automerge@3.0.0",
     "@std/assert": "jsr:@std/assert@1",
     "@std/fs": "jsr:@std/fs@1",
     "@std/path": "jsr:@std/path@1"

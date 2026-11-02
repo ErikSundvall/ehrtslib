@@ -66,14 +66,11 @@ The design covers every versioned type; delivery is staged:
    template with id-codes. Done for COMPOSITION in v0.6–v0.7: build,
    operation log and replay, template binding, draft validation, commit
    through the REST ITS, update-version, copy-version and conflict data.
-   Still open: remaining operations
-   ([#171](https://github.com/ErikSundvall/ehrtslib/issues/171)), quick
-   checks after each operation
-   ([#173](https://github.com/ErikSundvall/ehrtslib/issues/173)), inner uids
-   after a server-assigned uuid
-   ([#176](https://github.com/ErikSundvall/ehrtslib/issues/176)), and
-   recording the commit in the log
-   ([#177](https://github.com/ErikSundvall/ehrtslib/issues/177)).
+   Also in the core: the remaining operations (#171), the quick check and
+   per-CDR incomplete profile (#173), the provisional → stored object-uuid
+   mapping when a server assigns its own uuid (#176; inner uids are not
+   rewritten), and resolutions plus rebase (#177). Continuing a committed
+   draft in place is still a new update-version.
 2. ⬜ Other versioned types: `EHR_STATUS`, `EHR_ACCESS`, `FOLDER`, then
    demographic `PARTY` types. No log or envelope format changes.
 3. ⬜ Pluggable storage and optional encrypted local draft persistence. Only
@@ -106,9 +103,13 @@ Builds on the same core and operation log as the single-caller builder.
    replayable history, compact binary log, Deno + browser support, licence).
    Record the choice in its own ADR. Done: Automerge 3 was chosen
    ([ADR 0013](../adr/0013-cb-crdt-library-and-apply-policy.md), proposed).
-2. ⬜ CRDT sync adapter, replica uid prefixes, presence indicators showing who
-   is editing where ([#170](https://github.com/ErikSundvall/ehrtslib/issues/170),
-   [#243](https://github.com/ErikSundvall/ehrtslib/issues/243)).
+2. 🟡 CRDT sync adapter and the base `rev` check
+   ([#170](https://github.com/ErikSundvall/ehrtslib/issues/170),
+   [#243](https://github.com/ErikSundvall/ehrtslib/issues/243)). The Automerge
+   3 add-on syncs the operation log, requires `rev` unless the caller is
+   single-caller, and applies the concurrent policy. Presence is not in it.
+   Level 2 splice transform (central-server OT) is not in it; `edit-text`
+   is applied in replay order.
 3. ⬜ Optional source/user colouring of entered information, similar to
    https://etherpad.org/, taken from the operation log (not stored in RM
    data).

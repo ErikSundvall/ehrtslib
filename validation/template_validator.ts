@@ -241,6 +241,31 @@ export class TemplateValidator {
     };
   }
 
+  /**
+   * Validate one node against its `C_OBJECT` (the quick check after a
+   * Contribution Builder operation). Callers filter the messages; this does
+   * not walk the rest of the composition.
+   */
+  validateObject(
+    rmNode: unknown,
+    cObject: openehr_am.C_OBJECT,
+    path = "/",
+  ): ValidationResult {
+    const errors: ValidationMessage[] = [];
+    const warnings: ValidationMessage[] = [];
+    this.ucumPathsChecked.clear();
+    this.validateNode(
+      rmNode,
+      cObject,
+      path,
+      errors,
+      warnings,
+      0,
+      cObject.rm_type_name,
+    );
+    return { valid: errors.length === 0, errors, warnings };
+  }
+
   private validateNode(
     rmNode: any,
     cObject: openehr_am.C_OBJECT,

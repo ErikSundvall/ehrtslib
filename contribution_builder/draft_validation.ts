@@ -121,6 +121,32 @@ const MISSING_TYPES = new Set([
   "rm_specification",
 ]);
 
+/** Present-but-wrong constraints. The quick check reports these and not existence. */
+const VALUE_CONSTRAINTS = new Set([
+  "type",
+  "primitive_type",
+  "string_pattern",
+  "string_list",
+  "integer_range",
+  "integer_list",
+  "real_range",
+  "real_list",
+  "boolean_constraint",
+  "temporal_pattern",
+  "temporal_range",
+  "terminology",
+  "terminology_id",
+  "code_list",
+  "term_rubric",
+  "ucum",
+  "quantity_units",
+  "quantity_magnitude",
+  "quantity_precision",
+  "ordinal_list",
+  "interval",
+  "rm_type",
+]);
+
 /**
  * Validates CB drafts. Create once with {@link DraftValidator.create} (loads
  * UCUM) and reuse.
@@ -197,6 +223,44 @@ export class DraftValidator {
       missing,
     };
   }
+
+  /**
+   * Value constraints (types, ranges, patterns, code lists) on `nodeKeys`
+   * only. Existence and cardinality are left to {@link validate}. Never
+   * throws for an invalid value (#173).
+   */
+  quickValueProblems(
+    build: ContributionBuild,
+    draftId: string,
+    template: BoundTemplate,
+    nodeKeys: readonly string[],
+  ): DraftProblem[] {
+    const draft = build.getDraft(draftId);
+    assertTemplateBindingUnchanged(
+      compareTemplateBindings(draft.templateBinding, template.binding),
+    );
+    const root = build.toCanonicalJson(draftId);
+    const out: DraftProblem[] = [];
+    for (const key of nodeKeys) {
+      const found = locateNode(
+        root,
+        template.operationalTemplate.definition,
+        key,
+      );
+      if (!found) continue;
+      const raw = this.validator.validateObject(
+        found.node,
+        found.cObject,
+        found.path,
+      );
+      for (const m of [...raw.errors, ...raw.warnings]) {
+        if (!VALUE_CONSTRAINTS.has(m.constraintType)) continue;
+        if (m.severity !== "error") continue;
+        out.push(toProblem(root, m));
+      }
+    }
+    return out;
+  }
 }
 
 /** One-off validation; prefer a reused {@link DraftValidator} in editors. */
@@ -268,6 +332,66 @@ function formatSteps(steps: Step[]): string {
 type Obj = Record<string, RmJson>;
 const isObj = (v: unknown): v is Obj =>
   !!v && typeof v === "object" && !Array.isArray(v);
+
+function locateNode(
+  root: RmJson,
+  definition: openehr_am.C_OBJECT | undefined,
+  key: string,
+): { node: RmJson; cObject: openehr_am.C_OBJECT; path: string } | undefined {
+  const walk = (
+    rm: RmJson,
+    cObject: openehr_am.C_OBJECT | undefined,
+    path: string,
+    isRoot: boolean,
+  ):
+    | { node: RmJson; cObject: openehr_am.C_OBJECT; path: string }
+    | undefined => {
+    if (!cObject || !isObj(rm)) return undefined;
+    if (isRoot && key === ROOT_TARGET) return { node: rm, cObject, path };
+    if (!isRoot && isObj(rm.uid) && typeof rm.uid.value === "string") {
+      const uid = rm.uid.value;
+      const at = uid.indexOf("::");
+      const short = at < 0 ? uid : uid.slice(at + 2);
+      if (short === key || uid === key) return { node: rm, cObject, path };
+    }
+    if (!(cObject instanceof openehr_am.C_COMPLEX_OBJECT)) return undefined;
+    for (const attr of cObject.attributes ?? []) {
+      const name = attr.rm_attribute_name;
+      if (!name) continue;
+      const raw = rm[name];
+      const children = attr.children ?? [];
+      if (Array.isArray(raw)) {
+        for (let i = 0; i < raw.length; i++) {
+          const child = matchChild(children, raw[i]) ?? children[0];
+          const found = walk(raw[i], child, `${path}/${name}[${i}]`, false);
+          if (found) return found;
+        }
+      } else if (raw !== undefined && raw !== null) {
+        const child = matchChild(children, raw) ?? children[0];
+        const found = walk(raw, child, `${path}/${name}`, false);
+        if (found) return found;
+      }
+    }
+    return undefined;
+  };
+  return walk(root, definition, "", true);
+}
+
+function matchChild(
+  children: openehr_am.C_OBJECT[],
+  rm: RmJson,
+): openehr_am.C_OBJECT | undefined {
+  if (children.length <= 1) return children[0];
+  if (!isObj(rm) || typeof rm.archetype_node_id !== "string") {
+    return children[0];
+  }
+  const id = rm.archetype_node_id;
+  return children.find((child) =>
+    child instanceof openehr_am.C_ARCHETYPE_ROOT
+      ? child.archetype_ref === id
+      : child.node_id === id
+  ) ?? children[0];
+}
 
 function toProblem(root: RmJson, m: ValidationMessage): DraftProblem {
   const steps = parseInstancePath(m.path);

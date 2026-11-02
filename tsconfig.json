@@ -27,6 +27,7 @@
     "meta/**/*.ts",
     "spec/**/*.ts",
     "contribution_builder/**/*.ts",
+    "addons/**/*.ts",
     "test_data/tests/**/*.ts",
     "scripts/**/*.ts"
   ],

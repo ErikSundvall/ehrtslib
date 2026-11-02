@@ -222,14 +222,20 @@ export class ItsRestContributionAdapter {
     }
     // Record the commit in the log (#177): blocks a second commit of the draft.
     prepared.versions.forEach((v, i) => {
+      const stored = result.versionUids[i];
+      const sentObject = v.versionUid.split("::")[0];
+      const storedObject = stored.split("::")[0];
       build.recordCommit(v.draftId, {
-        versionUid: result.versionUids[i],
+        versionUid: stored,
         ...(result.contributionUid
           ? { contributionUid: result.contributionUid }
           : {}),
         changeType: v.changeType,
         lifecycleState: v.lifecycleState,
         logSha256: prepared.logSha256,
+        ...(storedObject !== sentObject
+          ? { storedObjectUuid: storedObject }
+          : {}),
       }, options.recordAs ? { author: options.recordAs } : {});
     });
     return result;

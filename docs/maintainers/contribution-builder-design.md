@@ -78,10 +78,10 @@ request, one device) needs no CRDT library and still gets:
 | One append-only operation log | Every change is an operation with author, timestamp, replica and target node uid ([ADR 0004](../adr/0004-cb-operation-log-and-sync.md)). | Implemented |
 | Deterministic replay | The same log and template give the same RM JSON, so the editing session can be played back. | Implemented |
 | History replay and copy forward | Nothing is erased. A caller can replay the log to see the draft as it was after any operation, and copy a value or text block from that earlier state into the current one as a new `set-value` ([ADR 0004](../adr/0004-cb-operation-log-and-sync.md)). | Replay implemented; a replay-to-point API and copy-forward provenance are not in the code yet |
-| Kept discarded drafts | A `discard` is an operation; the log is the record of drafts that never reach the CDR. | Designed, not in the code yet |
+| Kept discarded drafts | A `discard` is an operation; the log is the record of drafts that never reach the CDR. | Implemented (`discard`; commit refuses the draft) |
 | Tamper-evident audit trail | Each commit's `AUDIT_DETAILS.description` carries `oplog sha256:<hex>` and, optionally, a link to the log ([ADR 0010](../adr/0010-cb-commit-envelope-and-provenance.md)). | Implemented |
 | Optional append-only log sink | The deployment can stream the log to a server as work happens ([ADR 0005](../adr/0005-cb-storage-encryption-policy-neutrality.md)). | Designed, not in the code yet |
-| Conflict detection against the CDR | Other systems can write to the same EHR, so an update commit carries `preceding_version_uid`; on failure the builder re-reads, replays the log and returns conflicts as data ([ADR 0009](../adr/0009-cb-conflicts-and-rebase.md)). Costs nothing unless a commit fails. | Implemented |
+| Conflict detection against the CDR | Other systems can write to the same EHR, so an update commit carries `preceding_version_uid`; on failure the builder re-reads, replays the log and returns conflicts as data ([ADR 0009](../adr/0009-cb-conflicts-and-rebase.md)). Costs nothing unless a commit fails. | Implemented. `rebase` applies resolutions and retries with the new base (#177). |
 
 The Contribution Builder has no undo and never rewinds the log or restores a
 whole earlier state. What a UI does before it calls the builder, such as
@@ -96,15 +96,17 @@ choice ([ADR 0005](../adr/0005-cb-storage-encryption-policy-neutrality.md)).
 
 **What multi-caller adds.** Several callers (people, or one person on
 several devices) edit the same draft. On top of everything above it adds
-the following. This flavour is designed (ADR 0013, proposed) and so far
-exists only as a spike ([#170](https://github.com/ErikSundvall/ehrtslib/issues/170)):
+the following. The Automerge 3 adapter is an optional add-on
+(`addons/cb_automerge/mod.ts`,
+[#170](https://github.com/ErikSundvall/ehrtslib/issues/170)). Presence is
+not in that adapter.
 
 | Feature | What it adds |
 | --- | --- |
 | CRDT sync | The same operations are synced through Automerge 3 ([ADR 0013](../adr/0013-cb-crdt-library-and-apply-policy.md)); the Automerge WASM is an opt-in download. |
 | Concurrent apply policy | Rules for replaying merged operations without throwing, and for surfacing skips ([ADR 0013](../adr/0013-cb-crdt-library-and-apply-policy.md)). |
 | Presence | Who edits where, ephemeral and not logged. |
-| Text sync levels and the base `rev` check | A `set-value` with a stale `rev` is not applied, so nobody silently overwrites someone else's free text. [#243](https://github.com/ErikSundvall/ehrtslib/issues/243) proposes making `rev` optional for single-caller builds. |
+| Text sync levels and the base `rev` check | A `set-value` or `edit-text` with a stale `rev` is not applied, so nobody silently overwrites someone else's free text. `rev` is optional for a single caller ([#243](https://github.com/ErikSundvall/ehrtslib/issues/243)). |
 
 ### 1.5 Why
 
@@ -271,8 +273,9 @@ Summary of [ADR 0008](../adr/0008-cb-validation-and-lifecycle.md):
   must be valid. Incomplete mode lists the missing required fields.
 - CDR behaviour differs today: EHRbase 2.36 rejects an incomplete version
   that misses mandatory content (ehrbase#1630); FerroEHR accepts it.
-- Phase 1 (#165): `contributionBuilder.DraftValidator` runs the full check on
-  request; see ADR 0008, section "Implementation".
+- Phase 1 (#165): `DraftValidator` runs the full check on request.
+  #173 adds the quick check after each operation and the per-CDR incomplete
+  profile; see ADR 0008, section "Implementation".
 
 ## 9. Attribution, conflicts, storage and commit
 
@@ -328,11 +331,11 @@ Summary of [ADR 0008](../adr/0008-cb-validation-and-lifecycle.md):
 Drafts marked `discard` are left out of step 5 (see 9.2).
 
 Phase 1 (#166) implements steps 1–5 for new COMPOSITIONs
-(`contributionBuilder.prepareContribution`, `ItsRestContributionAdapter`);
+(`prepareContribution`, `ItsRestContributionAdapter`);
 see ADR 0010, section "Implementation". #167 adds `update-version`,
 `copy-version`, the commit record of step 6, and conflict detection with
-conflict data (ADR 0009, section "Implementation"); resolutions and retry
-come later (#177).
+conflict data. #177 adds resolutions and rebase onto the latest version
+(ADR 0009). A committed draft is not continued in place.
 
 ### 9.2 Discarded drafts
 

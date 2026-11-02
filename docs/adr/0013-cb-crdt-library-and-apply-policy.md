@@ -96,7 +96,25 @@ work).
 
 ## Implementation
 
-Not in scope for #170. Prototypes only: [`spike/crdt/`](../../spike/crdt/).
+The single-caller core applies `rev` as above (#243): omitted means apply,
+present and stale means `CbOperationError` code `changed-by-someone-else`.
+`ContributionBuild.replayConcurrent` is the shared apply policy (skip and
+report, retry an anchor-less `add-instance` as an append).
+
+The Automerge 3 adapter is the optional add-on
+[`addons/cb_automerge/mod.ts`](../../addons/cb_automerge/mod.ts) (#170). It
+is not exported from `contribution_builder/mod.ts` or `mod.ts`. It stores
+operations by `replica:seq`, requires `rev`, and announces levels 1–3 with
+native profile `automerge-3`. A seeded text field is an Automerge text
+object; `recordNativeText` writes the merged string back as `set-value`.
+Level 2 records `edit-text` splices. Transforming concurrent splices
+(central-server OT) and presence are not in this adapter. The spike remains
+at [`spike/crdt/`](../../spike/crdt/).
+
+Working rule for roles, until revised: a member has one role. `committer`
+may edit and commit, `editor` may edit, `viewer` may not. Compaction keeps
+one `set-value` per author and field, whose value is the field after that
+author's last text edit, ordered by that edit.
 
 ## Amendment: shared editing, presence and group builds
 
@@ -111,13 +129,16 @@ Free-text leaves (`DV_TEXT.value`, `DV_PARSABLE.value`) sync at one of
 three levels. Only levels 1 and 2 are candidates for normative spec text.
 
 1. **Baseline (required): whole value with a base `rev`.** A `set-value`
-   carries the opaque log position (`rev`) the client last saw. If someone
-   else changed the field since that `rev`, the change is **not** applied
-   as last writer wins: the response returns the current value with a
-   `changed-by-someone-else` status so the client can show it. Silently
-   overwriting a free-text clinical note is data loss. Last writer wins
-   remains only for concurrent operations that replicas merge inside the
-   CRDT (level 3) per the apply policy above.
+   carries the opaque log position (`rev`) the client last saw (`replica:seq`,
+   or `"0"` before any operation). If the field changed since that `rev`,
+   the change is **not** applied as last writer wins: the caller gets
+   `changed-by-someone-else` and the current value. Silently overwriting a
+   free-text clinical note is data loss. Last writer wins remains only for
+   concurrent operations that replicas merge inside the CRDT (level 3) per
+   the apply policy above. **`rev` MAY be omitted when the build has a
+   single caller; then the operation is applied directly. A build that has
+   or may have several callers MUST require it, and says so in its
+   announcement.** The same rule applies to `edit-text` splices (level 2).
 2. **Neutral text op (optional standard fallback).** A text op (name
    provisional, `edit-text`) targets the leaf by node uid ([ADR
    0003](0003-cb-identity-and-uids.md)) and carries plain splices

@@ -51,16 +51,14 @@ bytes) and `contribution_builder/contribution_build.ts` (`ContributionBuild`,
   operations }`. Readers reject unknown formats and newer versions. Export as
   RFC 8785 bytes plus sha256 (`exportLogBytes`), so the same log always gives
   the same bytes.
-- Phase 1 operations: `create-draft` (carries the template binding, the
-  provisional versioned-object uuid and the initial canonical RM JSON, so
-  replay does not depend on the instance generator), `set-value`,
-  `add-instance`, `remove-instance`, `set-composer`. #167 adds
-  `open-version` (a `modify` draft: binding, base version uid, the stored
-  data and the short keys given to nodes without a uid), `copiedFrom` on
-  `create-draft`, and `record-commit` (version uid, contribution uid,
-  change type, lifecycle state and log hash of a successful commit). These
-  are additions, so the format version stays 1. The others in the list
-  above come with the phases that need them.
+- Operations, format version still 1: `create-draft`, `open-version`,
+  `record-commit`, `set-value`, `edit-text`, `add-instance`,
+  `remove-instance`, `move-instance`, `assign-uid`, `set-composer`,
+  `set-participation`, `set-lifecycle`, `migrate-template`, `import`,
+  `discard`, `join-build`, `leave-build`, `set-role`, `resolve`.
+  `create-draft` carries the initial template binding (there is no separate
+  `bind-template`). `import` stores the canonical document it produced.
+  `set-value` and `edit-text` may carry `rev` (#243).
 - Every operation has `replica`, per-replica `seq`, `author` (from the
   caller's context, overridable per call), `timestamp` and `draft`.
   `replica` + `seq` identifies an operation across replicas.

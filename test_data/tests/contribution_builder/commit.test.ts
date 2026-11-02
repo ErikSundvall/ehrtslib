@@ -282,14 +282,19 @@ Deno.test("prepareContribution warns when ADL2-native binding lacks OPT 1.4 expo
     ...t,
     binding: { ...t.binding, sourceFormat: "adl2-opt", opt14Export: undefined },
   };
-  const draft = build.newComposition(adl2Native, { language: "en", territory: "SE" });
+  const draft = build.newComposition(adl2Native, {
+    language: "en",
+    territory: "SE",
+  });
   build.setComposer(draft, { _type: "PARTY_IDENTIFIED", name: "Dr A" });
   const p = await prepareContribution(build, v, CONFIG, {
     drafts: [{ draftId: draft, template: adl2Native }],
     committer: COMMITTER,
     creatingSystemId: "cdr.example",
   });
-  const mappingWarnings = p.warnings.filter((w) => w.includes("may not match the OPT 1.4"));
+  const mappingWarnings = p.warnings.filter((w) =>
+    w.includes("may not match the OPT 1.4")
+  );
   assertEquals(mappingWarnings.length, 1);
   assertMatch(mappingWarnings[0], /opt14Export/);
 });
@@ -309,7 +314,10 @@ Deno.test("prepareContribution: no ADL 1.4 mapping warning with opt14Export or e
       },
     },
   };
-  const draft = build.newComposition(adl2Native, { language: "en", territory: "SE" });
+  const draft = build.newComposition(adl2Native, {
+    language: "en",
+    territory: "SE",
+  });
   build.setComposer(draft, { _type: "PARTY_IDENTIFIED", name: "Dr A" });
   const withExport = await prepareContribution(build, v, CONFIG, {
     drafts: [{ draftId: draft, template: adl2Native }],
@@ -317,7 +325,8 @@ Deno.test("prepareContribution: no ADL 1.4 mapping warning with opt14Export or e
     creatingSystemId: "cdr.example",
   });
   assertEquals(
-    withExport.warnings.filter((w) => w.includes("may not match the OPT 1.4")).length,
+    withExport.warnings.filter((w) => w.includes("may not match the OPT 1.4"))
+      .length,
     0,
   );
 
@@ -325,7 +334,10 @@ Deno.test("prepareContribution: no ADL 1.4 mapping warning with opt14Export or e
     ...t,
     binding: { ...t.binding, sourceFormat: "adl2-opt", opt14Export: undefined },
   };
-  const draft2 = build.newComposition(adl2Bare, { language: "en", territory: "SE" });
+  const draft2 = build.newComposition(adl2Bare, {
+    language: "en",
+    territory: "SE",
+  });
   build.setComposer(draft2, { _type: "PARTY_IDENTIFIED", name: "Dr A" });
   const withExplicit = await prepareContribution(build, v, CONFIG, {
     drafts: [{
@@ -340,7 +352,8 @@ Deno.test("prepareContribution: no ADL 1.4 mapping warning with opt14Export or e
     creatingSystemId: "cdr.example",
   });
   assertEquals(
-    withExplicit.warnings.filter((w) => w.includes("may not match the OPT 1.4")).length,
+    withExplicit.warnings.filter((w) => w.includes("may not match the OPT 1.4"))
+      .length,
     0,
   );
 });
@@ -441,6 +454,29 @@ Deno.test("REST adapter posts to /ehr/{ehr_id}/contribution and reports server-a
   assertEquals(r.versionUids, ["server-uuid::cdr.example::1"]);
   assertEquals(r.serverAssignedUids, true);
   assert(r.warnings.some((w) => /provisional uuid/.test(w)));
+  // Inner uids keep the provisional prefix. The log records the mapping (#176).
+  const provisional = build.getDraft(draft).provisionalObjectUuid;
+  assertMatch(
+    sent.versions[0].data.content[0].uid.value,
+    new RegExp(`^${provisional}::`),
+  );
+  assertEquals(
+    build.getDraft(draft).committed?.storedObjectUuid,
+    "server-uuid",
+  );
+  assertEquals(
+    build.getDraft(draft).committed?.versionUid,
+    "server-uuid::cdr.example::1",
+  );
+  const recorded = build.exportLog().operations.find((op) =>
+    op.type === "record-commit"
+  );
+  assertEquals(
+    recorded && recorded.type === "record-commit"
+      ? recorded.storedObjectUuid
+      : "",
+    "server-uuid",
+  );
 });
 
 Deno.test("REST adapter surfaces server errors", async () => {

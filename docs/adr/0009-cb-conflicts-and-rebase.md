@@ -52,8 +52,13 @@ carry the ids the local log refers to.
 
 ## Implementation (phase 1, #167)
 
-Phase 1 implements detection and conflict data. Resolutions and the retry
-come later (#177).
+Phase 1 implements detection and conflict data. `ContributionBuild.rebase`
+(#177) opens a new draft on the latest version, replays clean operations,
+and records each resolution as a `resolve` operation (`keep-ours`,
+`keep-theirs`, `custom`, `drop`). The new draft's `baseVersionUid` is the
+latest version, so the next commit's `preceding_version_uid` is that uid.
+A committed draft is not continued in place; further edits are a new
+`update-version`.
 
 - **Base version.** `ContributionBuild.openVersion(template, stored)`
   (`update-version`) starts a `modify` draft from a stored version. The

@@ -157,7 +157,7 @@ Code: `contribution_builder/commit.ts` (`prepareContribution`,
   inner node uids already use, so no uid rewrite is needed when the server
   keeps the sent uid. A server that assigns its own uuid is detected
   (`serverAssignedUids`, with a warning): inner uids then keep the
-  provisional prefix.
+  provisional prefix, and `record-commit` stores `storedObjectUuid` (#176).
 - **ADL 1.4 down-conversion** (default `codes: "adl14"`): node ids
   (`id5` → `at0004`), `local` value codes (`at10` → `at0009`) and
   `archetype_details.template_id`. For a binding from an OPT 1.4 XML this

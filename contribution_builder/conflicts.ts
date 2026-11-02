@@ -12,7 +12,9 @@
  * archetype path and position among siblings with that path (`path`, a guess
  * the caller should show for review), else not at all (`none`). An operation
  * conflicts when the latest version changed what it touches since the base;
- * the others are listed as clean. Resolving and retrying is up to the caller.
+ * the others are listed as clean. {@link ContributionBuild.rebase} applies
+ * resolutions as `resolve` operations on a new draft whose base is the latest
+ * version, then the caller commits that draft (`preceding_version_uid`).
  */
 
 import { upConvertFromAdl14, usesAdl14Codes } from "./adl14_downconvert.ts";
@@ -44,6 +46,14 @@ export interface DraftConflict {
   theirs: RmJson | undefined;
   /** Value the operation sets (set-value, set-composer, add-instance). */
   ours?: RmJson;
+}
+
+/** One caller's choice for a {@link DraftConflict}. `conflict` is `replica:seq`. */
+export interface ConflictResolution {
+  conflict: string;
+  action: "keep-ours" | "keep-theirs" | "custom" | "drop";
+  /** `custom`: the value written at the conflicting path (or the composer). */
+  value?: unknown;
 }
 
 export interface ConflictReport {

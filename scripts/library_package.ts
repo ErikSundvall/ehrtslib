@@ -27,6 +27,7 @@ export const LIBRARY_ENTRY_FILES = [
 
 /** Directories the library loads. `generated/` is not part of this closure. */
 export const LIBRARY_PACKAGES = [
+  "addons",
   "am",
   "base",
   "contribution_builder",
@@ -483,7 +484,9 @@ ${bundleRows}
 \`\`\`
 
 \`\`\`ts
-  import { parseAdl } from "${loc.pagesDir}/${assets.bundles.find((b) => b.id === "parser")!.file}";
+  import { parseAdl } from "${loc.pagesDir}/${
+    assets.bundles.find((b) => b.id === "parser")!.file
+  }";
 import { parseAdl as parseAdlFromCdn } from "${loc.cdnDir}/parser/mod.ts";
 import * as rmOnly from "${loc.cdnDir}/openehr_rm.ts";
 import {

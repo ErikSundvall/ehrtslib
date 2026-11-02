@@ -84,5 +84,13 @@ Code: `contribution_builder/draft_validation.ts` (`DraftValidator`,
 - Removing the last member of a list now drops the attribute
   (`events: []` → no `events`); RM invariants reject an empty list.
 
-Not yet: the quick check after each operation, and the per-CDR capability
-profile (follow-ups).
+Quick check and CDR profile (#173): `trackValidation` runs
+`DraftValidator.quickValueProblems` on the nodes an operation changed
+(types, ranges, patterns, code lists). A failing value is marked `invalid`
+and the edit stays. `validationState` is the build summary at a log `rev`,
+with validator id `ehrtslib-draft-validator` and the ehrtslib version:
+`unfinished` (required content absent), `invalid` (present value wrong),
+`canCommitComplete`, `canCommitIncomplete`, and `CDR_INCOMPLETE_PROFILES`
+(EHRbase 2.36 rejects an incomplete version that misses mandatory template
+content; FerroEHR 5.4.1 accepts it). The status is not written to the log.
+`authoritative` is false unless the caller says this builder is the hub.

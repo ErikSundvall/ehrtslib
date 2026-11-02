@@ -103,7 +103,18 @@ export interface RecordCommitOperation extends OperationBase {
   lifecycleState: string;
   /** sha256 of the log bytes cited in the contribution audit. */
   logSha256: string;
+  /**
+   * Object uuid the server stored, when it replaced the provisional one.
+   * Inner node uids keep the provisional prefix (#176).
+   */
+  storedObjectUuid?: string;
 }
+
+/**
+ * Log position a caller last saw: `replica:seq` of an operation, or `"0"`
+ * before any operation. Optional on text writes (ADR 0013, #243).
+ */
+export type LogRev = string;
 
 /** Set (or with `value: null`, clear) a value under a node. */
 export interface SetValueOperation extends OperationBase {
@@ -113,6 +124,136 @@ export interface SetValueOperation extends OperationBase {
   /** Attribute path relative to the node, `/`-separated (`value`, `value/magnitude`). */
   path: string;
   value: RmJson;
+  /**
+   * Base log position. Omitted: apply directly (single caller). Present: refuse
+   * with `changed-by-someone-else` when this field changed after `rev`.
+   */
+  rev?: LogRev;
+}
+
+/**
+ * Neutral text splice for a `DV_TEXT` / `DV_PARSABLE` string (ADR 0013 level 2).
+ * `at` and `delete` count Unicode code points and never split a surrogate pair.
+ */
+export interface EditTextOperation extends OperationBase {
+  type: "edit-text";
+  target: string;
+  /** Path of the string, relative to the node (`value`). */
+  path: string;
+  at: number;
+  delete: number;
+  insert: string;
+  rev?: LogRev;
+}
+
+/** Reorder or reparent a LOCATABLE. Position is a sibling anchor, as in add-instance. */
+export interface MoveInstanceOperation extends OperationBase {
+  type: "move-instance";
+  target: string;
+  parent: string;
+  attribute: string;
+  before?: string;
+  after?: string;
+}
+
+/**
+ * Give one loaded LOCATABLE that has no uid a short key (ADR 0003). `path` is
+ * the instance path from the draft root (`/content[0]/data`).
+ */
+export interface AssignUidOperation extends OperationBase {
+  type: "assign-uid";
+  path: string;
+  key: string;
+}
+
+/** Set one `PARTICIPATION` on an ENTRY (`other_participations`) or on context. */
+export interface SetParticipationOperation extends OperationBase {
+  type: "set-participation";
+  /** ENTRY short key, or {@link ROOT_TARGET} for `context.participations`. */
+  target: string;
+  list: "other_participations" | "participations";
+  participation: RmJson;
+}
+
+/** Choose complete (532) or incomplete (553) for this draft. */
+export interface SetLifecycleOperation extends OperationBase {
+  type: "set-lifecycle";
+  mode: "complete" | "incomplete";
+}
+
+/** Move the draft to another template binding. Never implicit (ADR 0007). */
+export interface MigrateTemplateOperation extends OperationBase {
+  type: "migrate-template";
+  template: TemplateBinding;
+}
+
+/**
+ * Replace the draft's content with an imported document. Replay uses
+ * `document` (canonical RM JSON), whatever `format` the caller sent.
+ * `keys` are short keys for LOCATABLEs in `document` that have no uid.
+ * When `deferUids` is set, those nodes stay without a uid for `assign-uid`.
+ */
+export interface ImportOperation extends OperationBase {
+  type: "import";
+  format: "canonical" | "flat" | "structured";
+  document: RmJson;
+  keys: string[];
+  deferUids?: boolean;
+}
+
+/**
+ * Drop a draft, or one node, before commit. The log stays (ADR 0004).
+ * No `target`: the whole draft is discarded and cannot be committed.
+ */
+export interface DiscardOperation extends OperationBase {
+  type: "discard";
+  target?: string;
+}
+
+export type MemberRole = "editor" | "viewer" | "committer";
+
+/** A member joins. Their replica prefix is assigned here. */
+export interface JoinBuildOperation extends OperationBase {
+  type: "join-build";
+  memberId: string;
+  memberName?: string;
+  role: MemberRole;
+  memberReplica: string;
+}
+
+export interface LeaveBuildOperation extends OperationBase {
+  type: "leave-build";
+  memberId: string;
+}
+
+export interface SetRoleOperation extends OperationBase {
+  type: "set-role";
+  memberId: string;
+  role: MemberRole;
+}
+
+/**
+ * A caller's choice for one CDR conflict (ADR 0009, #177). `keep-theirs` and
+ * `drop` change nothing; `keep-ours` and `custom` write `value` at `path`
+ * when `path` is set, or apply the removal / insertion described beside it.
+ */
+export interface ResolveOperation extends OperationBase {
+  type: "resolve";
+  /** `replica:seq` of the conflicting operation. */
+  conflict: string;
+  action: "keep-ours" | "keep-theirs" | "custom" | "drop";
+  target?: string;
+  path?: string;
+  value?: RmJson;
+  /** keep-ours of remove-instance. */
+  remove?: boolean;
+  /** keep-ours of add-instance. */
+  attribute?: string;
+  instance?: RmJson;
+  keys?: string[];
+  before?: string;
+  after?: string;
+  composer?: RmJson;
 }
 
 /** Add a LOCATABLE subtree under a node's attribute. */
@@ -148,9 +289,21 @@ export type CbOperation =
   | OpenVersionOperation
   | RecordCommitOperation
   | SetValueOperation
+  | EditTextOperation
   | AddInstanceOperation
   | RemoveInstanceOperation
-  | SetComposerOperation;
+  | MoveInstanceOperation
+  | AssignUidOperation
+  | SetComposerOperation
+  | SetParticipationOperation
+  | SetLifecycleOperation
+  | MigrateTemplateOperation
+  | ImportOperation
+  | DiscardOperation
+  | JoinBuildOperation
+  | LeaveBuildOperation
+  | SetRoleOperation
+  | ResolveOperation;
 
 export type CbOperationType = CbOperation["type"];
 
@@ -174,10 +327,50 @@ const OP_TYPES: ReadonlySet<string> = new Set<CbOperationType>([
   "open-version",
   "record-commit",
   "set-value",
+  "edit-text",
   "add-instance",
   "remove-instance",
+  "move-instance",
+  "assign-uid",
   "set-composer",
+  "set-participation",
+  "set-lifecycle",
+  "migrate-template",
+  "import",
+  "discard",
+  "join-build",
+  "leave-build",
+  "set-role",
+  "resolve",
 ]);
+
+/** `replica:seq`, the id of an operation across replicas. */
+export function operationRef(op: { replica: string; seq: number }): string {
+  return `${op.replica}:${op.seq}`;
+}
+
+/** Total order for a merged log: timestamp, then replica, then seq (ADR 0013). */
+export function compareOperations(a: CbOperation, b: CbOperation): number {
+  const byTime = a.timestamp.localeCompare(b.timestamp);
+  if (byTime !== 0) return byTime;
+  const byReplica = a.replica.localeCompare(b.replica);
+  if (byReplica !== 0) return byReplica;
+  return a.seq - b.seq;
+}
+
+/** Dedupe by `replica:seq`, then {@link compareOperations}. */
+export function sortOperations(ops: readonly CbOperation[]): CbOperation[] {
+  const seen = new Set<string>();
+  const out: CbOperation[] = [];
+  for (const op of ops) {
+    const id = operationRef(op);
+    if (seen.has(id)) continue;
+    seen.add(id);
+    out.push(op);
+  }
+  out.sort(compareOperations);
+  return out;
+}
 
 /** Short keys: replica prefix, a dot, a counter. Never contain `::`. */
 export const SHORT_KEY_RE = /^[a-z][a-z0-9]*\.[1-9][0-9]*$/;

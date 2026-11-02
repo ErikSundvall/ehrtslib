@@ -43,6 +43,11 @@ store and return inner uids unchanged, and AQL can filter on them.
   ITS-REST does not promise to keep a client-supplied one. Inner uids use a
   provisional uuid recorded in `create-draft`; operations store only short
   keys, so the commit step (#166) can swap the root without changing the log.
+- When the server assigns a different object uuid (#176), `record-commit`
+  stores `storedObjectUuid`. Inner uids in the stored composition keep the
+  provisional prefix. The builder does not rewrite them: the server has
+  already kept the uids it was sent, and there is no REST call that reserves
+  the object uuid first. The log is the provisional → stored mapping.
 
 ## Consequences
 
