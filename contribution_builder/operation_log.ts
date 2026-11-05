@@ -104,8 +104,15 @@ export interface RecordCommitOperation extends OperationBase {
   /** sha256 of the log bytes cited in the contribution audit. */
   logSha256: string;
   /**
-   * Object uuid the server stored, when it replaced the provisional one.
-   * Inner node uids keep the provisional prefix (#176).
+   * Versioned-object uuid the client sent, together with
+   * `storedObjectUuid`, when the server replaced it (#176). Inner node
+   * uids keep this prefix. The builder does not rewrite them.
+   */
+  provisionalObjectUuid?: string;
+  /**
+   * Versioned-object uuid the server stored, when it differs from
+   * `provisionalObjectUuid`. The two fields are the provisional → stored
+   * mapping (#176).
    */
   storedObjectUuid?: string;
 }

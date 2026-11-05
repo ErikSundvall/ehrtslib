@@ -203,6 +203,12 @@ Summary of [ADR 0003](../adr/0003-cb-identity-and-uids.md):
   the assignment is itself in the log.
 - Checked on the dev CDRs (section 10): EHRbase 2.36.0 and FerroEHR 5.4.1
   both preserve inner uids, and AQL can filter on them.
+- Some CDRs replace the client-sent versioned-object uuid when a version
+  is created. The Contribution Builder accepts that (#176). The adapter
+  keeps the `serverAssignedUids` warning, and `record-commit` stores the
+  provisional uuid and the stored uuid. Inner node uids stay as sent, with
+  the provisional uuid as their prefix. Rewriting that prefix at commit
+  stays with #171.
 
 ## 6. Operation log and sync
 
@@ -326,7 +332,17 @@ Summary of [ADR 0008](../adr/0008-cb-validation-and-lifecycle.md):
    it.
 6. On failure, re-read the latest versions and enter the conflict flow if a
    base is no longer the latest; on success, record the new version ids
-   as the new base and close or reset the build.
+   as the new base and close or reset the build. When the server replaced
+   the client-sent versioned-object uuid, `record-commit` also stores the
+   provisional → stored uuid mapping (#176). The committed draft stays
+   closed. `continueCommitted` starts the next modify draft from that
+   stored version uid (#177): the next commit sends `preceding_version_uid`
+   and change type modification, or amendment when the caller sets it. A
+   failed commit of that draft uses the conflict flow. On a shared build
+   only a `committer` commits, the composer stays an explicit
+   `set-composer`, members who changed content are written to
+   `other_participations`, and text edits compact to one `set-value` per
+   author and field before the audit hash.
 
 Drafts marked `discard` are left out of step 5 (see 9.2).
 

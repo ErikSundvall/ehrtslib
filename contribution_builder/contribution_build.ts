@@ -173,8 +173,14 @@ export interface VersionDraftInfo {
     lifecycleState: string;
     logSha256: string;
     /**
-     * Object uuid the server stored, when it differs from the provisional
-     * one. Inner uids keep the provisional prefix (#176).
+     * Versioned-object uuid the client sent, when the server stored a
+     * different one. Paired with `storedObjectUuid` (#176). Inner uids
+     * keep this prefix.
+     */
+    provisionalObjectUuid?: string;
+    /**
+     * Versioned-object uuid the server stored, when it differs from
+     * `provisionalObjectUuid`. Inner uids keep the provisional prefix (#176).
      */
     storedObjectUuid?: string;
   };
@@ -668,6 +674,12 @@ export class ContributionBuild {
       changeType: string;
       lifecycleState: string;
       logSha256: string;
+      /**
+       * Object uuid sent as the versioned-object id. Used with
+       * `storedObjectUuid` when the server stored another (#176).
+       * Defaults to the draft's provisional uuid.
+       */
+      provisionalObjectUuid?: string;
       /** Set when the server assigned a different versioned-object uuid (#176). */
       storedObjectUuid?: string;
     },
@@ -685,10 +697,46 @@ export class ContributionBuild {
       logSha256: result.logSha256,
     };
     if (result.contributionUid) body.contributionUid = result.contributionUid;
-    if (result.storedObjectUuid) {
-      body.storedObjectUuid = result.storedObjectUuid;
+    const provisional = result.provisionalObjectUuid ??
+      this.drafts.get(draftId)?.provisionalObjectUuid;
+    const stored = result.storedObjectUuid;
+    if (stored && provisional && stored !== provisional) {
+      body.provisionalObjectUuid = provisional;
+      body.storedObjectUuid = stored;
     }
     this.commitOp(body, opOptions);
+  }
+
+  /**
+   * After `record-commit` (#177), start a modify draft whose base is the
+   * stored version uid. The committed draft stays closed. The next commit
+   * of the returned draft sends `preceding_version_uid` and change type
+   * modification (251), or amendment (250) when the caller sets
+   * `changeType: "amendment"`. A failed commit of that draft uses the
+   * conflict flow (ADR 0009), including status 412.
+   *
+   * The in-memory draft is ADL2, so codes default to `adl2`. Inner node
+   * uids are kept, including a provisional prefix when the server assigned
+   * the object uuid (#176).
+   */
+  continueCommitted(
+    template: BoundTemplate,
+    draftId: string,
+    options: Omit<LoadVersionOptions, "versionUid"> = {},
+    opOptions: OperationOptions = {},
+  ): string {
+    const versionUid = this.getDraft(draftId).committed?.versionUid;
+    if (!versionUid) {
+      throw new CbOperationError(`Draft ${draftId} is not committed`);
+    }
+    const stored = this.toCanonicalJson(draftId) as JsonObject;
+    stored.uid = { _type: "OBJECT_VERSION_ID", value: versionUid };
+    return this.openVersion(
+      template,
+      stored,
+      { ...options, codes: options.codes ?? "adl2" },
+      opOptions,
+    );
   }
 
   /**
@@ -1588,6 +1636,9 @@ export class ContributionBuild {
           logSha256: op.logSha256,
           ...(op.contributionUid
             ? { contributionUid: op.contributionUid }
+            : {}),
+          ...(op.provisionalObjectUuid
+            ? { provisionalObjectUuid: op.provisionalObjectUuid }
             : {}),
           ...(op.storedObjectUuid
             ? { storedObjectUuid: op.storedObjectUuid }

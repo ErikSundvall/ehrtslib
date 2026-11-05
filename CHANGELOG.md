@@ -8,6 +8,9 @@ Add an entry under **Unreleased** in every PR that changes user-visible behaviou
 
 ## [Unreleased]
 
+- **Contribution Builder.** When a CDR replaces the client-sent versioned-object uuid, `record-commit` stores both the provisional uuid and the stored uuid. The `serverAssignedUids` warning stays. Inner node uids keep the provisional prefix ([#176](https://github.com/ErikSundvall/ehrtslib/issues/176)).
+- **Contribution Builder.** `continueCommitted` starts a modify draft from a committed draft, with the stored version uid as its base. The committed draft stays closed, and operations after `record-commit` in a merged log are skipped as `already-committed`. The next commit sends `preceding_version_uid` and change type modification, or amendment when asked. A failed commit of that draft uses the conflict flow, including status 412. On a shared build only a `committer` commits, the composer stays explicit, members who changed content are recorded in `other_participations`, and text edits compact to one `set-value` per author and field before the audit hash ([#177](https://github.com/ErikSundvall/ehrtslib/issues/177)).
+
 ## [0.11.0] - 2026-11-02
 
 - An ELEMENT with no value constraint lists the 16 `<type>_value` children EHRbase and FerroEHR both list (no `state_value`, no `scale_value`). `interval_of_<t>_value` is still read though it is not listed. `webTemplateToOpt` turns that list back into an ELEMENT with no value constraint ([#267](https://github.com/ErikSundvall/ehrtslib/issues/267)).

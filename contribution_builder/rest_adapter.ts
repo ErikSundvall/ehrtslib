@@ -76,6 +76,8 @@ export interface CommitResult {
   /**
    * True when the server replaced the sent versioned-object uuid. Inner node
    * uids then still start with the provisional uuid (a warning is added).
+   * `commit` records each replacement as `provisionalObjectUuid` →
+   * `storedObjectUuid` on `record-commit`.
    */
   serverAssignedUids: boolean;
   warnings: string[];
@@ -234,7 +236,10 @@ export class ItsRestContributionAdapter {
         lifecycleState: v.lifecycleState,
         logSha256: prepared.logSha256,
         ...(storedObject !== sentObject
-          ? { storedObjectUuid: storedObject }
+          ? {
+            provisionalObjectUuid: sentObject,
+            storedObjectUuid: storedObject,
+          }
           : {}),
       }, options.recordAs ? { author: options.recordAs } : {});
     });

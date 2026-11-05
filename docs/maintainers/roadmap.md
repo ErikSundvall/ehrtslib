@@ -68,9 +68,12 @@ The design covers every versioned type; delivery is staged:
    through the REST ITS, update-version, copy-version and conflict data.
    Also in the core: the remaining operations (#171), the quick check and
    per-CDR incomplete profile (#173), the provisional → stored object-uuid
-   mapping when a server assigns its own uuid (#176; inner uids are not
-   rewritten), and resolutions plus rebase (#177). Continuing a committed
-   draft in place is still a new update-version.
+   mapping when a server assigns its own uuid (#176; decided 2026-11-05:
+   `record-commit` stores both uuids, the `serverAssignedUids` warning
+   stays, inner uids stay as sent), and resolutions, rebase, and
+   `continueCommitted` so the stored version uid is the base of the next
+   modify draft (#177).
+   Continuing a committed draft in place is still a new update-version.
 2. ⬜ Other versioned types: `EHR_STATUS`, `EHR_ACCESS`, `FOLDER`, then
    demographic `PARTY` types. No log or envelope format changes.
 3. ⬜ Pluggable storage and optional encrypted local draft persistence. Only
