@@ -4,9 +4,11 @@ Status: **draft for review.** Design only; nothing here is implemented yet.
 Delivery order is in the [roadmap](roadmap.md). Decisions and their reasons
 are recorded as ADRs [0002](../adr/0002-cb-core-model-and-scope.md) to
 [0010](../adr/0010-cb-commit-envelope-and-provenance.md), plus the optional GraphQL
-API in [ADR 0011](../adr/0011-cb-optional-graphql-api.md) and the add-on packages in
-[ADR 0012](../adr/0012-cb-add-on-packages-and-patch-formats.md), and the htmx add-on in
-[ADR 0014](../adr/0014-cb-htmx-add-on-and-editable-zipehr-html5.md).
+API in [ADR 0011](../adr/0011-cb-optional-graphql-api.md), the add-on packages in
+[ADR 0012](../adr/0012-cb-add-on-packages-and-patch-formats.md), the htmx add-on in
+[ADR 0014](../adr/0014-cb-htmx-add-on-and-editable-zipehr-html5.md), and where the
+FLAT, STRUCTURED, Web Template, and ZipEHR serializers load in
+[ADR 0016](../adr/0016-optional-serializer-subpaths-simplified-and-zipehr.md).
 
 ## 1. Product
 
@@ -497,6 +499,15 @@ still open for review:
   using XPath selectors mapped from archetype paths and uids.
 - A future htmx add-on turns form posts into operations and returns
   updated HTML fragments with validation messages.
+
+The add-ons are access styles. They are not the serializer packages.
+[ADR 0016](../adr/0016-optional-serializer-subpaths-simplified-and-zipehr.md)
+puts Web Template, FLAT, and STRUCTURED on `ehrtslib/serialization-simplified`,
+and ZipEHR on `ehrtslib/serialization-zipehr`. Contribution Builder core does
+not import those codecs. The simplified-formats add-on and the htmx add-on
+import those subpaths, and each keeps its own release file
+(`ehrtslib-<version>-cb-simplified.min.js`,
+`ehrtslib-<version>-cb-htmx.min.js`).
 
 ### 9.5 htmx add-on and editable ZipEHR HTML5
 

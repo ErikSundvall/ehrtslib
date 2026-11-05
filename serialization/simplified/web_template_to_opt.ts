@@ -8,10 +8,18 @@
  * - the `C_COMPLEX_OBJECT` / `C_ATTRIBUTE` definition tree by re-expanding
  *   each node's `aqlPath` (which retains the collapsed wrapper segments),
  * - `C_ARCHETYPE_ROOT` nodes for archetype-id node ids,
- * - occurrences from `min` / `max`,
- * - per-archetype `archetype_term_definitions` from node names (keyed by the
- *   nearest archetype-id ancestor), plus a flat `ontology.term_definitions`
- *   map that still last-wins on colliding at-codes,
+ * - occurrences from `min` / `max`, and attribute existence for
+ *   `ism_transition` and its children (the Web Template min of those nodes
+ *   is the attribute existence; an ACTION's is 1..1),
+ * - per-archetype `archetype_term_definitions` from node names, keyed by the
+ *   nearest archetype id on the node's path (or by its occurrence scope).
+ *   A sibling with a `name/value` predicate does not replace that code's
+ *   term; its name stays on the `name` constraint, which is what the id
+ *   slug uses. A node whose only name is a fallback (`cluster`, `element`)
+ *   still records that text, so the next build does not slug another
+ *   archetype's flat term. Sibling objects stay in Web Template order, which
+ *   is what `_1`, `_2`, … suffixes are counted from. The flat
+ *   `ontology.term_definitions` map still last-wins on colliding at-codes,
  * - best-effort leaf constraints from Web Template `inputs[]`:
  *   `C_QUANTITY.list[].units`, assumed magnitude/units, magnitude/precision
  *   ranges from `inputs[].validation`, and `C_TERMINOLOGY_CODE` `code_list` +
@@ -261,13 +269,55 @@ export class WebTemplateToOptConverter {
     return opt;
   }
 
+  /**
+   * Scope the id slug reads: this node's occurrence, else the nearest
+   * archetype id on its path. A parent occurrence scope (`<id>#<n>`) applies
+   * only while the path is still inside that archetype. A nested archetype
+   * (collapsed ITEM_TREE under an activity, for example) keeps its own bag,
+   * so `at0002` is not taken from the parent or from the flat last-wins map.
+   */
+  private termScopeFor(
+    node: WebTemplateNode,
+    parentScope?: string,
+  ): string | undefined {
+    const own = this.occurrenceOf.get(node);
+    if (own) return own;
+    if (node.nodeId && isArchetypeId(node.nodeId)) return node.nodeId;
+    const segs = parseAqlPath(node.aqlPath);
+    let nearest: string | undefined;
+    for (let i = segs.length - 1; i >= 0; i--) {
+      const id = segs[i].nodeId;
+      if (isArchetypeId(id)) {
+        nearest = id;
+        break;
+      }
+    }
+    if (parentScope?.includes("#")) {
+      const arch = parentScope.slice(0, parentScope.indexOf("#"));
+      if (!nearest || nearest === arch) return parentScope;
+    }
+    return nearest ?? parentScope;
+  }
+
+  /**
+   * `name/value` predicate on this node: a renamed sibling, not the shared
+   * term. A leaf path may end in `/value`; the predicate sits on the element.
+   */
+  private nameValueOf(node: WebTemplateNode): string | undefined {
+    const segs = parseAqlPath(node.aqlPath);
+    for (let i = segs.length - 1; i >= 0; i--) {
+      if (segs[i].nodeId || segs[i].nameValue) return segs[i].nameValue;
+    }
+    return undefined;
+  }
+
   private recordTerms(node: WebTemplateNode, archetypeScope?: string): void {
-    const scope = this.occurrenceOf.get(node) ??
-      (node.nodeId && isArchetypeId(node.nodeId)
-        ? node.nodeId
-        : archetypeScope);
+    const scope = this.termScopeFor(node, archetypeScope);
     const code = node.nodeId;
     if (!code) return;
+    // Renamed siblings share an at-code. Their text belongs on the name
+    // constraint; writing it here would make the other sibling slug that name.
+    const nameConstrained = this.nameValueOf(node) != null;
 
     const languages = node.localizedNames &&
         Object.keys(node.localizedNames).length
@@ -289,11 +339,40 @@ export class WebTemplateToOptConverter {
         this.scopedTerms[scope] ??= {};
         this.scopedTerms[scope][lang] ??= {};
         this.scopedTerms[scope][lang][code] ??= {};
-        if (text != null) this.scopedTerms[scope][lang][code].text = text;
-        if (description != null) {
-          this.scopedTerms[scope][lang][code].description = description;
-        }
+        this.writeScopedTerm(
+          this.scopedTerms[scope][lang][code],
+          text,
+          description,
+          nameConstrained,
+        );
       }
+    }
+  }
+
+  /**
+   * Keep the first text for a code, and let a node that is not
+   * name-constrained replace a different one. That node is the archetype
+   * term (including a fallback name such as "cluster"); the renamed
+   * sibling keeps its text on the name constraint.
+   */
+  private writeScopedTerm(
+    cell: { text?: string; description?: string },
+    text: string | undefined,
+    description: string | undefined,
+    nameConstrained: boolean,
+  ): void {
+    if (text != null) {
+      const replace = cell.text != null && cell.text !== text &&
+        !nameConstrained;
+      if (cell.text == null || replace) {
+        cell.text = text;
+        if (description != null) cell.description = description;
+        else if (replace) delete cell.description;
+        return;
+      }
+    }
+    if (description != null && cell.description == null && !nameConstrained) {
+      cell.description = description;
     }
   }
 
@@ -338,6 +417,10 @@ export class WebTemplateToOptConverter {
         );
         continue;
       }
+
+      // Web Template min/max of ism_transition and its children are the
+      // attribute existence. Occurrences alone come back as min 0.
+      this.pinAttributeExistence(attr, node, current.rm_type_name ?? "");
 
       if (isLeaf) {
         // Both leaf styles produce ELEMENT { value: <DV constraint> },
@@ -575,6 +658,21 @@ export class WebTemplateToOptConverter {
       this.scopedTerms[scope][lang][code] ??= {};
       this.scopedTerms[scope][lang][code].text = text;
     }
+  }
+
+  /**
+   * `ism_transition` on an ACTION, and `current_state` / `transition` /
+   * `careflow_step` on that ISM_TRANSITION, are read back from attribute
+   * existence. Write the Web Template min/max there (1..1 for Test_all_types).
+   */
+  private pinAttributeExistence(
+    attr: openehr_am.C_ATTRIBUTE,
+    node: WebTemplateNode,
+    parentRmType: string,
+  ): void {
+    const name = attr.rm_attribute_name;
+    if (name !== "ism_transition" && parentRmType !== "ISM_TRANSITION") return;
+    attr.existence = multiplicity(node.min ?? 0, node.max ?? 1);
   }
 
   private ensureAttribute(
