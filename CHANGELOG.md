@@ -8,6 +8,8 @@ Add an entry under **Unreleased** in every PR that changes user-visible behaviou
 
 ## [Unreleased]
 
+- `webTemplateToOpt` keeps node ids that are slugged from archetype terms. A nested at-code is stored on the archetype in its path (`nested.en.v1` ordinal no longer comes back as `count`). A renamed sibling does not replace the shared at-code, so RIPPLE `request` / `request_3` and `method` / `method_1` stay put, and a node whose only name is a fallback (`cluster`, `element`) keeps that text. ACTION `ism_transition` and `current_state` keep existence 1..1 ([#271](https://github.com/ErikSundvall/ehrtslib/issues/271)).
+
 ## [0.11.0] - 2026-11-02
 
 - An ELEMENT with no value constraint lists the 16 `<type>_value` children EHRbase and FerroEHR both list (no `state_value`, no `scale_value`). `interval_of_<t>_value` is still read though it is not listed. `webTemplateToOpt` turns that list back into an ELEMENT with no value constraint ([#267](https://github.com/ErikSundvall/ehrtslib/issues/267)).
