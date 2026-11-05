@@ -4,19 +4,28 @@
  * Network-free: the adapter gets an injected fetch.
  */
 
-import { assert, assertEquals, assertMatch, assertRejects } from "@std/assert";
+import {
+  assert,
+  assertEquals,
+  assertMatch,
+  assertRejects,
+  assertThrows,
+} from "@std/assert";
 import {
   bindTemplate,
   type BoundTemplate,
   BUILDER_NAME,
   builderProvenance,
+  CbOperationError,
   type CommitConfig,
+  CommitConflictError,
   CommitError,
   ContributionBuild,
   downConvertToAdl14,
   DraftValidator,
   ItsRestContributionAdapter,
   ItsRestError,
+  nextVersionUid,
   OPERATION_LOG_FORMAT,
   prepareContribution,
   ROOT_TARGET,
@@ -454,11 +463,19 @@ Deno.test("REST adapter posts to /ehr/{ehr_id}/contribution and reports server-a
   assertEquals(r.versionUids, ["server-uuid::cdr.example::1"]);
   assertEquals(r.serverAssignedUids, true);
   assert(r.warnings.some((w) => /provisional uuid/.test(w)));
-  // Inner uids keep the provisional prefix. The log records the mapping (#176).
+  // Inner uids keep the provisional prefix. The log records both sides (#176).
   const provisional = build.getDraft(draft).provisionalObjectUuid;
   assertMatch(
     sent.versions[0].data.content[0].uid.value,
     new RegExp(`^${provisional}::`),
+  );
+  assertEquals(
+    sent.versions[0].data.content[0].uid.value.includes("server-uuid"),
+    false,
+  );
+  assertEquals(
+    build.getDraft(draft).committed?.provisionalObjectUuid,
+    provisional,
   );
   assertEquals(
     build.getDraft(draft).committed?.storedObjectUuid,
@@ -473,10 +490,183 @@ Deno.test("REST adapter posts to /ehr/{ehr_id}/contribution and reports server-a
   );
   assertEquals(
     recorded && recorded.type === "record-commit"
+      ? recorded.provisionalObjectUuid
+      : "",
+    provisional,
+  );
+  assertEquals(
+    recorded && recorded.type === "record-commit"
       ? recorded.storedObjectUuid
       : "",
     "server-uuid",
   );
+  const replayed = ContributionBuild.fromLog(build.exportLog(), {
+    author: { id: "user-1" },
+  });
+  assertEquals(
+    replayed.getDraft(draft).committed,
+    build.getDraft(draft).committed,
+  );
+});
+
+Deno.test("REST adapter records no uuid mapping when the server keeps the sent uuid", async () => {
+  const { t, v, build, draft } = await setup();
+  const provisional = build.getDraft(draft).provisionalObjectUuid;
+  const { fn } = fakeFetch((url, init) => {
+    if (url.endsWith("/ehr/ehr-1") && !init.method) {
+      return Response.json({ system_id: { value: "cdr.example" } });
+    }
+    const sent = JSON.parse(init.body as string);
+    return Response.json({
+      uid: { value: "contrib-kept" },
+      versions: [{ id: { value: sent.versions[0].data.uid.value } }],
+    }, { status: 201 });
+  });
+  const adapter = new ItsRestContributionAdapter({
+    baseUrl: "https://cdr.example/v1",
+    fetch: fn,
+  });
+  const r = await adapter.commit(build, v, CONFIG, "ehr-1", {
+    drafts: [{ draftId: draft, template: t }],
+    committer: COMMITTER,
+    mode: "incomplete",
+  });
+  assertEquals(r.serverAssignedUids, false);
+  assertEquals(r.warnings.some((w) => /provisional uuid/.test(w)), false);
+  assertEquals(r.versionUids, [`${provisional}::cdr.example::1`]);
+  assertEquals(
+    build.getDraft(draft).committed?.provisionalObjectUuid,
+    undefined,
+  );
+  assertEquals(build.getDraft(draft).committed?.storedObjectUuid, undefined);
+  const recorded = build.exportLog().operations.find((op) =>
+    op.type === "record-commit"
+  );
+  assertEquals(
+    recorded && recorded.type === "record-commit"
+      ? recorded.provisionalObjectUuid
+      : "missing",
+    undefined,
+  );
+  assertEquals(
+    recorded && recorded.type === "record-commit"
+      ? recorded.storedObjectUuid
+      : "missing",
+    undefined,
+  );
+});
+
+Deno.test("continueCommitted uses the stored version uid as the next base (#177, #176)", async () => {
+  const { t, v, build, draft } = await setup();
+  const provisional = build.getDraft(draft).provisionalObjectUuid;
+  const storedUid = "server-uuid::cdr.example::1";
+  let posts = 0;
+  let followUp = "";
+  const { fn } = fakeFetch((_url, init) => {
+    if (init.method === "POST") {
+      posts += 1;
+      if (posts > 1) return new Response("stale", { status: 412 });
+      return Response.json({
+        uid: { value: "contrib-1" },
+        versions: [{ id: { value: storedUid } }],
+      }, { status: 201 });
+    }
+    const latest = build.toCanonicalJson(followUp) as any;
+    latest.uid = {
+      _type: "OBJECT_VERSION_ID",
+      value: nextVersionUid(storedUid, "cdr.example"),
+    };
+    latest.content[0].name.value = "Theirs";
+    return Response.json(latest);
+  });
+  const adapter = new ItsRestContributionAdapter({
+    baseUrl: "https://cdr.example/v1",
+    fetch: fn,
+  });
+  const committed = await adapter.commit(build, v, CONFIG, "ehr-1", {
+    drafts: [{ draftId: draft, template: t }],
+    committer: COMMITTER,
+    mode: "incomplete",
+    creatingSystemId: "cdr.example",
+  });
+  assertEquals(committed.serverAssignedUids, true);
+  assertEquals(committed.contributionUid, "contrib-1");
+  assertEquals(build.getDraft(draft).committed?.versionUid, storedUid);
+  assertEquals(
+    build.getDraft(draft).committed?.provisionalObjectUuid,
+    provisional,
+  );
+  assertEquals(
+    build.getDraft(draft).committed?.storedObjectUuid,
+    "server-uuid",
+  );
+  const again = await assertRejects(
+    () =>
+      adapter.commit(build, v, CONFIG, "ehr-1", {
+        drafts: [{ draftId: draft, template: t }],
+        committer: COMMITTER,
+        creatingSystemId: "cdr.example",
+        mode: "incomplete",
+      }),
+    CommitError,
+  );
+  assertEquals(again.code, "already-committed");
+  const uncommitted = build.newComposition(t, {
+    language: "en",
+    territory: "SE",
+  });
+  assertThrows(
+    () => build.continueCommitted(t, uncommitted),
+    CbOperationError,
+    "not committed",
+  );
+
+  followUp = build.continueCommitted(t, draft);
+  const info = build.getDraft(followUp);
+  assertEquals(info.kind, "modify");
+  assertEquals(info.baseVersionUid, storedUid);
+  assertEquals(info.provisionalObjectUuid, "server-uuid");
+  const nodeUid = (build.toCanonicalJson(followUp) as any).content[0].uid
+    .value as string;
+  assertMatch(nodeUid, new RegExp(`^${provisional}::`));
+  build.setValue(followUp, nodeUid, "name/value", "Ours");
+
+  const modified = await prepareContribution(build, v, CONFIG, {
+    drafts: [{ draftId: followUp, template: t }],
+    committer: COMMITTER,
+    creatingSystemId: "cdr.example",
+    mode: "incomplete",
+  });
+  const ver = (modified.body as any).versions[0];
+  assertEquals(ver.preceding_version_uid.value, storedUid);
+  assertEquals(ver.commit_audit.change_type.defining_code.code_string, "251");
+  assertMatch(ver.data.content[0].uid.value, new RegExp(`^${provisional}::`));
+
+  const amended = await prepareContribution(build, v, CONFIG, {
+    drafts: [{ draftId: followUp, template: t, changeType: "amendment" }],
+    committer: COMMITTER,
+    creatingSystemId: "cdr.example",
+    mode: "incomplete",
+  });
+  assertEquals(
+    (amended.body as any).versions[0].commit_audit.change_type.defining_code
+      .code_string,
+    "250",
+  );
+
+  const conflict = await assertRejects(
+    () =>
+      adapter.commit(build, v, CONFIG, "ehr-1", {
+        drafts: [{ draftId: followUp, template: t }],
+        committer: COMMITTER,
+        creatingSystemId: "cdr.example",
+        mode: "incomplete",
+      }),
+    CommitConflictError,
+  );
+  assertEquals(conflict.cause.status, 412);
+  assertEquals(conflict.reports[0].baseVersionUid, storedUid);
+  assertEquals(conflict.reports[0].conflicts.length > 0, true);
 });
 
 Deno.test("REST adapter surfaces server errors", async () => {

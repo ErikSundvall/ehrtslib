@@ -142,8 +142,33 @@ for (const target of targets()) {
       c.content[0].data.events[0].data.items[0].value.magnitude,
       120,
     );
-    // Inner node uids survive the round trip.
+    // Inner node uids survive the round trip, still prefixed by the
+    // provisional uuid. A server that replaced the object uuid is recorded
+    // on record-commit; the stored composition is left as the server kept it.
+    const provisional = build.getDraft(draft).provisionalObjectUuid;
     assertMatch(c.content[0].uid.value, /::a\.\d+$/);
+    assertMatch(c.content[0].uid.value, new RegExp(`^${provisional}::`));
+    const committed = build.getDraft(draft).committed;
+    const recorded = build.exportLog().operations.find((op) =>
+      op.type === "record-commit"
+    );
+    if (recorded?.type !== "record-commit") {
+      throw new Error("record-commit missing");
+    }
+    if (result.serverAssignedUids) {
+      const stored = result.versionUids[0].split("::")[0];
+      assert(stored !== provisional);
+      assertEquals(committed?.provisionalObjectUuid, provisional);
+      assertEquals(committed?.storedObjectUuid, stored);
+      assertEquals(recorded.provisionalObjectUuid, provisional);
+      assertEquals(recorded.storedObjectUuid, stored);
+      assert(result.warnings.some((w) => /provisional uuid/.test(w)));
+    } else {
+      assertEquals(c.uid.value.split("::")[0], provisional);
+      assertEquals(committed?.provisionalObjectUuid, undefined);
+      assertEquals(committed?.storedObjectUuid, undefined);
+      assertEquals(recorded.storedObjectUuid, undefined);
+    }
 
     if (result.contributionUid) {
       const contribution = await adapter.getContribution(

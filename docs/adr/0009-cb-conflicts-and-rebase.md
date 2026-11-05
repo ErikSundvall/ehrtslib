@@ -88,8 +88,15 @@ A committed draft is not continued in place; further edits are a new
   ignored when comparing.
 - **Commit record.** On success the adapter appends a `record-commit`
   operation (version uid, contribution uid, change type, lifecycle state,
-  log hash). A committed draft accepts no further operations, and a second
-  commit of it fails with `already-committed`. Further edits start a new
-  `update-version` from the committed version.
+  log hash). When the server replaced the client-sent versioned-object
+  uuid, the same operation stores `provisionalObjectUuid` and
+  `storedObjectUuid` (#176). A committed draft accepts no further
+  operations, and a second commit of it fails with `already-committed`.
+  In a merged multi-caller log, operations after `record-commit` on that
+  draft are skipped as `already-committed`. `continueCommitted` starts a
+  new modify draft whose base is the stored version uid, so the next
+  commit sends `preceding_version_uid` and change type modification
+  (251), or amendment (250) when the caller asks. A failed commit of
+  that draft, including status 412, uses the conflict flow above.
 - Integration tests run a concurrent update against real CDRs and check the
   conflict data.

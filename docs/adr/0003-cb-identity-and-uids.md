@@ -43,11 +43,15 @@ store and return inner uids unchanged, and AQL can filter on them.
   ITS-REST does not promise to keep a client-supplied one. Inner uids use a
   provisional uuid recorded in `create-draft`; operations store only short
   keys, so the commit step (#166) can swap the root without changing the log.
-- When the server assigns a different object uuid (#176), `record-commit`
-  stores `storedObjectUuid`. Inner uids in the stored composition keep the
-  provisional prefix. The builder does not rewrite them: the server has
-  already kept the uids it was sent, and there is no REST call that reserves
-  the object uuid first. The log is the provisional → stored mapping.
+- When a server replaces the client-sent versioned-object uuid on create
+  (#176, decided 2026-11-05), `ItsRestContributionAdapter` keeps the
+  `serverAssignedUids` warning. `record-commit` stores
+  `provisionalObjectUuid` and `storedObjectUuid`: the provisional → stored
+  mapping. Inner uids in the stored composition keep the provisional prefix.
+  The builder leaves those uids as the server stored them. It does not
+  reserve a uuid before commit, and it does not wait for a REST ITS rule
+  that a client-sent `data.uid` is kept. Rewriting the prefix at commit
+  stays with #171.
 
 ## Consequences
 
@@ -67,3 +71,11 @@ store and return inner uids unchanged, and AQL can filter on them.
   to the versioned object.
 - **Ids only in builder working state.** Rejected: ids would be lost on
   commit, so a later `update-version` could not match nodes.
+- **REST ITS rule that a client-sent `data.uid` is kept on create** (#176).
+  Servers already differ, so the builder records the replacement in the log.
+- **Reserve the object uuid before commit** (#176). The REST ITS has no
+  call that reserves it. Commit sends the provisional uuid and records a
+  replacement when the server assigns another.
+- **Rewrite inner uid prefixes to the stored uuid at commit.** Left with
+  #171. This decision records the mapping and leaves the stored uids as
+  the server kept them.
