@@ -21,15 +21,41 @@ console.log(`📂 Source: ${srcDir}`);
 console.log(`📂 Public: ${publicDir}`);
 console.log(`📂 Output: ${outDir}`);
 
-/** Import .json from npm packages (e.g. ucum-lhc data files) as ESM default exports. */
+/** Let esbuild handle both ESM imports and CommonJS requires of npm JSON data. */
 const jsonAsModulePlugin = {
     name: "json-as-module",
     setup(build: esbuild.PluginBuild) {
         build.onLoad({ filter: /\.json$/ }, async (args) => ({
-            contents: `export default ${await Deno.readTextFile(args.path)}`,
-            loader: "js",
+            contents: await Deno.readTextFile(args.path),
+            loader: "json",
         }));
     },
+};
+
+// The pinned Automerge package's self-contained browser entry embeds its WASM.
+// Deno resolves the default export to the Node entry; do not ship node:fs or
+// rely on a bundler-specific .wasm import / a CDN at runtime.
+const automergeBrowserPlugin: esbuild.Plugin = {
+  name: "automerge-browser",
+  setup(build) {
+    const namespace = "automerge-browser";
+    build.onResolve({ filter: /^@automerge\/automerge$/ }, () => ({
+      path: join(
+        dirname(fromFileUrl(import.meta.resolve("@automerge/automerge"))),
+        "fullfat_base64.js",
+      ),
+      namespace,
+    }));
+    build.onResolve({ filter: /^\./, namespace }, (args) => ({
+      path: join(args.resolveDir, args.path),
+      namespace,
+    }));
+    build.onLoad({ filter: /\.js$/, namespace }, async (args) => ({
+      contents: await Deno.readTextFile(args.path),
+      loader: "js",
+      resolveDir: dirname(args.path),
+    }));
+  },
 };
 
 const appVersion = await readAppVersion(rootDir);
@@ -46,14 +72,18 @@ try {
     // Build TypeScript bundle
     await esbuild.build({
         plugins: [
+            automergeBrowserPlugin,
             jsonAsModulePlugin,
             ...denoPlugins({
                 configPath: configPath,
             }),
         ],
-        entryPoints: [toFileUrl(join(srcDir, "main.ts")).href],
+        entryPoints: {
+            bundle: toFileUrl(join(srcDir, "main.ts")).href,
+            "contribution-builder": toFileUrl(join(srcDir, "contribution-builder.ts")).href,
+        },
         bundle: true,
-        outfile: join(outDir, "bundle.js"),
+        outdir: outDir,
         format: "esm",
         target: "es2022",
         platform: "browser",
@@ -65,7 +95,7 @@ try {
         },
     });
 
-    console.log("✅ Build complete: bundle.js");
+    console.log("✅ Build complete: converter + Contribution Builder");
 
     // Copy static assets
     console.log("📋 Copying static assets...");
@@ -77,6 +107,9 @@ try {
         { overwrite: true },
     );
 
+    for (const name of ["contribution-builder.html", "contribution-builder.css", "contribution-builder"]) {
+        await copy(join(publicDir, name), join(outDir, name), { overwrite: true });
+    }
     console.log("✅ Assets copied to docs/demo/");
 
 } catch (error) {

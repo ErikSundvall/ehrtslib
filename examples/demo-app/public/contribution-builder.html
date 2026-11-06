@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contribution Builder — ehrtslib demo</title>
+    <link rel="stylesheet" href="contribution-builder.css">
+  </head>
+  <body>
+    <header>
+      <div>
+        <p class="eyebrow">ehrtslib · collaborative editing lab</p>
+        <h1>Contribution Builder</h1>
+      </div>
+      <nav
+        aria-label="Demo navigation"><a href="index.html">Format converter</a> · <a href="https://github.com/ErikSundvall/ehrtslib/issues/281">Issue #281</a></nav>
+    </header>
+    <main>
+      <section class="intro">
+        <p>One build, independent Automerge clones. Edit both panes before their delayed updates arrive. <strong>Synthetic data only; nothing is saved after reload.</strong></p>
+        <p>Hand-coded fields bound to <a href="contribution-builder/simple-diagnose-and-vitals.opt">the real OPT</a> and <a href="contribution-builder/simple-diagnose-and-vitals.wt.json">Web Template</a>. The long field is the template’s diagnosis text, not an added clinical-notes archetype. Each clone’s committer is also the explicit composer of its output.</p>
+        <div
+          class="toolbar"><button id="add-clone" disabled>Add clone</button><button id="sync-now" disabled>Sync all now (bypass delays)</button><span id="build-info"></span></div>
+        <p id="status" role="status">Loading template and Automerge…</p>
+      </section>
+      <details class="settings">
+        <summary>Commit destination — new tab by default; optional test CDR</summary>
+        <p>Every commit opens a unique result tab. Preview does not POST, record a successful commit, or lock the draft. A real CDR send requires explicit opt-in, successful full validation, and no pending sync. CDR authentication must be supplied by your test reverse proxy; browser CORS rules apply. Upload the OPT and create the EHR there first.</p>
+        <label>Destination <select id="destination"><option value="preview">Preview only — no server</option><option value="cdr">POST to configured test CDR</option></select></label>
+        <div class="cdr-fields">
+          <label>REST ITS base URL <input id="cdr-url" type="url" placeholder="https://test-cdr.example/rest/openehr/v1"></label>
+          <label>EHR ID <input id="ehr-id" autocomplete="off"></label>
+          <label>CDR system ID <input id="system-id" placeholder="Required for CDR output"></label>
+        </div>
+        <p>Settings and clinical data stay in this page’s memory. No cross-device link, presence cursors or generated forms.</p>
+      </details>
+      <section id="clones" class="clones"
+        aria-label="Contribution Builder clones"></section>
+      <details class="log-pane" id="log-pane">
+        <summary>Append-only transaction / operation log <span id="log-count"></span></summary>
+        <p>The shared build’s log as seen by <select id="log-clone" aria-label="Log clone"></select>. Delayed peers can temporarily have different views. Output preparation compacts a copy, never this live log.</p>
+        <pre id="operation-log"></pre>
+      </details>
+    </main>
+    <template id="clone-template">
+      <article class="clone">
+        <h2></h2>
+        <div class="identity">
+          <label>Username <input class="username" autocomplete="off" required></label>
+          <label>Sync profile <select class="profile"><option value="office">Office LAN</option><option value="ward">Ward Wi-Fi</option><option value="rural">Rural phone</option></select></label>
+        </div>
+        <p class="sync-state" aria-live="polite"></p>
+        <form>
+          <fieldset>
+            <legend>Vital signs</legend>
+            <div class="vitals">
+              <label>Systolic (mmHg)<input data-field="systolic" type="number" min="0" max="999" step="1" required></label>
+              <label>Diastolic (mmHg)<input data-field="diastolic" type="number" min="0" max="999" step="1" required></label>
+              <label>Pulse (/min)<input data-field="pulse" type="number" min="0" max="999" step="1" required></label>
+              <label>SpO₂ (%)<input data-field="spo2" type="number" min="0" max="100" step="0.1" required></label>
+            </div>
+          </fieldset>
+          <label>Problem / diagnosis heading <input data-field="heading" required></label>
+          <p
+            class="hint">Whole-value edits carry the revision seen when you focus the field. A stale edit is rejected, never silently overwritten.</p>
+          <label>Problem / diagnosis narrative <textarea data-field="narrative" rows="9" spellcheck="false" required></textarea></label>
+          <p
+            class="hint">Native Automerge text: type in both clones during a rural-phone delay to see concurrent inserts merge. This is the diagnosis DV_TEXT; the heading is EVALUATION.name.</p>
+          <details>
+            <summary>Revision, validation & skipped operations</summary>
+            <pre class="diagnostics"></pre>
+          </details>
+          <button class="commit" type="submit">Commit → new tab</button>
+          <p class="feedback" role="status"></p>
+        </form>
+      </article>
+    </template>
+    <script type="module" src="contribution-builder.js"></script>
+  </body>
+</html>

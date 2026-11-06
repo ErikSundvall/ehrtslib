@@ -9,7 +9,8 @@
     "clean": "rm -rf dist/*"
   },
   "devDependencies": {
-    "esbuild": "^0.20.0"
+    "esbuild": "^0.20.0",
+    "happy-dom": "20.14.6"
   },
   "dependencies": {
     "fast-xml-parser": "^5.11.2",

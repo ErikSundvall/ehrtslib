@@ -18,7 +18,7 @@ console.log("🌐 Open http://127.0.0.1:8000");
 
 // Start the build process in watch mode
 const buildCommand = new Deno.Command("deno", {
-    args: ["run", "-A", "--watch=src/", "scripts/build.ts"],
+    args: ["run", "-A", "--watch=src/,public/", "scripts/build.ts"],
     cwd: rootDir,
     stdout: "inherit",
     stderr: "inherit",
