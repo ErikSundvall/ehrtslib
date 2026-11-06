@@ -136,9 +136,9 @@ present, a field changed since that `rev` is refused with
 After each successful operation, a tracker from `trackValidation` can mark
 changed nodes when a present value breaks a constraint. The edit is kept.
 `validationState(draftId)` reports `unfinished` and `invalid`, whether the draft
-can commit as complete or incomplete, and per-CDR advice. The built-in profiles
-record that EHRbase 2.36 rejects an incomplete version that still misses
-mandatory template content, and FerroEHR 5.4.1 accepts it. This status is
+can commit as complete or incomplete, and per-CDR advice. Some CDRs reject an
+incomplete version that is missing mandatory template content; others accept it.
+Which servers do which stays in the built-in profiles in code. This status is
 derived and is not written to the log
 ([ADR 0008](adr/0008-cb-validation-and-lifecycle.md)).
 
