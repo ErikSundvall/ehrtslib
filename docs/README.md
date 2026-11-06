@@ -12,6 +12,7 @@
 | Pinned release: source zip, CDN import, runtime bundles | [library-package.md](library-package.md) |
 | Brief property styles (constructors + terse codes) | [user/brief-property-styles.md](user/brief-property-styles.md) |
 | Dual getters (`name` vs `$name`) | [user/dual-accessors.md](user/dual-accessors.md) |
+| Contribution Builder split-pane demo | [contribution-builder-demo.md](contribution-builder-demo.md) |
 | FLAT / STRUCTURED / Web Template | [SIMPLIFIED_FORMATS.md](SIMPLIFIED_FORMATS.md) |
 | Load archetype/template file sets | [CLINICAL_MODEL_FILESETS.md](CLINICAL_MODEL_FILESETS.md) |
 | ADL 1.4 / 2 + OPT/OET | [ADL_SUPPORT.md](ADL_SUPPORT.md) |

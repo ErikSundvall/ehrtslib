@@ -526,7 +526,7 @@
                     <items id="text">Body site</items>
                     <items id="description">Identification of a simple body site for the location of the problem or diagnosis.</items>
                     <items id="comment">Coding of the name of the anatomical location with a terminology is preferred, where possible.
-Use this data element to record precoordinated anatomical locations. If the requirements for recording the anatomical location are determined at run-time by the application or require more complex modelling such as relative locations then use the CLUSTER.anatomical_location or CLUSTER.relative_location within the 'Structured anatomical location' SLOT in this archetype. Occurrences for this data element are unbounded to allow for clinical scenarios such as describing a rash in multiple locations but where all of the other attributes are identical. If the anatomical location is included in the Problem/diagnosis name via precoordinated codes, this data element becomes redundant. 
+Use this data element to record precoordinated anatomical locations. If the requirements for recording the anatomical location are determined at run-time by the application or require more complex modelling such as relative locations then use the CLUSTER.anatomical_location or CLUSTER.relative_location within the 'Structured anatomical location' SLOT in this archetype. Occurrences for this data element are unbounded to allow for clinical scenarios such as describing a rash in multiple locations but where all of the other attributes are identical. If the anatomical location is included in the Problem/diagnosis name via precoordinated codes, this data element becomes redundant.
 
 </items>
                 </term_definitions>
@@ -4197,7 +4197,7 @@ Conducting a full respiratory examination, then some of these findings might be 
 </items>
                 <items id="comment">Använd status- eller kontextbestämningar med omsorg, pga. varierande användning i praktiken samt pga. att driftskompabilitet inte kan garanteras om inte användningen är tydligt definierad i gruppen exempelvis:
 Status: Aktiv och inaktiv, utredd och i remission Utvecklingsstatus: Initial, interimistisk preliminär och slutlig
-Temporal status: Nuvarande och tidigare 
+Temporal status: Nuvarande och tidigare
 Episodicitet status: Första, nytt och pågående
 Inskrivningsstatus: Inskrivning och utskrivning Prioritetsstatus: Primär och sekundär.</items>
             </items>

@@ -62,3 +62,24 @@ Deserializer presets (input):
 | Custom… | the checkboxes | the selects |
 
 FLAT/STRUCTURED options are described in [docs/SIMPLIFIED_FORMATS.md](../../docs/SIMPLIFIED_FORMATS.md#input-and-output-flavours).
+
+## Contribution Builder
+
+The same app also contains a separate [Contribution Builder page](../../docs/contribution-builder-demo.md):
+two or more independent Automerge clones, delayed in-page sync, hand-coded vital
+signs and diagnosis text, operation-log inspection, and server-free commit tabs.
+Run `deno task dev:demo` from the repo root, then open
+<http://127.0.0.1:8000/contribution-builder.html>, or use the converter's navigation.
+
+### Contribution Builder development checks
+
+```sh
+deno test --allow-read --no-check test_data/tests/contribution_builder/ examples/demo-app/src/contribution-demo.test.ts
+deno test --allow-read --no-check examples/demo-app/src/converter.template.test.ts
+deno task build:demo
+deno run -A --no-check --node-modules-dir=auto examples/demo-app/scripts/smoke-contribution-builder.ts
+```
+
+The smoke script executes the built bundle against a synthetic DOM and real
+MessagePorts, with no external network/CDR calls; it is not a visual browser
+test. Its test-only DOM dependency is not included in either app bundle.
