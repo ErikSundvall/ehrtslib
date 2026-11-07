@@ -324,11 +324,9 @@ are UI concerns on top of `author` in the log; the adapter does not draw them.
 
 The Contribution Builder page is a separate HTML page in the existing demo
 app, `examples/demo-app`, opened from the format-converter navigation. It is
-not a new app under `examples/`. How to run it, what the hand-coded form does,
+not a new app under `examples/`. How to use it, what the hand-coded form does,
 and where the pinned template comes from are in
-[contribution-builder-demo.md](contribution-builder-demo.md). Locally:
-`deno task dev:demo`, then
-<http://127.0.0.1:8000/contribution-builder.html>. The built page is
+[contribution-builder-demo.md](contribution-builder-demo.md). The live page is
 [contribution-builder.html](https://eriksundvall.github.io/ehrtslib/demo/contribution-builder.html).
 
 The page keeps two or more independent Automerge clones, delayed in-page sync,

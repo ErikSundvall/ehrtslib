@@ -32,7 +32,10 @@ deno task build:demo   # → docs/demo/
 deno task dev:demo     # http://127.0.0.1:8000
 ```
 
-Or: `cd examples/demo-app && deno task dev`.
+Or: `cd examples/demo-app && deno task dev`. The Contribution Builder is at
+`/contribution-builder.html` on the same server. The server builds and watches
+`src/` and `public/`. For a static build, serve `docs/demo/` over HTTP; do not
+open the HTML directly as a file.
 
 ## Layout
 
@@ -65,11 +68,11 @@ FLAT/STRUCTURED options are described in [docs/SIMPLIFIED_FORMATS.md](../../docs
 
 ## Contribution Builder
 
-The same app also contains a separate [Contribution Builder page](../../docs/contribution-builder-demo.md):
+The same app also contains a separate [Contribution Builder page](https://eriksundvall.github.io/ehrtslib/demo/contribution-builder.html)
+([guide](../../docs/contribution-builder-demo.md)):
 two or more independent Automerge clones, delayed in-page sync, hand-coded vital
 signs and diagnosis text, operation-log inspection, and server-free commit tabs.
-Run `deno task dev:demo` from the repo root, then open
-<http://127.0.0.1:8000/contribution-builder.html>, or use the converter's navigation.
+Open it from the converter's navigation, or go directly to the live page.
 
 ### Contribution Builder development checks
 

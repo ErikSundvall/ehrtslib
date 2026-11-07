@@ -2,21 +2,8 @@
 
 [Open the Contribution Builder page](https://eriksundvall.github.io/ehrtslib/demo/contribution-builder.html)
 from the format converter's **Contribution Builder** navigation link. Both pages
-belong to the existing `examples/demo-app` package and `deno task build:demo`.
-Library verbs, the canonical model, and worked sketches are in the
-[user overview](contribution-builder.md).
-
-## Run locally
-
-From the repository root:
-
-```sh
-deno task dev:demo
-```
-
-Open <http://127.0.0.1:8000/contribution-builder.html>. The server builds and
-watches `src/` and `public/`. For a static build use `deno task build:demo` and
-serve `docs/demo/` over HTTP; do not open the HTML directly as a file.
+belong to the existing demo app. Library verbs, the canonical model, and worked
+sketches are in the [user overview](contribution-builder.md).
 
 ## Try it
 
