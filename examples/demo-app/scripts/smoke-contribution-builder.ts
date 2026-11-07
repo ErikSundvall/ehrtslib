@@ -1,10 +1,14 @@
-// Synthetic DOM integration smoke, not browser/desktop automation.
-import { Window } from "happy-dom";
+// Synthetic DOM smoke for the built browser bundle. Deno has no document, so
+// this script uses happy-dom (MIT) as a headless Window. It is test-only and
+// is not part of either app bundle. Pinned like TAAAT's Playwright smoke.
+import { Window } from "npm:happy-dom@21.0.4";
 import assert from "node:assert/strict";
 const root = new URL("../../../", import.meta.url);
 const w = new Window({
   url: "http://demo.test/contribution-builder.html",
-  settings: { disableJavaScriptFileLoading: true, disableCSSFileLoading: true },
+  // v21 disables CSS/iframe network loads by default (SSRF). Keep script-src
+  // loading off too: the bundle is imported via Deno, not happy-dom.
+  settings: { disableJavaScriptFileLoading: true },
 });
 w.document.write(
   await Deno.readTextFile(

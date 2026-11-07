@@ -85,4 +85,4 @@ deno run -A --no-check --node-modules-dir=auto examples/demo-app/scripts/smoke-c
 
 The smoke script executes the built bundle against a synthetic DOM and real
 MessagePorts, with no external network/CDR calls; it is not a visual browser
-test. Its test-only DOM dependency is not included in either app bundle.
+test. Its test-only `npm:happy-dom` import is not included in either app bundle.
