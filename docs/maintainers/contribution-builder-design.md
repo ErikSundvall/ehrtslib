@@ -1,6 +1,11 @@
 # Contribution Builder design
 
-Status: **draft for review.** Design only; nothing here is implemented yet.
+Status: **draft for review.** The COMPOSITION core in `contribution_builder/`
+implements the single-caller build, operation log, validation, and REST commit
+described below. The optional Automerge add-on syncs that same log. Other
+versioned types, GraphQL, and the simplified-formats and htmx add-ons are
+still design. User overview:
+[../contribution-builder.md](../contribution-builder.md).
 Delivery order is in the [roadmap](roadmap.md). Decisions and their reasons
 are recorded as ADRs [0002](../adr/0002-cb-core-model-and-scope.md) to
 [0010](../adr/0010-cb-commit-envelope-and-provenance.md), plus the optional GraphQL

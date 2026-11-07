@@ -3,6 +3,8 @@
 [Open the Contribution Builder page](https://eriksundvall.github.io/ehrtslib/demo/contribution-builder.html)
 from the format converter's **Contribution Builder** navigation link. Both pages
 belong to the existing `examples/demo-app` package and `deno task build:demo`.
+Library verbs, the canonical model, and worked sketches are in the
+[user overview](contribution-builder.md).
 
 ## Run locally
 

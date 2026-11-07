@@ -10,6 +10,7 @@ Add an entry under **Unreleased** in every PR that changes user-visible behaviou
 
 - Add the Contribution Builder page to the existing demo app: N Automerge clones, delayed in-page sync, hand-coded vitals/diagnosis, operation log and commit-output tabs (#281).
 - Preserve multi-caller revisions, accepted values and skipped-write policy when compacting Contribution Builder commit logs (#281).
+- **Docs.** User overview of the Contribution Builder: [docs/contribution-builder.md](docs/contribution-builder.md), linked from the documentation index.
 
 ## [0.12.0] - 2026-11-05
 
