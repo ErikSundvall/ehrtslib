@@ -17,7 +17,7 @@ import { deserializeFromFlat } from "../../../serialization/simplified/flat_dese
 import { parseWebTemplate } from "../../../serialization/simplified/web_template_parser.ts";
 
 export const USERNAMES = [
-  "nurse.anna",
+  "nurse.andersson",
   "dr.berg",
   "midwife.chen",
   "gp.dalton",
@@ -25,7 +25,7 @@ export const USERNAMES = [
   "student.falk",
   "consultant.green",
   "paramedic.holm",
-  "dietitian.iris",
+  "dietitian.ivarsson",
   "oncology.johansson",
   "cardio.khan",
   "ward.clerk.lind",
