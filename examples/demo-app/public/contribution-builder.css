@@ -1,0 +1,187 @@
+* {
+  box-sizing: border-box;
+}
+:root {
+  font: 15px/1.5 system-ui, sans-serif;
+  color: #183448;
+  background: #f1f5f8;
+}
+body {
+  margin: 0;
+}
+header {
+  background: #12354b;
+  color: white;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.3rem 2rem;
+}
+h1,
+h2,
+p {
+  margin: 0 0 .7rem;
+}
+h1 {
+  font-size: 1.8rem;
+}
+h2 {
+  font-size: 1.2rem;
+}
+header a {
+  color: #c8ecff;
+}
+a {
+  color: #12618f;
+}
+.eyebrow {
+  color: #b5d6e6;
+  text-transform: uppercase;
+  font-size: .75rem;
+  letter-spacing: .12em;
+}
+main {
+  padding: 1.3rem 2rem 3rem;
+  max-width: 1800px;
+  margin: auto;
+}
+.intro,
+.settings,
+.log-pane,
+.clone {
+  border: 1px solid #cbd8e0;
+  background: white;
+  border-radius: .6rem;
+  padding: 1.2rem;
+  margin-bottom: 1rem;
+}
+.toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .7rem;
+}
+.clones {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr));
+  gap: 1rem;
+}
+.clone {
+  border-top: 4px solid #218a88;
+  min-width: 0;
+  margin-bottom: 0;
+}
+label {
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+  font-weight: 600;
+  margin-bottom: .7rem;
+}
+input,
+select,
+textarea,
+button {
+  font: inherit;
+}
+input,
+select,
+textarea {
+  border: 1px solid #90a9ba;
+  border-radius: .3rem;
+  padding: .5rem;
+  background: white;
+  color: #183448;
+  min-width: 0;
+  width: 100%;
+}
+textarea {
+  resize: vertical;
+  min-height: 10rem;
+}
+button {
+  background: #12618f;
+  color: white;
+  border: 0;
+  border-radius: .35rem;
+  padding: .55rem .9rem;
+  cursor: pointer;
+}
+button:hover {
+  background: #0b486c;
+}
+button:disabled {
+  opacity: .5;
+  cursor: default;
+}
+:focus-visible {
+  outline: 3px solid #e69a2d;
+  outline-offset: 2px;
+}
+.identity,
+.vitals,
+.cdr-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .7rem;
+}
+.cdr-fields {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+fieldset {
+  border: 1px solid #d4dfe6;
+  border-radius: .4rem;
+  margin: .8rem 0;
+  padding: .7rem;
+}
+legend {
+  font-weight: 700;
+}
+.hint,
+.sync-state,
+#build-info {
+  font-size: .82rem;
+  color: #4d687b;
+}
+.feedback {
+  margin-top: .6rem;
+}
+.error {
+  color: #a01e28;
+}
+pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: .78rem;
+  max-height: 18rem;
+  overflow: auto;
+  background: #f4f7f9;
+  padding: .7rem;
+}
+summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+details[open] > summary {
+  margin-bottom: .7rem;
+}
+.log-pane {
+  margin-top: 1rem;
+}
+#log-clone {
+  width: auto;
+}
+#status {
+  margin: .6rem 0 0;
+}
+@media (max-width: 600px) {
+  main,
+  header {
+    padding: 1rem;
+  }
+  .identity {
+    grid-template-columns: 1fr;
+  }
+}

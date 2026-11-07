@@ -32,7 +32,10 @@ deno task build:demo   # → docs/demo/
 deno task dev:demo     # http://127.0.0.1:8000
 ```
 
-Or: `cd examples/demo-app && deno task dev`.
+Or: `cd examples/demo-app && deno task dev`. The Contribution Builder is at
+`/contribution-builder.html` on the same server. The server builds and watches
+`src/` and `public/`. For a static build, serve `docs/demo/` over HTTP; do not
+open the HTML directly as a file.
 
 ## Layout
 
@@ -62,3 +65,24 @@ Deserializer presets (input):
 | Custom… | the checkboxes | the selects |
 
 FLAT/STRUCTURED options are described in [docs/SIMPLIFIED_FORMATS.md](../../docs/SIMPLIFIED_FORMATS.md#input-and-output-flavours).
+
+## Contribution Builder
+
+The same app also contains a separate [Contribution Builder page](https://eriksundvall.github.io/ehrtslib/demo/contribution-builder.html)
+([guide](../../docs/contribution-builder-demo.md)):
+two or more independent Automerge clones, delayed in-page sync, hand-coded vital
+signs and diagnosis text, operation-log inspection, and server-free commit tabs.
+Open it from the converter's navigation, or go directly to the live page.
+
+### Contribution Builder development checks
+
+```sh
+deno test --allow-read --no-check test_data/tests/contribution_builder/ examples/demo-app/src/contribution-demo.test.ts
+deno test --allow-read --no-check examples/demo-app/src/converter.template.test.ts
+deno task build:demo
+deno run -A --no-check --node-modules-dir=auto examples/demo-app/scripts/smoke-contribution-builder.ts
+```
+
+The smoke script executes the built bundle against a synthetic DOM and real
+MessagePorts, with no external network/CDR calls; it is not a visual browser
+test. Its test-only `npm:happy-dom` import is not included in either app bundle.

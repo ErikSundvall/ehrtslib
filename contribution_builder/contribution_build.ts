@@ -1310,9 +1310,16 @@ export class ContributionBuild {
       string,
       { index: number; value: RmJson; op: CbOperation }
     >();
+    // Reuse the concurrent apply policy: rejected operations must not break
+    // preparation or become successful edits merely because we compact text.
+    scratch.lenient = this.lenient;
+    scratch.requireRev = this.requireRev;
+    const accepted = new Set<string>();
     ops.forEach((op, index) => {
-      scratch.apply(op);
-      scratch.applied.push(op);
+      const before = scratch.applied.length;
+      scratch.replayAll([op]);
+      if (scratch.applied.length === before) return;
+      accepted.add(operationRef(op));
       const key = textGroupKey(op);
       if (!key) return;
       const field = textFieldOf(op)!;
@@ -1349,6 +1356,19 @@ export class ContributionBuild {
       }
       next.push(op);
     });
+    // Compaction removes revision anchors. Rebase only accepted writes onto
+    // the preceding accepted operation in the compacted log. This also gives
+    // compacted text its required rev on multi-caller adapters. Rejected
+    // non-text writes retain their original rev and remain rejected.
+    let rev = "0";
+    for (let i = 0; i < next.length; i++) {
+      const op = next[i];
+      if (!accepted.has(operationRef(op))) continue;
+      if (op.type === "set-value" || op.type === "edit-text") {
+        next[i] = { ...op, rev };
+      }
+      rev = operationRef(op);
+    }
     if (canonicalizeJson(next) === canonicalizeJson(ops)) return false;
     if (!this.adapter.replaceAll) {
       throw new CbOperationError(

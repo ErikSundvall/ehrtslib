@@ -322,20 +322,30 @@ are UI concerns on top of `author` in the log; the adapter does not draw them.
 
 ## Demo
 
-There is no Contribution Builder page in the demo yet.
-[Issue #281](https://github.com/ErikSundvall/ehrtslib/issues/281) (_Contribution
-Builder page in the existing demo app_) tracks a separate HTML page inside the
-current demo app, `examples/demo-app`, opened by navigation from the
-format-converter page. It is not a new app under `examples/`.
+The Contribution Builder page is a separate HTML page in the existing demo
+app, `examples/demo-app`, opened from the format-converter navigation. It is
+not a new app under `examples/`. How to use it, what the hand-coded form does,
+and where the pinned template comes from are in
+[contribution-builder-demo.md](contribution-builder-demo.md). The live page is
+[contribution-builder.html](https://eriksundvall.github.io/ehrtslib/demo/contribution-builder.html).
+
+The page keeps two or more independent Automerge clones, delayed in-page sync,
+hand-coded vital signs and diagnosis text, an operation log, and commit-output
+tabs. The default commit destination is a local preview tab. POST to a test
+CDR is optional and asks for confirmation before anything is sent. It
+implements
+[#281](https://github.com/ErikSundvall/ehrtslib/issues/281).
 
 The [format-converter demo](https://eriksundvall.github.io/ehrtslib/demo)
 ([README](../examples/demo-app/README.md)) converts RM instances and simplified
-formats. It is related tooling, and it is not the Contribution Builder demo.
+formats. It shares this app's package and build, and it is not the
+Contribution Builder page.
 
 ## Further reading
 
 | Topic                                                     | Where                                                                                                                                                                                                           |
 | --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Split-pane demo                                           | [contribution-builder-demo.md](contribution-builder-demo.md)                                                                                                                                                    |
 | Design (model, scenarios, single caller and multi-caller) | [maintainers/contribution-builder-design.md](maintainers/contribution-builder-design.md)                                                                                                                        |
 | Delivery order                                            | [maintainers/roadmap.md](maintainers/roadmap.md) (Contribution Builder and multi-caller sections)                                                                                                               |
 | Core model, `VERSION<T>`, canonical RM JSON               | [ADR 0002](adr/0002-cb-core-model-and-scope.md)                                                                                                                                                                 |

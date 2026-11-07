@@ -224,3 +224,33 @@ function stripUids(value: unknown) {
   delete rec.uid;
   Object.values(rec).forEach(stripUids);
 }
+
+Deno.test("compaction preserves multi-caller text and skips stale writes (#281)", async () => {
+  const { a, draft, obs } = await started();
+  a.adapter.seedText(draft, obs, "name/value", "base");
+  const b = createMultiCaller(ctx("bob", "b", 50), {
+    bytes: a.adapter.save(),
+    buildId: a.build.buildId,
+  });
+  a.build.editText(
+    draft,
+    obs,
+    "name/value",
+    { at: 0, delete: 0, insert: "A" },
+    { rev: a.build.logRev() },
+  );
+  b.build.editText(
+    draft,
+    obs,
+    "name/value",
+    { at: 4, delete: 0, insert: "B" },
+    { rev: b.build.logRev() },
+  );
+  mergeCaller(a, b.adapter);
+  recordNativeText(a, draft, obs, "name/value");
+  const before = a.build.toCanonicalJson(draft);
+  assert(a.build.concurrentSkips().length > 0);
+  assertEquals(a.build.compactTextEdits(), true);
+  assertEquals(a.build.toCanonicalJson(draft), before);
+  assertEquals(a.build.compactTextEdits(), false);
+});
