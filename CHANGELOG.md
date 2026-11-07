@@ -8,6 +8,8 @@ Add an entry under **Unreleased** in every PR that changes user-visible behaviou
 
 ## [Unreleased]
 
+- **Docs.** User overview of the Contribution Builder: [docs/contribution-builder.md](docs/contribution-builder.md), linked from the documentation index.
+
 ## [0.12.0] - 2026-11-05
 
 - **Contribution Builder.** When a CDR replaces the client-sent versioned-object uuid, `record-commit` stores both the provisional uuid and the stored uuid. The `serverAssignedUids` warning stays. Inner node uids keep the provisional prefix ([#176](https://github.com/ErikSundvall/ehrtslib/issues/176)).
