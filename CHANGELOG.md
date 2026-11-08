@@ -8,6 +8,8 @@ Add an entry under **Unreleased** in every PR that changes user-visible behaviou
 
 ## [Unreleased]
 
+- Add the Contribution Builder page to the existing demo app: N Automerge clones, delayed in-page sync, hand-coded vitals/diagnosis, operation log and commit-output tabs (#281). The format-converter header links to `contribution-builder.html`, and the GitHub Pages start page links to `demo/contribution-builder.html`. Both paths are relative to the page that contains them.
+- Preserve multi-caller revisions, accepted values and skipped-write policy when compacting Contribution Builder commit logs (#281).
 - **Docs.** User overview of the Contribution Builder: [docs/contribution-builder.md](docs/contribution-builder.md), linked from the documentation index.
 
 ## [0.12.0] - 2026-11-05

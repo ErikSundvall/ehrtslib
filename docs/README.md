@@ -10,6 +10,7 @@
 | ---- | --- |
 | Hello world / packages | [getting-started.md](getting-started.md) |
 | Contribution Builder (draft, validate, commit) | [contribution-builder.md](contribution-builder.md) |
+| Contribution Builder split-pane demo | [contribution-builder-demo.md](contribution-builder-demo.md) |
 | Pinned release: source zip, CDN import, runtime bundles | [library-package.md](library-package.md) |
 | Brief property styles (constructors + terse codes) | [user/brief-property-styles.md](user/brief-property-styles.md) |
 | Dual getters (`name` vs `$name`) | [user/dual-accessors.md](user/dual-accessors.md) |
@@ -28,6 +29,7 @@
 The Contribution Builder assembles an openEHR `CONTRIBUTION` in the client or on a server before a CDR commit. It holds drafts, validates them against the bound operational template, and builds a REST ITS `NewContribution` for one caller or several. Verbs, the canonical RM JSON model, and two worked sketches are in [contribution-builder.md](contribution-builder.md).
 
 - Overview, verbs, and examples: [contribution-builder.md](contribution-builder.md)
+- Split-pane demo: [contribution-builder-demo.md](contribution-builder-demo.md)
 - Design / ADRs: [maintainers/contribution-builder-design.md](maintainers/contribution-builder-design.md), [ADR 0002](adr/0002-cb-core-model-and-scope.md) through [0014](adr/0014-cb-htmx-add-on-and-editable-zipehr-html5.md), and [0016](adr/0016-optional-serializer-subpaths-simplified-and-zipehr.md)
 
 ## Serialization formats
