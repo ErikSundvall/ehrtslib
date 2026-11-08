@@ -1,6 +1,5 @@
 export {
   OPENEHR_AOM_URN_PREFIX,
-  OPENEHR_AM_URN_PREFIX,
   archetypeIdFromOpenehrUrn,
   toOpenehrAomArchetypeUrn,
 } from "./openehr_aom_urn.ts";

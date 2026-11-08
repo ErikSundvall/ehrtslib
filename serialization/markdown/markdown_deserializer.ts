@@ -61,7 +61,6 @@ export class MarkdownDeserializer {
     if (!template) return;
     const result = validateDeserializedInstance(instance, {
       validateAgainstTemplate: template,
-      jsonSource: markdown,
     });
     if (result && !result.valid) {
       throw new DeserializationError(

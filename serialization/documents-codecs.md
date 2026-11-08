@@ -36,4 +36,8 @@ Use one clinical instance (for example the demo blood-pressure composition) and 
 - `STRUCTURAL_MARKDOWN_CONFIG` / `LOSSLESS_ASCIIDOC_CONFIG` — round-trip capable
 - `EMBEDDING_*` — smaller, human-readable text for RAG; not reversible
 
-Measure sizes with the demo’s `gpt-tokenizer` `o200k_base` counter (exact for that encoding only).
+Measure sizes with the demo’s `gpt-tokenizer` `o200k_base` counter (exact for that encoding only). The demo passes `{ disallowedSpecial: new Set() }` so strings such as `<|endoftext|>` are BPE tokenized as literal clinical text, not as chat special tokens (contrast `allowedSpecial: "all"`, which counts a lone `<|endoftext|>` as one special token).
+
+Structural Markdown / lossless AsciiDoc emit `- _structure:_ ITEM_LIST` (etc.) when the RM type is not `ITEM_TREE`, so nested item structures round-trip with the correct RM class.
+
+**Limits:** Document codecs round-trip **RM instances** with template-assisted validation; they do not claim full reversibility of archetypes, operational templates, or ADL/OPT authoring artefacts.

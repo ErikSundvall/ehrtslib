@@ -124,8 +124,8 @@ export class AsciidocSerializer {
   }
 
   private writeHeader(comp: any, lines: string[]): void {
-    // AsciiDoc document attributes
-    lines.push('// openEHR Composition');
+    // AsciiDoc document attributes (free-form // lines are not round-trip node ids)
+    lines.push(":openehr-document: composition");
 
     // UID
     if (comp.uid) {
@@ -453,6 +453,9 @@ export class AsciidocSerializer {
     const typeName = this.getTypeName(itemStruct);
 
     if (typeName === 'ITEM_TREE' || typeName === 'ITEM_LIST' || typeName === 'ITEM_TABLE') {
+      if (this.config.style === 'lossless' && typeName !== 'ITEM_TREE') {
+        lines.push(`* _structure:_ ${typeName}`);
+      }
       if (itemStruct.items && Array.isArray(itemStruct.items)) {
         if (this.config.dataValueRendering === 'table' && this.canRenderAsTable(itemStruct.items)) {
           this.renderItemsAsTable(itemStruct.items, lines);

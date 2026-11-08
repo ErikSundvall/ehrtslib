@@ -59,7 +59,6 @@ export class AsciidocDeserializer {
     if (!template) return;
     const result = validateDeserializedInstance(instance, {
       validateAgainstTemplate: template,
-      jsonSource: adoc,
     });
     if (result && !result.valid) {
       throw new DeserializationError(

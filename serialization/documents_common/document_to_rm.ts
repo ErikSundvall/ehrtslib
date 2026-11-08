@@ -132,12 +132,15 @@ export function blocksToRmObject(
     if (top.kind === "event") {
       return ensureArray(top.data, "items");
     }
-    if (top.kind === "entry" && top.entryType === "EVALUATION") {
-      if (!top.obj.data) top.obj.data = itemTree();
-      const data = top.obj.data as Record<string, unknown>;
-      return ensureArray(data, "items");
+    if (top.kind === "entry") {
+      const withItemTree = new Set(["EVALUATION", "ADMIN_ENTRY", "INSTRUCTION"]);
+      if (withItemTree.has(top.entryType)) {
+        if (!top.obj.data) top.obj.data = itemTree();
+        const data = top.obj.data as Record<string, unknown>;
+        return ensureArray(data, "items");
+      }
     }
-  return null;
+    return null;
   };
 
   const attachContent = (child: Record<string, unknown>) => {
@@ -300,6 +303,17 @@ export function blocksToRmObject(
         : [...stack].reverse().find(
           (f): f is Extract<StackFrame, { kind: "entry" }> => f.kind === "entry",
         );
+      if (parsed.field === "structure") {
+        const rmType = parsed.valueText?.trim();
+        if (rmType && /^[A-Z][A-Z0-9_]*$/.test(rmType)) {
+          if (top?.kind === "event") {
+            top.data._type = rmType;
+          } else if (top?.kind === "entry" && top.obj.data) {
+            (top.obj.data as Record<string, unknown>)._type = rmType;
+          }
+        }
+        continue;
+      }
       if (parsed.field === "origin" && entryForMeta?.entryType === "OBSERVATION") {
         const top = entryForMeta;
         if (!top.obj.data) {

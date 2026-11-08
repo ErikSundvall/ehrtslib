@@ -3,7 +3,7 @@
  */
 
 import type { DocumentBlock } from "../documents_common/document_blocks.ts";
-import { stripNodeIdAndType } from "../documents_common/document_blocks.ts";
+import { isArchetypeNodeIdMarker, stripNodeIdAndType } from "../documents_common/document_blocks.ts";
 import { archetypeIdFromOpenehrUrn } from "../documents_common/openehr_aom_urn.ts";
 
 function normalizeNodeId(id: string | undefined): string | undefined {
@@ -44,7 +44,10 @@ export function lexAsciidocLossless(text: string): {
 
     const comment = line.match(COMMENT_NODE_RE);
     if (comment) {
-      pendingNodeId = normalizeNodeId(comment[1].trim());
+      const candidate = comment[1].trim();
+      if (isArchetypeNodeIdMarker(candidate)) {
+        pendingNodeId = normalizeNodeId(candidate);
+      }
       continue;
     }
 

@@ -454,6 +454,9 @@ export class MarkdownSerializer {
     const typeName = this.getTypeName(itemStruct);
 
     if (typeName === 'ITEM_TREE' || typeName === 'ITEM_LIST' || typeName === 'ITEM_TABLE') {
+      if (this.config.style === 'structural' && typeName !== 'ITEM_TREE') {
+        lines.push(`- _structure:_ ${typeName}`);
+      }
       if (itemStruct.items && Array.isArray(itemStruct.items)) {
         // In clinical mode with table rendering, try to render as table
         if (this.config.dataValueRendering === 'table' && this.canRenderAsTable(itemStruct.items)) {

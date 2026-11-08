@@ -9,7 +9,8 @@ Add an entry under **Unreleased** in every PR that changes user-visible behaviou
 ## [Unreleased]
 
 - **Serialization.** Markdown and AsciiDoc are optional codecs (`ehrtslib/serialization-markdown`, `ehrtslib/serialization-asciidoc`) with structural/lossless parsers, `EMBEDDING_*` output-only presets, and AOM archetype URNs (`urn:openehr:aom:`). The default `serialization/mod.ts` barrel no longer re-exports them ([#284](https://github.com/ErikSundvall/ehrtslib/issues/284)).
-- **Demo.** Format converter accepts Markdown and AsciiDoc input; output panels show `gpt-tokenizer` `o200k_base` token counts beside characters and lines (demo-only dependency).
+- **Demo.** Format converter accepts Markdown and AsciiDoc input; output panels show `gpt-tokenizer` `o200k_base` token counts beside characters and lines (demo-only dependency; literal BPE via `disallowedSpecial: new Set()`, not `allowedSpecial: "all"`).
+- **Serialization (Markdown/AsciiDoc).** Broader structural round-trip tests, `ITEM_LIST`/`ITEM_TABLE` `_structure:` markers, AsciiDoc header/comment fixes, no legacy `urn:openehr:am:` parsing ([#284](https://github.com/ErikSundvall/ehrtslib/issues/284)).
 - Add the Contribution Builder page to the existing demo app: N Automerge clones, delayed in-page sync, hand-coded vitals/diagnosis, operation log and commit-output tabs (#281). The format-converter header links to `contribution-builder.html`, and the GitHub Pages start page links to `demo/contribution-builder.html`. Both paths are relative to the page that contains them.
 - Preserve multi-caller revisions, accepted values and skipped-write policy when compacting Contribution Builder commit logs (#281).
 - **Docs.** User overview of the Contribution Builder: [docs/contribution-builder.md](docs/contribution-builder.md), linked from the documentation index.

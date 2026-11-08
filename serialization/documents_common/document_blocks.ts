@@ -73,8 +73,11 @@ export function stripNodeIdAndType(
 
   const inlineAdoc = rest.match(/\s+\/\/\s+([^\s]+)\s*$/);
   if (inlineAdoc) {
-    archetypeNodeId ??= inlineAdoc[1].trim();
-    rest = rest.replace(/\s+\/\/\s+[^\s]+\s*$/, "").trim();
+    const candidate = inlineAdoc[1].trim();
+    if (isArchetypeNodeIdMarker(candidate)) {
+      archetypeNodeId ??= candidate;
+      rest = rest.replace(/\s+\/\/\s+[^\s]+\s*$/, "").trim();
+    }
   }
 
   let rmType: string | undefined;
@@ -84,7 +87,17 @@ export function stripNodeIdAndType(
     rest = rest.replace(/_\[\s*[A-Z][A-Z0-9_]*\s*\]_/g, "").trim();
   }
 
-  rest = rest.replace(/\[\[urn:openehr:(?:aom|am):[^\]]+\|[^\]]*\]\]/g, "").trim();
+  rest = rest.replace(/\[\[urn:openehr:aom:[^\]]+\|[^\]]*\]\]/g, "").trim();
 
   return { text: rest, archetypeNodeId, rmType };
+}
+
+/** AsciiDoc `//` comment lines that carry round-trip archetype node ids (not free-form doc notes). */
+export function isArchetypeNodeIdMarker(id: string): boolean {
+  const s = id.trim();
+  if (!s) return false;
+  if (/^at\d{4}/.test(s)) return true;
+  if (/^openEHR-EHR-/.test(s)) return true;
+  if (s.startsWith("urn:openehr:aom:")) return true;
+  return false;
 }
