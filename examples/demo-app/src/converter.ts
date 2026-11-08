@@ -45,7 +45,9 @@ import {
   CLINICAL_MARKDOWN_CONFIG,
   COMPACT_MARKDOWN_CONFIG,
   DEFAULT_MARKDOWN_SERIALIZATION_CONFIG,
+  EMBEDDING_MARKDOWN_CONFIG,
   type MarkdownSerializationConfig,
+  MarkdownDeserializer,
   MarkdownSerializer,
   STRUCTURAL_MARKDOWN_CONFIG,
   WIKILINK_MARKDOWN_CONFIG,
@@ -53,11 +55,15 @@ import {
 
 import {
   type AsciidocSerializationConfig,
+  AsciidocDeserializer,
   AsciidocSerializer,
   COMPACT_ASCIIDOC_CONFIG,
   DEFAULT_ASCIIDOC_SERIALIZATION_CONFIG,
+  EMBEDDING_ASCIIDOC_CONFIG,
   LOSSLESS_ASCIIDOC_CONFIG,
 } from "../../../serialization/asciidoc/mod.ts";
+
+import { detectDocumentDialect } from "../../../serialization/documents_common/document_blocks.ts";
 
 import {
   type TypeScriptConstructorSerializationConfig,
@@ -157,7 +163,9 @@ export type InputFormat =
   | "yaml"
   | "zipehr"
   | "flat"
-  | "structured";
+  | "structured"
+  | "markdown"
+  | "asciidoc";
 
 /** Shown when FLAT/STRUCTURED (de)serialization needs a schema that is not loaded. */
 export const MISSING_WEB_TEMPLATE_ERROR =
@@ -1081,7 +1089,14 @@ function hasPipeKey(value: unknown, depth: number): boolean {
   );
 }
 
-type ResolvedWireFormat = "xml" | "json" | "yaml" | "flat" | "structured";
+type ResolvedWireFormat =
+  | "xml"
+  | "json"
+  | "yaml"
+  | "flat"
+  | "structured"
+  | "markdown"
+  | "asciidoc";
 
 function zipehrWireFormat(
   variant: string,
@@ -1109,7 +1124,10 @@ export function resolveInputFormat(
   isZipehr: boolean;
   zipehrVariant?: string;
 } {
-  if (requested === "flat" || requested === "structured") {
+  if (
+    requested === "flat" || requested === "structured" || requested === "markdown" ||
+    requested === "asciidoc"
+  ) {
     return { format: requested, isZipehr: false };
   }
 
@@ -1146,6 +1164,13 @@ export function resolveInputFormat(
   const simplified = detectSimplifiedJson(input);
   if (simplified) {
     return { format: simplified, isZipehr: false };
+  }
+
+  if (detectDocumentDialect(input) === "structural_lossless") {
+    if (/^=+\s+/m.test(input)) {
+      return { format: "asciidoc", isZipehr: false };
+    }
+    return { format: "markdown", isZipehr: false };
   }
 
   // Fallback: try JSON then YAML
@@ -1209,6 +1234,14 @@ async function deserializeInput(
     }
     case "xml": {
       const deserializer = new XmlDeserializer();
+      return plain(deserializer.deserialize(input));
+    }
+    case "markdown": {
+      const deserializer = new MarkdownDeserializer();
+      return plain(deserializer.deserialize(input));
+    }
+    case "asciidoc": {
+      const deserializer = new AsciidocDeserializer();
       return plain(deserializer.deserialize(input));
     }
     default:
@@ -1377,6 +1410,8 @@ export function getMarkdownConfigPreset(
       return { ...COMPACT_MARKDOWN_CONFIG };
     case "wikilink":
       return { ...WIKILINK_MARKDOWN_CONFIG };
+    case "embedding":
+      return { ...EMBEDDING_MARKDOWN_CONFIG };
     case "structural":
     default:
       return {
@@ -1392,6 +1427,8 @@ export function getAsciidocConfigPreset(
   switch (preset) {
     case "compact":
       return { ...COMPACT_ASCIIDOC_CONFIG };
+    case "embedding":
+      return { ...EMBEDDING_ASCIIDOC_CONFIG };
     case "lossless":
     default:
       return {

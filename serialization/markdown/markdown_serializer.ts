@@ -29,6 +29,7 @@ import {
   MarkdownSerializationConfig,
   DEFAULT_MARKDOWN_SERIALIZATION_CONFIG,
 } from './markdown_config.ts';
+import { toOpenehrAomArchetypeUrn } from '../documents_common/openehr_aom_urn.ts';
 
 /**
  * Markdown Serializer for openEHR RM objects
@@ -96,7 +97,7 @@ export class MarkdownSerializer {
 
   private serializeComposition(comp: any, lines: string[]): void {
     // YAML Frontmatter
-    if (this.config.includeFrontmatter) {
+    if (this.config.includeFrontmatter && this.config.style !== 'embedding') {
       this.writeFrontmatter(comp, lines);
     }
 
@@ -524,7 +525,7 @@ export class MarkdownSerializer {
 
     const valueStr = this.formatDataValue(element.value);
 
-    if (this.config.style === 'compact' || this.config.dataValueRendering === 'inline') {
+    if (this.config.style === 'compact' || this.config.style === 'embedding' || this.config.dataValueRendering === 'inline') {
       lines.push(`${indent}- ${name}: ${valueStr}${nodeId}`);
     } else {
       lines.push(`${indent}- **${name}:** ${valueStr}${nodeId}`);
@@ -930,18 +931,24 @@ export class MarkdownSerializer {
     // Use openEHR URN wikilinks when configured
     if (this.config.useOpenehrUrnWikilinks && this.isArchetypeId(nodeId)) {
       const name = this.extractName(obj);
-      return ` [[urn:openehr:am:org.openehr::${nodeId}|${name || nodeId}]]`;
+      return ` [[${toOpenehrAomArchetypeUrn(nodeId)}|${name || nodeId}]]`;
     }
 
     // Use HTML comment for structural, inline for others
     if (this.config.style === 'structural') {
       return ` <!-- ${nodeId} -->`;
     }
+  if (this.config.style === 'embedding' || this.config.style === 'compact' || this.config.style === 'clinical') {
+    return '';
+  }
     return '';
   }
 
   private formatTypeAnnotation(typeName: string | undefined): string {
     if (!this.config.includeTypeAnnotations || !typeName) return '';
+    if (this.config.style === 'embedding' || this.config.style === 'compact' || this.config.style === 'clinical') {
+      return '';
+    }
     if (this.config.style === 'structural') {
       return ` _[${typeName}]_`;
     }

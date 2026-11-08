@@ -409,8 +409,8 @@ Deno.test("MarkdownSerializer: wikilink URN mode uses openEHR URN wikilinks for 
 
   assertExists(md);
   // Should contain openEHR URN wikilinks for archetype IDs
-  assertStringIncludes(md, "[[urn:openehr:am:org.openehr::openEHR-EHR-COMPOSITION.encounter.v1|");
-  assertStringIncludes(md, "[[urn:openehr:am:org.openehr::openEHR-EHR-OBSERVATION.blood_pressure.v2|");
+  assertStringIncludes(md, "[[urn:openehr:aom:org.openehr::openEHR-EHR-COMPOSITION.encounter.v1|");
+  assertStringIncludes(md, "[[urn:openehr:aom:org.openehr::openEHR-EHR-OBSERVATION.blood_pressure.v2|");
   // Should NOT include type annotations (hidden for display)
   assertEquals(md.includes("_[OBSERVATION]_"), false);
 

@@ -31,6 +31,7 @@ import {
   AsciidocSerializationConfig,
   DEFAULT_ASCIIDOC_SERIALIZATION_CONFIG,
 } from './asciidoc_config.ts';
+import { toOpenehrAomArchetypeUrn } from '../documents_common/openehr_aom_urn.ts';
 
 /**
  * AsciiDoc Serializer for openEHR RM objects
@@ -98,7 +99,7 @@ export class AsciidocSerializer {
 
   private serializeComposition(comp: any, lines: string[]): void {
     // Document header with attributes
-    if (this.config.includeHeader) {
+    if (this.config.includeHeader && this.config.style !== 'embedding') {
       this.writeHeader(comp, lines);
     }
 
@@ -956,6 +957,7 @@ export class AsciidocSerializer {
 
   private formatTypeAnnotation(typeName: string | undefined): string {
     if (!this.config.includeTypeAnnotations || !typeName) return '';
+    if (this.config.style === 'embedding' || this.config.style === 'compact') return '';
     return `_[${typeName}]_`;
   }
 
@@ -994,9 +996,9 @@ export class AsciidocSerializer {
   /**
    * Convert an archetype ID to an openEHR URN
    * e.g., openEHR-EHR-OBSERVATION.blood_pressure.v2 
-   *   → urn:openehr:am:org.openehr::openEHR-EHR-OBSERVATION.blood_pressure.v2
+   *   → urn:openehr:aom:org.openehr::openEHR-EHR-OBSERVATION.blood_pressure.v2
    */
   private toOpenehrUrn(archetypeId: string): string {
-    return `urn:openehr:am:org.openehr::${archetypeId}`;
+    return toOpenehrAomArchetypeUrn(archetypeId);
   }
 }

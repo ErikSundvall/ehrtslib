@@ -5,7 +5,9 @@
     ".": "./mod.ts",
     "./full": "./mod_full.ts",
     "./contribution-builder": "./contribution_builder/mod.ts",
-    "./contribution-builder-automerge": "./addons/cb_automerge/mod.ts"
+    "./contribution-builder-automerge": "./addons/cb_automerge/mod.ts",
+    "./serialization-markdown": "./serialization/markdown/mod.ts",
+    "./serialization-asciidoc": "./serialization/asciidoc/mod.ts"
   },
   "nodeModulesDir": "auto",
   "publish": {
@@ -28,6 +30,7 @@
     "fast-xml-parser": "npm:fast-xml-parser@^5.11.2",
     "yaml": "npm:yaml@^2.3.4",
     "fflate": "npm:fflate@^0.8.2",
+    "gpt-tokenizer": "npm:gpt-tokenizer@2.8.1",
     "d3": "npm:d3@7.9.0",
     "canonicalize": "npm:canonicalize@5.1.0",
     "@automerge/automerge": "npm:@automerge/automerge@3.0.0",

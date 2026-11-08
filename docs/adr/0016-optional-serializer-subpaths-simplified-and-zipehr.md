@@ -96,8 +96,13 @@ the simplified barrel, not on a separate core path.
 
 Keep on `serialization/mod.ts`, and therefore on `mod.ts` → `serialization`:
 
-- JSON (canonical and configurable), YAML, Markdown, AsciiDoc
+- JSON (canonical and configurable), YAML
 - `serialization/common/`
+
+Markdown and AsciiDoc are **not** on the default barrel (see #284): optional subpaths
+`ehrtslib/serialization-markdown` and `ehrtslib/serialization-asciidoc`, with
+`ehrtslib-<version>-serialization-markdown.min.js` and
+`ehrtslib-<version>-serialization-asciidoc.min.js` runtime bundles.
 
 Remove the static re-exports of `serialization/simplified/` and
 `serialization/zipehr/` from `serialization/mod.ts`.
@@ -159,7 +164,9 @@ because the Web Template builder is the sole `mod.ts` path to it today.
 | `mod.ts` (`ehrtslib-<version>-core.min.js`) | Drops the 22 simplified codec files and all 20 ZipEHR files once the barrel re-exports go. Drops `normalize.ts` once `term_codes.ts` is retargeted. |
 | `mod_full.ts` | Same barrel shrink. Simplified codecs leave the full bundle only when Contribution Builder core drops its imports (section 4). |
 | `contribution_builder/mod.ts` (`-contribution.min.js`) | Drops the 18 simplified files when core no longer imports them. |
-| `serialization/mod.ts` (`-serialization.min.js`) | Slim entry: JSON, YAML, Markdown, AsciiDoc, and `common/` only. |
+| `serialization/mod.ts` (`-serialization.min.js`) | Slim entry: JSON, YAML, and `common/` only. |
+| New | `serialization/markdown/mod.ts` → `ehrtslib-<version>-serialization-markdown.min.js` |
+| New | `serialization/asciidoc/mod.ts` → `ehrtslib-<version>-serialization-asciidoc.min.js` |
 | New | `serialization/simplified/mod.ts` → `ehrtslib-<version>-serialization-simplified.min.js` |
 | New | `serialization/zipehr/mod.ts` → `ehrtslib-<version>-serialization-zipehr.min.js` |
 
