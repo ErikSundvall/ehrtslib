@@ -207,7 +207,7 @@ export const STRUCTURAL_MARKDOWN_CONFIG: MarkdownSerializationConfig = {
   useTerseFormat: true,
   includeNullFlavour: true,
   includeCompositionMetadata: true,
-  includeRedundantEntryMetadata: true,
+  includeRedundantEntryMetadata: false,
   maxHeadingDepth: 4,
   includeEmptyFields: false,
   useTypeInference: true,

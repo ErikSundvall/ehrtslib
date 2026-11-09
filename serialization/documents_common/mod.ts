@@ -25,6 +25,25 @@ export {
   finalizeDocumentText,
 } from "./document_emit.ts";
 export {
+  applyCompositionEntryDefaults,
+  normalizeCompositionEntryDefaultsInPlace,
+  codePhrasesEqual,
+  computeCompositionEntryDefaults,
+  entryMetadataDiffersFromDefaults,
+  formatSubjectMeta,
+  subjectsEqual,
+  writeEntryDefaultsToAsciidocAttrs,
+  writeEntryDefaultsToFrontmatter,
+  type CompositionEntryDefaults,
+} from "./document_entry_defaults.ts";
+export {
+  formatOeMetaAsciidoc,
+  formatOeMetaMarkdown,
+  isOeMetaInner,
+  OE_META_PREFIX,
+  parseOeMetaInner,
+} from "./oe_structure_meta.ts";
+export {
   OE_VALUE_ANNOTATION_PREFIX,
   compactDataValue,
   dataValuesEqualForRoundTrip,

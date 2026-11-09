@@ -223,7 +223,7 @@ export const LOSSLESS_ASCIIDOC_CONFIG: AsciidocSerializationConfig = {
   useTerseFormat: true,
   includeNullFlavour: true,
   includeCompositionMetadata: true,
-  includeRedundantEntryMetadata: true,
+  includeRedundantEntryMetadata: false,
   maxHeadingDepth: 5,
   includeEmptyFields: false,
   useOpenehrUrnLinks: true,

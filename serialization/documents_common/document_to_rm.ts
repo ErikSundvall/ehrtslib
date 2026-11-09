@@ -5,8 +5,15 @@
 import type { openehr_am } from "../../am/openehr_am.ts";
 import { parseCodePhraseDisplay, parseDvCodedTextDisplay } from "./value_parse.ts";
 import { resolveDataValueFromDisplayAndAnnotation } from "./oe_value_annotation.ts";
-import type { DocumentBlock, DocumentBoldBlock, DocumentHeadingBlock, DocumentListItemBlock } from "./document_blocks.ts";
+import type {
+  DocumentBlock,
+  DocumentBoldBlock,
+  DocumentHeadingBlock,
+  DocumentListItemBlock,
+  DocumentStructureMetaBlock,
+} from "./document_blocks.ts";
 import { ENTRY_TYPES } from "./document_blocks.ts";
+import { applyCompositionEntryDefaults, parseSubjectMeta } from "./document_entry_defaults.ts";
 
 export interface DocumentMetadata {
   frontmatter: Record<string, string>;
@@ -167,6 +174,62 @@ export function blocksToRmObject(
     return null;
   };
 
+  let pendingStructureMeta: {
+    item_node_id?: string;
+    item_name?: string;
+    structure?: string;
+  } = {};
+
+  const applyPendingStructureMeta = (target: Record<string, unknown>) => {
+    if (pendingStructureMeta.item_node_id) {
+      target.archetype_node_id = pendingStructureMeta.item_node_id;
+    }
+    if (pendingStructureMeta.item_name) {
+      target.name = dvText(pendingStructureMeta.item_name);
+    }
+    if (pendingStructureMeta.structure) {
+      target._type = pendingStructureMeta.structure;
+    }
+    pendingStructureMeta = {};
+  };
+
+  const flushPendingStructureMeta = () => {
+    if (
+      !pendingStructureMeta.item_node_id &&
+      !pendingStructureMeta.item_name &&
+      !pendingStructureMeta.structure
+    ) {
+      return;
+    }
+    const top = stack[stack.length - 1];
+    if (top?.kind === "entry") {
+      const withTree = new Set(["EVALUATION", "ADMIN_ENTRY", "INSTRUCTION", "GENERIC_ENTRY"]);
+      if (withTree.has(top.entryType)) {
+        if (!top.obj.data) top.obj.data = itemTree();
+        applyPendingStructureMeta(top.obj.data as Record<string, unknown>);
+        return;
+      }
+      if (top.entryType === "OBSERVATION") {
+        if (!top.obj.data) {
+          top.obj.data = { _type: "HISTORY", events: [] };
+        }
+        applyPendingStructureMeta(top.obj.data as Record<string, unknown>);
+        return;
+      }
+    }
+    if (top?.kind === "history") {
+      applyPendingStructureMeta(top.obj);
+      return;
+    }
+    if (top?.kind === "event") {
+      applyPendingStructureMeta(top.data);
+      return;
+    }
+    if (top?.kind === "items") {
+      applyPendingStructureMeta(top.parent);
+    }
+  };
+
   const attachContent = (child: Record<string, unknown>) => {
     if (stack.length === 0) return;
     const top = stack[0];
@@ -183,6 +246,15 @@ export function blocksToRmObject(
   };
 
   for (const block of blocks) {
+    if (block.kind === "structure_meta") {
+      const sm = block as DocumentStructureMetaBlock;
+      if (sm.field === "item_node_id") pendingStructureMeta.item_node_id = sm.value;
+      else if (sm.field === "item_name") pendingStructureMeta.item_name = sm.value;
+      else if (sm.field === "structure") pendingStructureMeta.structure = sm.value;
+      flushPendingStructureMeta();
+      continue;
+    }
+
     if (block.kind === "heading") {
       const h = block as DocumentHeadingBlock;
       popToHeadingLevel(h.level);
@@ -321,6 +393,11 @@ export function blocksToRmObject(
     if (block.kind === "list_item") {
       const li = block as DocumentListItemBlock;
       const top = stack[stack.length - 1];
+      if (top?.kind === "event") applyPendingStructureMeta(top.data);
+      if (top?.kind === "history") applyPendingStructureMeta(top.obj);
+      if (top?.kind === "entry" && top.obj.data && typeof top.obj.data === "object") {
+        applyPendingStructureMeta(top.obj.data as Record<string, unknown>);
+      }
       const parsed = parseListMeta(li);
       const entryForMeta = top?.kind === "entry"
         ? top
@@ -338,7 +415,7 @@ export function blocksToRmObject(
         continue;
       }
       if (parsed.field === "subject" && entryForMeta) {
-        entryForMeta.obj.subject = { _type: parsed.valueText ?? "PARTY_SELF" };
+        entryForMeta.obj.subject = parseSubjectMeta(parsed.valueText ?? "PARTY_SELF");
         continue;
       }
       if (parsed.field === "item_node_id") {
@@ -415,6 +492,7 @@ export function blocksToRmObject(
           top.obj.data = { _type: "HISTORY", events: [] };
         }
         const hist = top.obj.data as Record<string, unknown>;
+        applyPendingStructureMeta(hist);
         hist.origin = { _type: "DV_DATE_TIME", value: parsed.valueText ?? "" };
         stack.push({ kind: "history", obj: hist });
         continue;
@@ -501,6 +579,8 @@ export function blocksToRmObject(
       hist.origin = events[0].time;
     }
   }
+
+  applyCompositionEntryDefaults(root, meta);
 
   return root;
 }

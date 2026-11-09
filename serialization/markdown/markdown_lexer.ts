@@ -5,6 +5,7 @@
 import { parse } from "yaml";
 import type { DocumentBlock } from "../documents_common/document_blocks.ts";
 import { stripNodeIdAndType } from "../documents_common/document_blocks.ts";
+import { parseOeMetaInner } from "../documents_common/oe_structure_meta.ts";
 
 export function parseMarkdownFrontmatter(text: string): {
   body: string;
@@ -43,7 +44,20 @@ export function lexMarkdownStructural(body: string): DocumentBlock[] {
   const blocks: DocumentBlock[] = [];
 
   for (const line of lines) {
-    if (!line.trim()) continue;
+  if (!line.trim()) continue;
+
+    const metaLine = line.match(/^\s*<!--\s*(oe:meta:[^>]+)\s*-->\s*$/);
+    if (metaLine) {
+      const parsed = parseOeMetaInner(metaLine[1].trim());
+      if (parsed) {
+        blocks.push({
+          kind: "structure_meta",
+          field: parsed.field,
+          value: parsed.value,
+        });
+      }
+      continue;
+    }
 
     const heading = line.match(HEADING_RE);
     if (heading) {

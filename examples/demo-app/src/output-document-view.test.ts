@@ -10,7 +10,10 @@ import {
   stripAsciidocDisplayComments,
   stripMarkdownDisplayComments,
 } from "./output-render-sources.ts";
-import { renderMarkdownDocumentHtml } from "./output-document-view-markdown.ts";
+import {
+  preprocessMarkdownWikilinks,
+  renderMarkdownDocumentHtml,
+} from "./output-document-view-markdown.ts";
 import {
   formatKeysWithDocumentToggle,
   initOutputDocumentViews,
@@ -45,6 +48,13 @@ Deno.test("isRenderableOutputFormat matches serializer outputs with document vie
   assertFalse(isRenderableOutputFormat("yaml"));
 });
 
+Deno.test("wikilink preprocessor yields GFM links without stray brackets", () => {
+  const md = "Term [[SNOMED-CT::73211009|Diabetes mellitus]] in text.";
+  const out = preprocessMarkdownWikilinks(md);
+  assertStringIncludes(out, "[Diabetes mellitus](SNOMED-CT::73211009)");
+  assertEquals(out.includes("[["), false);
+});
+
 Deno.test("markdown pipeline strips comments and markdown-it emits GFM tables", async () => {
   const md = `| A | B |
 |---|---|
@@ -59,6 +69,14 @@ Deno.test("markdown pipeline strips comments and markdown-it emits GFM tables", 
   const html = await renderMarkdownDocumentHtml(md);
   assertFalse(html.includes("at0001"));
   assertFalse(html.includes("<!--"));
+});
+
+Deno.test("wikilink markdown renders as anchor in document HTML", async () => {
+  const md = "# Note\n\n- Dx: [[SNOMED-CT::44054006|Type 2 diabetes]]";
+  const html = await renderMarkdownDocumentHtml(md);
+  assertStringIncludes(html, "<a ");
+  assertStringIncludes(html, "Type 2 diabetes");
+  assertEquals(html.includes("[["), false);
 });
 
 Deno.test("active output view tab uses light text on dark code background", async () => {

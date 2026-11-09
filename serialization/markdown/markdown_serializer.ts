@@ -38,6 +38,14 @@ import {
   ensureBlankLineBeforeBlock,
   finalizeDocumentText,
 } from '../documents_common/document_emit.ts';
+import {
+  computeCompositionEntryDefaults,
+  entryMetadataDiffersFromDefaults,
+  formatSubjectMeta,
+  writeEntryDefaultsToFrontmatter,
+  type CompositionEntryDefaults,
+} from '../documents_common/document_entry_defaults.ts';
+import { formatOeMetaMarkdown } from '../documents_common/oe_structure_meta.ts';
 
 /**
  * Markdown Serializer for openEHR RM objects
@@ -53,6 +61,7 @@ import {
  */
 export class MarkdownSerializer {
   private config: Required<MarkdownSerializationConfig>;
+  private activeEntryDefaults?: CompositionEntryDefaults;
 
   constructor(config: MarkdownSerializationConfig = {}) {
     this.config = { ...DEFAULT_MARKDOWN_SERIALIZATION_CONFIG, ...config };
@@ -71,7 +80,9 @@ export class MarkdownSerializer {
       const typeName = this.getTypeName(obj);
 
       if (typeName === 'COMPOSITION') {
+        this.activeEntryDefaults = computeCompositionEntryDefaults(obj);
         this.serializeComposition(obj, lines);
+        this.activeEntryDefaults = undefined;
       } else if (typeName === 'SECTION') {
         this.serializeSection(obj, lines, 1);
       } else if (this.isEntryType(typeName)) {
@@ -170,6 +181,11 @@ export class MarkdownSerializer {
       if (comp.category) {
         lines.push(`category: "${this.formatDvCodedText(comp.category)}"`);
       }
+      if (this.activeEntryDefaults) {
+        writeEntryDefaultsToFrontmatter(this.activeEntryDefaults, (key, value) => {
+          lines.push(`${key}: ${value}`);
+        });
+      }
     }
 
     lines.push('---');
@@ -253,19 +269,7 @@ export class MarkdownSerializer {
     this.writeHeading(name + typeAnnotation + nodeId, depth, lines);
     lines.push('');
 
-    // Entry-level metadata (if not redundant)
-    if (this.config.includeRedundantEntryMetadata) {
-      if (entry.language) {
-        lines.push(`- _language:_ ${this.formatCodePhrase(entry.language)}`);
-      }
-      if (entry.encoding) {
-        lines.push(`- _encoding:_ ${this.formatCodePhrase(entry.encoding)}`);
-      }
-      if (entry.subject) {
-        const st = this.getTypeName(entry.subject);
-        if (st) lines.push(`- _subject:_ ${st}`);
-      }
-    }
+    this.emitEntryMetadataWhenDiffers(entry, lines);
 
     // Type-specific content
     switch (typeName) {
@@ -398,10 +402,37 @@ export class MarkdownSerializer {
   private emitItemStructureMeta(itemStruct: any, lines: string[]): void {
     if (this.config.style !== "structural" || !itemStruct) return;
     if (itemStruct.archetype_node_id) {
-      lines.push(`- _item_node_id:_ ${itemStruct.archetype_node_id}`);
+      ensureBlankLineBeforeBlock(lines);
+      lines.push(formatOeMetaMarkdown("item_node_id", itemStruct.archetype_node_id));
     }
     const n = this.extractName(itemStruct);
-    if (n) lines.push(`- _item_name:_ ${n}`);
+    if (n) {
+      ensureBlankLineBeforeBlock(lines);
+      lines.push(formatOeMetaMarkdown("item_name", n));
+    }
+  }
+
+  private emitEntryMetadataWhenDiffers(entry: any, lines: string[]): void {
+    const defaults = this.activeEntryDefaults;
+    if (!defaults) {
+      if (!this.config.includeRedundantEntryMetadata) return;
+      if (entry.language) lines.push(`- _language:_ ${this.formatCodePhrase(entry.language)}`);
+      if (entry.encoding) lines.push(`- _encoding:_ ${this.formatCodePhrase(entry.encoding)}`);
+      if (entry.subject) {
+        lines.push(`- _subject:_ ${formatSubjectMeta(entry.subject)}`);
+      }
+      return;
+    }
+    const diff = entryMetadataDiffersFromDefaults(entry, defaults);
+    if (diff.language && entry.language) {
+      lines.push(`- _language:_ ${this.formatCodePhrase(entry.language)}`);
+    }
+    if (diff.encoding && entry.encoding) {
+      lines.push(`- _encoding:_ ${this.formatCodePhrase(entry.encoding)}`);
+    }
+    if (diff.subject && entry.subject) {
+      lines.push(`- _subject:_ ${formatSubjectMeta(entry.subject)}`);
+    }
   }
 
   private serializeHistory(history: any, label: string, lines: string[], depth: number): void {
@@ -489,7 +520,8 @@ export class MarkdownSerializer {
     if (typeName === 'ITEM_TREE' || typeName === 'ITEM_LIST' || typeName === 'ITEM_TABLE') {
       this.emitItemStructureMeta(itemStruct, lines);
       if (this.config.style === 'structural' && typeName !== 'ITEM_TREE') {
-        lines.push(`- _structure:_ ${typeName}`);
+        ensureBlankLineBeforeBlock(lines);
+        lines.push(formatOeMetaMarkdown("structure", typeName));
       }
       if (itemStruct.items && Array.isArray(itemStruct.items)) {
         // In clinical mode with table rendering, try to render as table
@@ -735,7 +767,7 @@ export class MarkdownSerializer {
       const code = this.formatCodeReference(ct.defining_code);
       switch (this.config.codeRendering) {
         case 'wikilink':
-          return `[[${text}]] ${code}`;
+          return `[[${code}|${text}]]`;
         case 'wikilink_urn': {
           const termId = ct.defining_code.terminology_id?.value || '';
           const codeStr = ct.defining_code.code_string || '';

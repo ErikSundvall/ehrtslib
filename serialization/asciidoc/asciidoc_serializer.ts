@@ -40,6 +40,14 @@ import {
   ensureBlankLineBeforeBlock,
   finalizeDocumentText,
 } from '../documents_common/document_emit.ts';
+import {
+  computeCompositionEntryDefaults,
+  entryMetadataDiffersFromDefaults,
+  formatSubjectMeta,
+  writeEntryDefaultsToAsciidocAttrs,
+  type CompositionEntryDefaults,
+} from '../documents_common/document_entry_defaults.ts';
+import { formatOeMetaAsciidoc } from '../documents_common/oe_structure_meta.ts';
 
 /**
  * AsciiDoc Serializer for openEHR RM objects
@@ -55,6 +63,7 @@ import {
  */
 export class AsciidocSerializer {
   private config: Required<AsciidocSerializationConfig>;
+  private activeEntryDefaults?: CompositionEntryDefaults;
 
   constructor(config: AsciidocSerializationConfig = {}) {
     this.config = { ...DEFAULT_ASCIIDOC_SERIALIZATION_CONFIG, ...config };
@@ -73,7 +82,9 @@ export class AsciidocSerializer {
       const typeName = this.getTypeName(obj);
 
       if (typeName === 'COMPOSITION') {
+        this.activeEntryDefaults = computeCompositionEntryDefaults(obj);
         this.serializeComposition(obj, lines);
+        this.activeEntryDefaults = undefined;
       } else if (typeName === 'SECTION') {
         this.serializeSection(obj, lines, 2);
       } else if (this.isEntryType(typeName)) {
@@ -176,6 +187,9 @@ export class AsciidocSerializer {
       if (comp.category) {
         lines.push(`:category: ${this.formatDvCodedText(comp.category)}`);
       }
+      if (this.activeEntryDefaults) {
+        writeEntryDefaultsToAsciidocAttrs(this.activeEntryDefaults, lines);
+      }
     }
 
     lines.push('');
@@ -261,19 +275,7 @@ export class AsciidocSerializer {
     this.writeHeading(headingText, depth, lines);
     lines.push('');
 
-    // Entry-level metadata (if not redundant)
-    if (this.config.includeRedundantEntryMetadata) {
-      if (entry.language) {
-        lines.push(`* _language:_ ${this.formatCodePhrase(entry.language)}`);
-      }
-      if (entry.encoding) {
-        lines.push(`* _encoding:_ ${this.formatCodePhrase(entry.encoding)}`);
-      }
-      if (entry.subject) {
-        const st = this.getTypeName(entry.subject);
-        if (st) lines.push(`* _subject:_ ${st}`);
-      }
-    }
+    this.emitEntryMetadataWhenDiffers(entry, lines);
 
     // Type-specific content
     switch (typeName) {
@@ -406,10 +408,35 @@ export class AsciidocSerializer {
   private emitItemStructureMeta(itemStruct: any, lines: string[]): void {
     if (this.config.style !== "lossless" || !itemStruct) return;
     if (itemStruct.archetype_node_id) {
-      lines.push(`* _item_node_id:_ ${itemStruct.archetype_node_id}`);
+      this.pushBlockCommentLine(lines, formatOeMetaAsciidoc("item_node_id", itemStruct.archetype_node_id));
     }
     const n = this.extractName(itemStruct);
-    if (n) lines.push(`* _item_name:_ ${n}`);
+    if (n) {
+      this.pushBlockCommentLine(lines, formatOeMetaAsciidoc("item_name", n));
+    }
+  }
+
+  private emitEntryMetadataWhenDiffers(entry: any, lines: string[]): void {
+    const defaults = this.activeEntryDefaults;
+    if (!defaults) {
+      if (!this.config.includeRedundantEntryMetadata) return;
+      if (entry.language) lines.push(`* _language:_ ${this.formatCodePhrase(entry.language)}`);
+      if (entry.encoding) lines.push(`* _encoding:_ ${this.formatCodePhrase(entry.encoding)}`);
+      if (entry.subject) {
+        lines.push(`* _subject:_ ${formatSubjectMeta(entry.subject)}`);
+      }
+      return;
+    }
+    const diff = entryMetadataDiffersFromDefaults(entry, defaults);
+    if (diff.language && entry.language) {
+      lines.push(`* _language:_ ${this.formatCodePhrase(entry.language)}`);
+    }
+    if (diff.encoding && entry.encoding) {
+      lines.push(`* _encoding:_ ${this.formatCodePhrase(entry.encoding)}`);
+    }
+    if (diff.subject && entry.subject) {
+      lines.push(`* _subject:_ ${formatSubjectMeta(entry.subject)}`);
+    }
   }
 
   private serializeHistory(history: any, label: string, lines: string[], depth: number): void {
@@ -491,7 +518,7 @@ export class AsciidocSerializer {
     if (typeName === 'ITEM_TREE' || typeName === 'ITEM_LIST' || typeName === 'ITEM_TABLE') {
       this.emitItemStructureMeta(itemStruct, lines);
       if (this.config.style === 'lossless' && typeName !== 'ITEM_TREE') {
-        lines.push(`* _structure:_ ${typeName}`);
+        this.pushBlockCommentLine(lines, formatOeMetaAsciidoc("structure", typeName));
       }
       if (itemStruct.items && Array.isArray(itemStruct.items)) {
         if (this.config.dataValueRendering === 'table' && this.canRenderAsTable(itemStruct.items)) {

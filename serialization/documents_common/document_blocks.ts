@@ -34,10 +34,17 @@ export type DocumentBoldBlock = {
   archetypeNodeId?: string;
 };
 
+export type DocumentStructureMetaBlock = {
+  kind: "structure_meta";
+  field: string;
+  value: string;
+};
+
 export type DocumentBlock =
   | DocumentHeadingBlock
   | DocumentListItemBlock
-  | DocumentBoldBlock;
+  | DocumentBoldBlock
+  | DocumentStructureMetaBlock;
 
 export type DocumentDialect = "structural_lossless" | "embedding_or_lossy";
 

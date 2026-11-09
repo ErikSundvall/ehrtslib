@@ -9,6 +9,9 @@ Add an entry under **Unreleased** in every PR that changes user-visible behaviou
 ## [Unreleased]
 
 - **Demo.** Active Code/Document output tab uses light text on the dark code panel background (WCAG-friendly contrast).
+- **Serialization (Markdown/AsciiDoc).** ENTRY `language`/`encoding`/`subject` emit once per composition (front matter / header attrs); per-entry lines only when values differ; deserializers restore defaults on every ENTRY.
+- **Serialization (Markdown/AsciiDoc).** Round-trip `item_node_id`, `item_name`, and `_structure:` markers move to hidden `oe:meta:` comments (not visible in Document view).
+- **Demo.** Document view preprocesses `[[wikilink]]` syntax for markdown-it (GFM links).
 - **Serialization (Markdown/AsciiDoc).** Block-level headings, tables, event titles, quotes, and `//` node-id lines are preceded by a blank line so GFM and AsciiDoctor render separate blocks (fixes glued vital-sign headings in Document view).
 - **Demo.** Output tab row scrolls horizontally so ZipEHR/OPT HTML5 tabs are reachable; OPT HTML5/OPT XML tab buttons start `hidden` until their checkboxes are enabled.
 - **Demo.** Code / Document tab switcher on renderable outputs (Markdown, AsciiDoc, ZipEHR HTML/XHTML, OPT HTML5): lazy-loaded `markdown-it` + `DOMPurify` and `@asciidoctor/core`, sandboxed iframe previews, session view per format. Preset labels reflect `MARKDOWN_CODEC_MATRIX` / `ASCIIDOC_CODEC_MATRIX` (roundtrip vs output-only).
