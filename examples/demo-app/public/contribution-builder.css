@@ -80,6 +80,88 @@ label {
   font-weight: 600;
   margin-bottom: .7rem;
 }
+.field-shell {
+  position: relative;
+  padding-top: 1.35rem;
+}
+.presence-badges {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: .2rem;
+  max-width: 55%;
+  pointer-events: auto;
+  min-height: 1.15rem;
+}
+.presence-badge {
+  font: 600 .68rem/1.1 system-ui, sans-serif;
+  border: 0;
+  border-radius: 999px;
+  padding: .12rem .38rem;
+  min-width: 1.35rem;
+  text-align: center;
+  color: white;
+  background: var(--presence-accent, #12618f);
+  cursor: default;
+  position: relative;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .35) inset;
+}
+.presence-badge--focused {
+  box-shadow: 0 0 0 2px var(--presence-accent, #12618f);
+  background: color-mix(in srgb, var(--presence-accent, #12618f) 18%, white);
+  color: #0e2f44;
+}
+.presence-badge--editing::after {
+  content: "";
+  position: absolute;
+  right: -1px;
+  top: -1px;
+  width: .35rem;
+  height: .35rem;
+  border-radius: 50%;
+  background: #e69a2d;
+  border: 1px solid white;
+}
+.presence-badge--recent-edit {
+  opacity: .85;
+  filter: saturate(.85);
+}
+.presence-badge--overflow {
+  background: #d4dfe6;
+  color: #2a4a5e;
+  box-shadow: none;
+}
+.presence-tooltip {
+  position: absolute;
+  z-index: 5;
+  right: 0;
+  top: calc(100% + .35rem);
+  min-width: 12rem;
+  max-width: 18rem;
+  padding: .45rem .55rem;
+  font-size: .72rem;
+  font-weight: 500;
+  line-height: 1.35;
+  color: #102a3c;
+  background: #f8fbfd;
+  border: 1px solid #b7cad6;
+  border-radius: .35rem;
+  box-shadow: 0 .25rem .6rem rgba(16, 42, 60, .12);
+  white-space: normal;
+  text-align: left;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(-2px);
+  transition: opacity .12s ease, transform .12s ease;
+}
+.presence-badge:focus-visible .presence-tooltip,
+.presence-badge:hover .presence-tooltip {
+  opacity: 1;
+  transform: translateY(0);
+}
 input,
 select,
 textarea,

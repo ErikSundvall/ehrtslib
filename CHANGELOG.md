@@ -8,6 +8,8 @@ Add an entry under **Unreleased** in every PR that changes user-visible behaviou
 
 ## [Unreleased]
 
+- **Demo.** Contribution Builder shows compact initials badges for other users’ focus, active edits and recent edits on each field; tooltips summarise the ephemeral presence channel ([#288](https://github.com/ErikSundvall/ehrtslib/issues/288)).
+- **Demo.** Contribution Builder assigns each suggested clinical username from the roster once before numbered suffixes (`nurse.andersson 2`, …), and reuses a name when its clone leaves ([#288](https://github.com/ErikSundvall/ehrtslib/issues/288)).
 - **Serialization.** Markdown and AsciiDoc are optional codecs (`ehrtslib/serialization-markdown`, `ehrtslib/serialization-asciidoc`) with structural/lossless parsers, `EMBEDDING_*` output-only presets, and AOM archetype URNs (`urn:openehr:aom:`). The default `serialization/mod.ts` barrel no longer re-exports them ([#284](https://github.com/ErikSundvall/ehrtslib/issues/284)).
 - **Demo.** Format converter accepts Markdown and AsciiDoc input; output panels show `gpt-tokenizer` `o200k_base` token counts beside characters and lines (demo-only dependency; literal BPE via `disallowedSpecial: new Set()`, not `allowedSpecial: "all"`).
 - **Serialization (Markdown/AsciiDoc).** Broader structural round-trip tests, `ITEM_LIST`/`ITEM_TABLE` `_structure:` markers, AsciiDoc header/comment fixes, no legacy `urn:openehr:am:` parsing ([#284](https://github.com/ErikSundvall/ehrtslib/issues/284)).
