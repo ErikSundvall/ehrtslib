@@ -640,7 +640,7 @@ export class AsciidocSerializer {
       lines.push(`.${name}`);
       lines.push("");
       if (cluster.items && Array.isArray(cluster.items)) {
-        this.serializeItems(cluster.items, lines, nestLevel + 1);
+        this.serializeItems(cluster.items, lines, 0);
       }
       return;
     }

@@ -25,8 +25,18 @@ export {
   finalizeDocumentText,
 } from "./document_emit.ts";
 export {
+  assertNoLeadingColonDlistLines,
   asciidocDlistTermLine,
 } from "./document_list_layout.ts";
+export {
+  collectLossySensitiveSpots,
+  flattenScalarPaths,
+  LOSSY_INTENTIONAL_ROOT_OMISSIONS,
+  lossyOutputCoversSpot,
+  structuralPathDiff,
+  type LossySensitiveSpot,
+  type StructuralPathDiff,
+} from "./document_audit_paths.ts";
 export {
   assertNoForbiddenDocumentMarkers,
   FORBIDDEN_DOCUMENT_OUTPUT_MARKERS,

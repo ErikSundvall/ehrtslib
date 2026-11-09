@@ -1119,7 +1119,7 @@ export class MarkdownSerializer {
   /**
    * Check if a node ID looks like a full archetype ID (vs a local at-code)
    */
-  private isArchetypeId(nodeId: string): boolean {
-    return nodeId.startsWith('openEHR-');
+  private isArchetypeId(nodeId: unknown): boolean {
+    return typeof nodeId === "string" && nodeId.startsWith("openEHR-");
   }
 }

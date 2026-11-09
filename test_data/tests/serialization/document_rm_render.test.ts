@@ -1,4 +1,6 @@
 import { assert, assertEquals, assertFalse, assertStringIncludes } from "@std/assert";
+import { assertNoLeadingColonDlistLines } from "../../../serialization/documents_common/document_list_layout.ts";
+import { chemoContextComposition } from "./document_audit_fixtures.ts";
 import Asciidoctor from "@asciidoctor/core";
 import {
   AsciidocSerializer,
@@ -13,86 +15,6 @@ import {
   STRUCTURAL_MARKDOWN_CONFIG,
 } from "../../../serialization/markdown/mod.ts";
 import { assertNoForbiddenDocumentMarkers, renderRmValue } from "../../../serialization/documents_common/document_rm_render.ts";
-
-/** Cluster tree similar to Swedish ChemoForm health_care_facility extension. */
-function chemoContextComposition(): Record<string, unknown> {
-  return {
-    _type: "COMPOSITION",
-    name: { _type: "DV_TEXT", value: "ChemoForm-MBA.v7" },
-    context: {
-      _type: "EVENT_CONTEXT",
-      start_time: { _type: "DV_DATE_TIME", value: "2023-08-31T18:31:16.004+02:00" },
-      setting: {
-        _type: "DV_CODED_TEXT",
-        value: "other care",
-        defining_code: {
-          _type: "CODE_PHRASE",
-          terminology_id: { _type: "TERMINOLOGY_ID", value: "openehr" },
-          code_string: "238",
-        },
-      },
-      other_context: {
-        _type: "ITEM_TREE",
-        items: [{
-          _type: "CLUSTER",
-          name: { _type: "DV_TEXT", value: "Vårdenhet" },
-          items: [
-            {
-              _type: "ELEMENT",
-              name: { _type: "DV_TEXT", value: "Namn" },
-              value: { _type: "DV_TEXT", value: "Brandbergens vårdcentral" },
-            },
-            {
-              _type: "ELEMENT",
-              name: { _type: "DV_TEXT", value: "Identifierare" },
-              value: {
-                _type: "DV_IDENTIFIER",
-                id: "556677-8899",
-                issuer: "HSA-ID",
-                assigner: "Stockholm",
-                type: "ORG",
-              },
-            },
-            {
-              _type: "ELEMENT",
-              name: { _type: "DV_TEXT", value: "Roll" },
-              value: {
-                _type: "DV_CODED_TEXT",
-                value: "vårdenhet",
-                defining_code: {
-                  _type: "CODE_PHRASE",
-                  terminology_id: { _type: "TERMINOLOGY_ID", value: "local" },
-                  code_string: "care_unit",
-                },
-              },
-            },
-            {
-              _type: "CLUSTER",
-              name: { _type: "DV_TEXT", value: "Vårdgivare" },
-              items: [
-                {
-                  _type: "ELEMENT",
-                  name: { _type: "DV_TEXT", value: "Namn" },
-                  value: { _type: "DV_TEXT", value: "Stockholms läns sjukvårdsområde" },
-                },
-                {
-                  _type: "ELEMENT",
-                  name: { _type: "DV_TEXT", value: "Identifierare" },
-                  value: {
-                    _type: "DV_IDENTIFIER",
-                    id: { _type: "DV_TEXT", value: "2321000057" },
-                    issuer: { _type: "DV_TEXT", value: "HSA-ID" },
-                  },
-                },
-              ],
-            },
-          ],
-        }],
-      },
-    },
-    content: [],
-  };
-}
 
 const lossyOpts = {
   lossy: true,
@@ -139,6 +61,8 @@ Deno.test("AsciiDoc embedding: nested cluster uses block title and dlist terms",
   assertStringIncludes(ad, ".Vårdenhet");
   assertStringIncludes(ad, "Namn::");
   assertStringIncludes(ad, ".Vårdgivare");
+  assertNoLeadingColonDlistLines(ad);
+  assertStringIncludes(ad, "Namn:: Stockholms läns sjukvårdsområde");
 
   const html = Asciidoctor().convert(ad, {
     safe: "secure",

@@ -2,12 +2,25 @@
  * Lossy AsciiDoc / Markdown list layout helpers (definition lists vs bullet lists).
  */
 
-/** Nested AsciiDoc dlist term prefix (`::` for level 1, `:::` for level 2, …). */
+/**
+ * AsciiDoc definition list term line.
+ * Nesting depth is extra `:` **after the term** (`Namn::`, `Namn:::`, …), never leading colons.
+ */
 export function asciidocDlistTermLine(
   nestLevel: number,
   term: string,
   value: string,
 ): string {
-  const lead = nestLevel <= 0 ? "" : ":".repeat(nestLevel + 1);
-  return `${lead}${term}:: ${value}`;
+  const delimiter = "::" + (nestLevel > 0 ? ":".repeat(nestLevel) : "");
+  return `${term}${delimiter} ${value}`;
+}
+
+/** Reject erroneous `::term::` lines (leading colons before the term). */
+export function assertNoLeadingColonDlistLines(text: string): void {
+  for (const line of text.split("\n")) {
+    const trimmed = line.trimStart();
+    if (/^:{2,}[^:\s]/.test(trimmed)) {
+      throw new Error(`AsciiDoc dlist must not use leading colons: ${line}`);
+    }
+  }
 }
