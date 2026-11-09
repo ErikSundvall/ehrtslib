@@ -121,10 +121,31 @@ Rules apply per preset as below. **Lossy** presets (`compact`, `embedding`, `wik
 
 Heading depth caps differ slightly by codec (Markdown 3–4, AsciiDoc 4–5); that is **formatting only**, not RM content.
 
+### RM value rendering
+
+All presets use [`document_rm_render.ts`](documents_common/document_rm_render.ts) for ELEMENT values and nested RM fragments (PARTY, DV_IDENTIFIER, PARTICIPATION, OBJECT_REF, generic RM walk). Output must never contain `(complex value)`, `[object Object]`, or `undefined` — see [`document_rm_render.test.ts`](../test_data/tests/serialization/document_rm_render.test.ts).
+
+**Lossy layout:** AsciiDoc `embedding` and non-table `compact` use definition lists; nested CLUSTERs use block titles (`.Name`) and nested dlist terms (`::term::`). Markdown embedding/compact clusters use `**Name:**` sections with plain `key: value` lines.
+
+### Intentional omissions (lossy presets)
+
+These RM paths are **not** written in `compact` / `embedding` / `wikilink` output (by design today; structural round-trip retains them where parsed):
+
+| Area | Omitted in lossy |
+| --- | --- |
+| COMPOSITION | `feeder_audit`, `links`, `work_flow_id`, `guideline_id`, `version_uid`, `version_tree` |
+| ENTRY | `feeder_audit`, `workflow_id`, `guideline_id`, `other_participations` (unless present in authored tree under `data`) |
+| ACTION | Full `ism_transition` / `instruction_details` prose unless archetype tree includes them |
+| ACTIVITY | Detailed `timing` / `action_archetype_id` metadata |
+| Any | `archetype_details` on lossy envelopes; hidden `oe:meta` / `oe:v1` machine carriers |
+
+Participations, facility identifiers, and extension clusters **inside** `EVENT_CONTEXT.other_context` (or clinical content) are rendered when present in the instance tree.
+
 ### Code reference
 
 - Shared policies: [`document_preset_rules.ts`](documents_common/document_preset_rules.ts) — `DOCUMENT_PRESET_RM_POLICIES`
 - HISTORY trimming: [`history_lossy_emit.ts`](documents_common/history_lossy_emit.ts)
 - ENTRY defaults: [`document_entry_defaults.ts`](documents_common/document_entry_defaults.ts)
+- RM display: [`document_rm_render.ts`](documents_common/document_rm_render.ts)
 
-Tests: [`document_preset_rules.test.ts`](../test_data/tests/serialization/document_preset_rules.test.ts), [`history_lossy_presets.test.ts`](../test_data/tests/serialization/history_lossy_presets.test.ts).
+Tests: [`document_preset_rules.test.ts`](../test_data/tests/serialization/document_preset_rules.test.ts), [`history_lossy_presets.test.ts`](../test_data/tests/serialization/history_lossy_presets.test.ts), [`document_serialization_audit.test.ts`](../test_data/tests/serialization/document_serialization_audit.test.ts).

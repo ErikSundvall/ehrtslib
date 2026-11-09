@@ -50,6 +50,10 @@ import {
   shouldEmitHistoryOrigin,
   shouldSkipLossyEventTitles,
 } from '../documents_common/history_lossy_emit.ts';
+import {
+  type DocumentRmRenderOptions,
+  renderRmValue,
+} from '../documents_common/document_rm_render.ts';
 
 /**
  * Markdown Serializer for openEHR RM objects
@@ -594,10 +598,38 @@ export class MarkdownSerializer {
     }
   }
 
+  private usePlainKeyValueBody(): boolean {
+    return this.config.style === "embedding" ||
+      (this.config.style === "compact" &&
+        this.config.dataValueRendering !== "table");
+  }
+
+  private rmRenderOptions(): DocumentRmRenderOptions {
+    return {
+      lossy: this.config.style !== "structural",
+      useTerseFormat: this.config.useTerseFormat,
+      codeRendering: this.config.codeRendering ?? "hidden",
+      includeTypeAnnotations: !!this.config.includeTypeAnnotations,
+    };
+  }
+
   private serializeCluster(cluster: any, lines: string[], nestLevel: number): void {
     const name = this.extractName(cluster);
     const indent = this.getIndent(nestLevel);
     const label = this.formatLocatableHeadingTitle(cluster, name);
+    if (this.usePlainKeyValueBody()) {
+      ensureBlankLineBeforeBlock(lines);
+      if (this.config.useOpenehrUrnWikilinks && this.isArchetypeId(cluster?.archetype_node_id)) {
+        lines.push(`${indent}${label}`);
+      } else {
+        lines.push(`${indent}**${name}:**`);
+      }
+      lines.push("");
+      if (cluster.items && Array.isArray(cluster.items)) {
+        this.serializeItems(cluster.items, lines, nestLevel + 1);
+      }
+      return;
+    }
     if (this.config.useOpenehrUrnWikilinks && this.isArchetypeId(cluster?.archetype_node_id)) {
       lines.push(`${indent}- ${label}`);
     } else {
@@ -710,67 +742,17 @@ export class MarkdownSerializer {
 
   private formatDataValue(dv: any): string {
     if (!dv) return '—';
-
     const typeName = this.getTypeName(dv);
-
-    switch (typeName) {
-      case 'DV_TEXT':
-        return this.formatDvText(dv);
-      case 'DV_CODED_TEXT':
-        return this.formatDvCodedTextWithCode(dv);
-      case 'DV_QUANTITY':
-        return this.formatDvQuantity(dv);
-      case 'DV_COUNT':
-        return this.formatDvCount(dv);
-      case 'DV_DATE_TIME':
-        return this.formatDateTime(dv);
-      case 'DV_DATE':
-        return this.formatDvDate(dv);
-      case 'DV_TIME':
-        return this.formatDvTime(dv);
-      case 'DV_DURATION':
-        return this.formatDuration(dv);
-      case 'DV_BOOLEAN':
-        return this.formatDvBoolean(dv);
-      case 'DV_PROPORTION':
-        return this.formatDvProportion(dv);
-      case 'DV_ORDINAL':
-        return this.formatDvOrdinal(dv);
-      case 'DV_SCALE':
-        return this.formatDvScale(dv);
-      case 'DV_IDENTIFIER':
-        return this.formatDvIdentifier(dv);
-      case 'DV_URI':
-      case 'DV_EHR_URI':
-        return this.formatDvUri(dv);
-      case 'DV_PARSABLE':
-        return this.formatDvParsable(dv);
-      case 'DV_MULTIMEDIA':
-        return this.formatDvMultimedia(dv);
-      case 'DV_STATE':
-        return this.formatDvState(dv);
-      case 'DV_PARAGRAPH':
-        return this.formatDvParagraph(dv);
-      case 'DV_INTERVAL':
-        return this.formatDvInterval(dv);
-      case 'DV_PERIODIC_TIME_SPECIFICATION':
-      case 'DV_GENERAL_TIME_SPECIFICATION':
-        return this.formatDvTimeSpecification(dv);
-      default:
-        // Fallback: try to extract a value
-        if (dv.value !== undefined) {
-          return String(dv.value);
-        }
-        if (dv.magnitude !== undefined) {
-          // Likely a numeric DV_AMOUNT subtype
-          const units = dv.units ?? '';
-          return `${dv.magnitude}${units ? ' ' + units : ''}`;
-        }
-        if (typeName && this.config.includeTypeAnnotations) {
-          return `[${typeName}]`;
-        }
-        return '(complex value)';
+    if (typeName === "DV_CODED_TEXT") {
+      return this.formatDvCodedTextWithCode(dv);
     }
+    if (
+      typeName === "DV_DATE_TIME" || typeName === "DV_DATE" || typeName === "DV_TIME" ||
+      typeName === "DV_DURATION"
+    ) {
+      return this.formatDateTime(dv);
+    }
+    return renderRmValue(dv, this.rmRenderOptions(), 0);
   }
 
   private formatDataValueForTable(dv: any): string {

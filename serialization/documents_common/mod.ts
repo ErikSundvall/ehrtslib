@@ -25,6 +25,18 @@ export {
   finalizeDocumentText,
 } from "./document_emit.ts";
 export {
+  asciidocDlistTermLine,
+} from "./document_list_layout.ts";
+export {
+  assertNoForbiddenDocumentMarkers,
+  FORBIDDEN_DOCUMENT_OUTPUT_MARKERS,
+  renderDataValue,
+  renderRmValue,
+  scalarFieldString,
+  type DocumentRmCodeRendering,
+  type DocumentRmRenderOptions,
+} from "./document_rm_render.ts";
+export {
   anchorEventTimeValue,
   historyOriginRedundantWithAnchor,
   historyOriginValue,
