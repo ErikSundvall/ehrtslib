@@ -1217,6 +1217,31 @@ body {
     margin-bottom: 0;
 }
 
+.form-group-label-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--spacing-xs);
+    margin-bottom: var(--spacing-xs);
+}
+
+.preset-doc-link {
+    font-size: 0.85rem;
+    color: var(--color-text-muted, #6b7280);
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.preset-doc-link:hover {
+    text-decoration: underline;
+    color: var(--color-link, #2563eb);
+}
+
+.preset-doc-link-icon {
+    margin-right: 0.15em;
+}
+
 .deser-group--simplified {
     gap: var(--spacing-xs);
 }

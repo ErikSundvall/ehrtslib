@@ -33,6 +33,22 @@ export {
   shouldSkipLossyEventTitles,
 } from "./history_lossy_emit.ts";
 export {
+  DOCUMENT_PRESET_DOC_ANCHORS,
+  DOCUMENT_PRESET_DOC_GITHUB_BASE,
+  DOCUMENT_PRESET_DOC_PATH,
+  DOCUMENT_PRESET_IDS,
+  DOCUMENT_PRESET_RM_POLICIES,
+  type DataValueLayoutPolicy,
+  type DocumentPresetDocAnchor,
+  type DocumentPresetId,
+  type DocumentPresetRmPolicy,
+  type TerminologyCodePolicy,
+  documentPresetDocUrl,
+  rmPoliciesAlignedForPreset,
+  rmPolicyFromAsciidocConfig,
+  rmPolicyFromMarkdownConfig,
+} from "./document_preset_rules.ts";
+export {
   applyCompositionEntryDefaults,
   normalizeCompositionEntryDefaultsInPlace,
   codePhrasesEqual,

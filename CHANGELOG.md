@@ -8,6 +8,7 @@ Add an entry under **Unreleased** in every PR that changes user-visible behaviou
 
 ## [Unreleased]
 
+- **Docs (Markdown/AsciiDoc).** [`serialization/documents-presets.md`](serialization/documents-presets.md) — preset anchors, RM simplification rule matrix, shared `DOCUMENT_PRESET_RM_POLICIES`; demo preset selectors link to GitHub doc sections.
 - **Serialization (Markdown/AsciiDoc).** Lossy presets omit HISTORY event titles when there is exactly one event, and omit `origin` when it matches the sole or earliest event time; structural output unchanged.
 - **Breaking (Markdown/AsciiDoc).** Shared preset ids are `structural`, `compact`, `embedding`, `wikilink`. Removed `CLINICAL_MARKDOWN_CONFIG`, `LOSSLESS_ASCIIDOC_CONFIG`, and AsciiDoc style `lossless` (no aliases). **Compact** is the merged human-readable preset (tables with Item/Value/Time, wikilink codes, optional front matter). AsciiDoc round-trip uses `STRUCTURAL_ASCIIDOC_CONFIG` / dialect `structural`. Added `WIKILINK_ASCIIDOC_CONFIG`.
 - **Demo.** Document view strips YAML/AsciiDoc header metadata into a compact panel; shows AsciiDoc/Markdown document titles (`showtitle`); wikilink headings no longer duplicate labels in rendered HTML.

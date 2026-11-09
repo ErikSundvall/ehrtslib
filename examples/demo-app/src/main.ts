@@ -74,6 +74,10 @@ import {
   onHtmlOutputVariantChanged,
   refreshActiveDocumentViews,
 } from "./output-document-view.ts";
+import {
+  documentPresetDocUrl,
+  type DocumentPresetId,
+} from "./document-preset-doc.ts";
 
 /** Primary instance example: Ehrlibs Accident report FLAT (see model-examples-catalog). */
 const DEFAULT_INSTANCE_EXAMPLE = "accident-report-vitals";
@@ -2783,6 +2787,24 @@ function updateXmlOptions(preset: string) {
   }
 }
 
+function syncDocumentPresetDocLink(
+  linkId: string,
+  preset: string,
+): void {
+  const link = document.getElementById(linkId) as HTMLAnchorElement | null;
+  if (!link) return;
+  if (preset === "custom") {
+    link.href = documentPresetDocUrl("rm-simplification-rules");
+    return;
+  }
+  if (
+    preset === "structural" || preset === "compact" || preset === "embedding" ||
+    preset === "wikilink"
+  ) {
+    link.href = documentPresetDocUrl(preset as DocumentPresetId);
+  }
+}
+
 /**
  * Update Markdown options based on preset
  */
@@ -2859,6 +2881,7 @@ function updateMarkdownOptions(preset: string) {
       maxHeadingDepthInput.value = String(config.maxHeadingDepth);
     }
   }
+  syncDocumentPresetDocLink("markdown-preset-doc-link", preset);
 }
 
 /**
@@ -2934,6 +2957,7 @@ function updateAsciidocOptions(preset: string) {
       maxHeadingDepthInput.value = String(config.maxHeadingDepth);
     }
   }
+  syncDocumentPresetDocLink("asciidoc-preset-doc-link", preset);
 }
 
 /**

@@ -1,5 +1,7 @@
 # Markdown and AsciiDoc document codecs
 
+**Preset catalogue, RM simplification rule matrix, and per-format examples:** [`documents-presets.md`](documents-presets.md) (anchors: `#structural`, `#compact`, `#embedding`, `#wikilink`, `#rm-simplification-rules`).
+
 Optional codecs for openEHR RM instances (not archetype/template ADL). Import explicitly:
 
 ```ts

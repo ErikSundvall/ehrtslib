@@ -2,6 +2,7 @@
  * Markdown Serialization Configuration
  *
  * Presets: **structural** (round-trip), **compact**, **embedding**, **wikilink** (output-only).
+ * RM simplification policies: `documents_common/document_preset_rules.ts` · docs: `documents-presets.md`.
  */
 
 import { ArchetypeNodeIdLocation } from '../common/mod.ts';
