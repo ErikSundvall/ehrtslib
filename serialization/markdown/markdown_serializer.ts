@@ -46,6 +46,10 @@ import {
   type CompositionEntryDefaults,
 } from '../documents_common/document_entry_defaults.ts';
 import { formatOeMetaMarkdown } from '../documents_common/oe_structure_meta.ts';
+import {
+  shouldEmitHistoryOrigin,
+  shouldSkipLossyEventTitles,
+} from '../documents_common/history_lossy_emit.ts';
 
 /**
  * Markdown Serializer for openEHR RM objects
@@ -442,9 +446,11 @@ export class MarkdownSerializer {
 
   private serializeHistory(history: any, label: string, lines: string[], depth: number): void {
     this.emitItemStructureMeta(history, lines);
-    // History origin
-    if (history.origin && this.config.style !== 'compact') {
-      if (this.config.style === 'embedding') {
+    const events = history.events && Array.isArray(history.events) ? history.events : [];
+    const skipEventTitles = shouldSkipLossyEventTitles(this.config.style, events.length);
+
+    if (history.origin && shouldEmitHistoryOrigin(history, this.config.style)) {
+      if (this.config.style === 'embedding' || this.config.style === 'compact') {
         ensureBlankLineBeforeBlock(lines);
         lines.push(`origin: ${this.formatDateTime(history.origin)}`);
       } else {
@@ -452,11 +458,8 @@ export class MarkdownSerializer {
       }
     }
 
-    // Events
-    if (history.events && Array.isArray(history.events)) {
-      for (const event of history.events) {
-        this.serializeEvent(event, lines, depth);
-      }
+    for (const event of events) {
+      this.serializeEvent(event, lines, depth, skipEventTitles);
     }
 
     // Summary
@@ -465,19 +468,21 @@ export class MarkdownSerializer {
     }
   }
 
-  private serializeEvent(event: any, lines: string[], depth: number): void {
+  private serializeEvent(
+    event: any,
+    lines: string[],
+    depth: number,
+    skipTitle = false,
+  ): void {
     const name = this.extractName(event);
     const typeName = this.getTypeName(event);
 
-    // For single "Any event" we skip the heading in compact mode
-    if (this.config.style !== 'compact' || name !== 'Any event') {
-      if (name) {
-        const typeAnn = (typeName === 'INTERVAL_EVENT') ? ' _(interval)_' : '';
-        const title = this.formatLocatableHeadingTitle(event, name);
-        ensureBlankLineBeforeBlock(lines);
-        lines.push(`**${title}**${typeAnn}`);
-        lines.push('');
-      }
+    if (!skipTitle && name) {
+      const typeAnn = (typeName === 'INTERVAL_EVENT') ? ' _(interval)_' : '';
+      const title = this.formatLocatableHeadingTitle(event, name);
+      ensureBlankLineBeforeBlock(lines);
+      lines.push(`**${title}**${typeAnn}`);
+      lines.push('');
     }
 
     // Time

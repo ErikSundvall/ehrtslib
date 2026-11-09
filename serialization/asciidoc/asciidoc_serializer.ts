@@ -48,6 +48,10 @@ import {
   type CompositionEntryDefaults,
 } from '../documents_common/document_entry_defaults.ts';
 import { formatOeMetaAsciidoc } from '../documents_common/oe_structure_meta.ts';
+import {
+  shouldEmitHistoryOrigin,
+  shouldSkipLossyEventTitles,
+} from '../documents_common/history_lossy_emit.ts';
 
 /**
  * AsciiDoc Serializer for openEHR RM objects
@@ -460,8 +464,11 @@ export class AsciidocSerializer {
 
   private serializeHistory(history: any, label: string, lines: string[], depth: number): void {
     this.emitItemStructureMeta(history, lines);
-    if (history.origin && this.config.style !== 'compact') {
-      if (this.config.style === 'embedding') {
+    const events = history.events && Array.isArray(history.events) ? history.events : [];
+    const skipEventTitles = shouldSkipLossyEventTitles(this.config.style, events.length);
+
+    if (history.origin && shouldEmitHistoryOrigin(history, this.config.style)) {
+      if (this.config.style === 'embedding' || this.config.style === 'compact') {
         ensureBlankLineBeforeBlock(lines);
         lines.push(`origin:: ${this.formatDateTime(history.origin)}`);
       } else {
@@ -469,10 +476,8 @@ export class AsciidocSerializer {
       }
     }
 
-    if (history.events && Array.isArray(history.events)) {
-      for (const event of history.events) {
-        this.serializeEvent(event, lines, depth);
-      }
+    for (const event of events) {
+      this.serializeEvent(event, lines, depth, skipEventTitles);
     }
 
     if (history.summary) {
@@ -480,26 +485,28 @@ export class AsciidocSerializer {
     }
   }
 
-  private serializeEvent(event: any, lines: string[], depth: number): void {
+  private serializeEvent(
+    event: any,
+    lines: string[],
+    depth: number,
+    skipTitle = false,
+  ): void {
     const name = this.extractName(event);
     const nodeId = this.formatBlockNodeIdComment(event);
     const typeName = this.getTypeName(event);
 
-    // For single "Any event" we skip the heading in compact mode
-    if (this.config.style !== 'compact' || name !== 'Any event') {
-      if (name) {
-        const typeAnn = (typeName === 'INTERVAL_EVENT') ? ' _(interval)_' : '';
-        if (nodeId) this.pushBlockCommentLine(lines, nodeId);
-        ensureBlankLineBeforeBlock(lines);
-        if (this.config.style === 'embedding') {
-          const title = this.formatLocatableHeadingTitle(event, name);
-          lines.push(`.${title}${typeAnn}`);
-        } else {
-          const title = this.formatLocatableHeadingTitle(event, name);
-          lines.push(`*${title}*${typeAnn}`);
-        }
-        lines.push('');
+    if (!skipTitle && name) {
+      const typeAnn = (typeName === 'INTERVAL_EVENT') ? ' _(interval)_' : '';
+      if (nodeId) this.pushBlockCommentLine(lines, nodeId);
+      ensureBlankLineBeforeBlock(lines);
+      if (this.config.style === 'embedding') {
+        const title = this.formatLocatableHeadingTitle(event, name);
+        lines.push(`.${title}${typeAnn}`);
+      } else {
+        const title = this.formatLocatableHeadingTitle(event, name);
+        lines.push(`*${title}*${typeAnn}`);
       }
+      lines.push('');
     }
 
     if (event.time && this.config.style !== 'compact') {

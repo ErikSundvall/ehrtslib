@@ -25,6 +25,14 @@ export {
   finalizeDocumentText,
 } from "./document_emit.ts";
 export {
+  anchorEventTimeValue,
+  historyOriginRedundantWithAnchor,
+  historyOriginValue,
+  isLossyDocumentStyle,
+  shouldEmitHistoryOrigin,
+  shouldSkipLossyEventTitles,
+} from "./history_lossy_emit.ts";
+export {
   applyCompositionEntryDefaults,
   normalizeCompositionEntryDefaultsInPlace,
   codePhrasesEqual,

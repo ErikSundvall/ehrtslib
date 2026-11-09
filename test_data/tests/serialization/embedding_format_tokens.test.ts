@@ -109,10 +109,10 @@ Deno.test("embedding serializers: compact def-list style and lower token count",
     const ad = new AsciidocSerializer(EMBEDDING_ASCIIDOC_CONFIG).serialize(composition);
 
     if (name === "vital-signs") {
-      assertStringIncludes(md, "origin: ");
+      assertEquals(md.includes("origin:"), false);
       assertEquals(md.includes("- _origin:_"), false);
-      assertStringIncludes(ad, "origin:: ");
-      assertStringIncludes(ad, ".Any event");
+      assertEquals(ad.includes("origin::"), false);
+      assertEquals(ad.includes(".Any event"), false);
       assertEquals(ad.includes("* _time:_"), false);
     } else {
       assertStringIncludes(md, "Date: ");
