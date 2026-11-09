@@ -1,16 +1,23 @@
-﻿/**
+/**
  * TypeScript Constructor Serializer for openEHR RM Objects
- * 
+ *
  * Generates TypeScript constructor code that can be used to create
  * openEHR RM object instances using the "Nested Object Initialization" pattern.
- * 
+ *
  * This follows the patterns described in docs/user/brief-property-styles.md
  */
 
-import { TypeRegistry } from '../common/type_registry.ts';
-import { SerializationError } from '../common/errors.ts';
-import type { ArchetypeNodeIdLocation, NameLocation } from '../common/mod.ts';
-import { orderSerializationKeys } from '../common/property_order.ts';
+import {
+  attributesFor,
+  isAbstractType,
+  type RmAttributeMeta,
+  type RmMultiplicity,
+} from "../../meta/rm_attributes.ts";
+import { rmTypeBaseName } from "../../base/apply_rm_init.ts";
+import { TypeRegistry } from "../common/type_registry.ts";
+import { SerializationError } from "../common/errors.ts";
+import type { ArchetypeNodeIdLocation, NameLocation } from "../common/mod.ts";
+import { orderSerializationKeys } from "../common/property_order.ts";
 
 /**
  * Configuration options for TypeScript constructor serialization
@@ -31,6 +38,14 @@ export interface TypeScriptConstructorSerializationConfig {
   usePrimitiveConstructors?: boolean;
 
   /**
+   * Emit nested RM objects as plain init-object literals where the parent
+   * attribute type is an unambiguous concrete RM type (no `new SubType(...)`).
+   * Polymorphic or abstract slots still use an explicit `new` constructor.
+   * @default true
+   */
+  useNestedObjectLiterals?: boolean;
+
+  /**
    * Include comments in the generated code
    * Adds comments listing alternative/possible values for properties
    * @default false
@@ -43,6 +58,12 @@ export interface TypeScriptConstructorSerializationConfig {
    * @default false
    */
   includeUndefinedAttributes?: boolean;
+
+  /**
+   * Optional effective multiplicity overrides keyed by `RmType.attrName`
+   * (for example from operational-template constraints narrower than the RM).
+   */
+  attributeMultiplicityOverrides?: Record<string, RmMultiplicity>;
 
   /**
    * Indentation size in spaces
@@ -67,23 +88,53 @@ export interface TypeScriptConstructorSerializationConfig {
 /**
  * Default configuration
  */
-export const DEFAULT_TYPESCRIPT_CONSTRUCTOR_CONFIG: Required<TypeScriptConstructorSerializationConfig> = {
-  useTerseFormat: true,
-  usePrimitiveConstructors: true,
-  includeComments: false,
-  includeUndefinedAttributes: false,
-  indent: 2,
-  archetypeNodeIdLocation: 'after_name',
-  nameLocation: 'beginning',
-};
+export const DEFAULT_TYPESCRIPT_CONSTRUCTOR_CONFIG:
+  & Required<
+    Omit<
+      TypeScriptConstructorSerializationConfig,
+      "attributeMultiplicityOverrides"
+    >
+  >
+  & {
+    attributeMultiplicityOverrides?: Record<string, RmMultiplicity>;
+  } = {
+    useTerseFormat: true,
+    usePrimitiveConstructors: true,
+    useNestedObjectLiterals: true,
+    includeComments: false,
+    includeUndefinedAttributes: false,
+    indent: 2,
+    archetypeNodeIdLocation: "after_name",
+    nameLocation: "beginning",
+  };
+
+interface SerializationContext {
+  /** RM type of the object that owns the current attribute */
+  parentType?: string;
+  /** Attribute name on the parent, or synthetic `__items__` for list elements */
+  attrName?: string;
+  /** For list values: declared element RM type name */
+  listElementTypeName?: string;
+  /** Outermost value in `serialize()` — keep `new Type({ ... })` */
+  isSerializationRoot?: boolean;
+}
 
 /**
  * TypeScript Constructor Serializer
- * 
+ *
  * Generates TypeScript code using nested object initialization pattern
  */
 export class TypeScriptConstructorSerializer {
-  private config: Required<TypeScriptConstructorSerializationConfig>;
+  private config:
+    & Required<
+      Omit<
+        TypeScriptConstructorSerializationConfig,
+        "attributeMultiplicityOverrides"
+      >
+    >
+    & {
+      attributeMultiplicityOverrides?: Record<string, RmMultiplicity>;
+    };
   private usedTypes: Set<string> = new Set();
 
   /**
@@ -96,7 +147,7 @@ export class TypeScriptConstructorSerializer {
 
   /**
    * Serialize an RM object to TypeScript constructor code
-   * 
+   *
    * @param obj - The object to serialize
    * @param variableName - Optional variable name (default: inferred from type)
    * @returns TypeScript code string
@@ -109,11 +160,16 @@ export class TypeScriptConstructorSerializer {
       // Generate the constructor code
       const typeName = TypeRegistry.getTypeNameFromInstance(obj);
       if (!typeName) {
-        throw new SerializationError('Cannot serialize object without type information', obj);
+        throw new SerializationError(
+          "Cannot serialize object without type information",
+          obj,
+        );
       }
 
       const varName = variableName || this.getDefaultVariableName(typeName);
-      const constructorCode = this.generateConstructorCall(obj, 0);
+      const constructorCode = this.generateConstructorCall(obj, 0, {
+        isSerializationRoot: true,
+      });
 
       // Collect imports
       const rmTypes: string[] = [];
@@ -128,16 +184,20 @@ export class TypeScriptConstructorSerializer {
       }
 
       // Generate imports
-      let code = '';
+      let code = "";
       if (rmTypes.length > 0) {
-        code += `import { ${rmTypes.sort().join(', ')} } from './openehr_rm.ts';\n`;
+        code += `import { ${
+          rmTypes.sort().join(", ")
+        } } from './openehr_rm.ts';\n`;
       }
       if (baseTypes.length > 0) {
-        code += `import { ${baseTypes.sort().join(', ')} } from './openehr_base.ts';\n`;
+        code += `import { ${
+          baseTypes.sort().join(", ")
+        } } from './openehr_base.ts';\n`;
       }
 
       if (code) {
-        code += '\n';
+        code += "\n";
       }
 
       // Add variable declaration
@@ -146,9 +206,11 @@ export class TypeScriptConstructorSerializer {
       return code;
     } catch (error) {
       throw new SerializationError(
-        `Failed to serialize to TypeScript: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to serialize to TypeScript: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
         obj,
-        error instanceof Error ? error : undefined
+        error instanceof Error ? error : undefined,
       );
     }
   }
@@ -156,34 +218,35 @@ export class TypeScriptConstructorSerializer {
   /**
    * Generate a constructor call for an object
    */
-  private generateConstructorCall(obj: any, depth: number): string {
+  private generateConstructorCall(
+    obj: any,
+    depth: number,
+    ctx?: SerializationContext,
+  ): string {
     // Handle null/undefined
     if (obj === null || obj === undefined) {
-      return 'undefined';
+      return "undefined";
     }
 
     // Handle primitives
-    if (typeof obj === 'string') {
+    if (typeof obj === "string") {
       return JSON.stringify(obj);
     }
-    if (typeof obj === 'number' || typeof obj === 'boolean') {
+    if (typeof obj === "number" || typeof obj === "boolean") {
       return String(obj);
     }
 
     // Handle arrays
     if (Array.isArray(obj)) {
-      return this.generateArrayCode(obj, depth);
+      return this.generateArrayCode(obj, depth, ctx);
     }
 
     // Handle objects
     const typeName = TypeRegistry.getTypeNameFromInstance(obj);
     if (!typeName) {
       // Plain object
-      return this.generatePlainObjectCode(obj, depth);
+      return this.generatePlainObjectCode(obj, depth, ctx?.parentType);
     }
-
-    // Track used type
-    this.usedTypes.add(typeName);
 
     // Check for terse format opportunity
     if (this.config.useTerseFormat) {
@@ -194,63 +257,111 @@ export class TypeScriptConstructorSerializer {
     }
 
     // Check for primitive wrapper optimization
-    if (this.config.usePrimitiveConstructors && this.isPrimitiveWrapper(typeName)) {
-      const keys = this.getAllPropertyNames(obj).filter(k => !k.startsWith('_') && !k.startsWith('$') && k !== 'constructor');
+    if (
+      this.config.usePrimitiveConstructors && this.isPrimitiveWrapper(typeName)
+    ) {
+      const keys = this.getAllPropertyNames(obj).filter((k) =>
+        !k.startsWith("_") && !k.startsWith("$") && k !== "constructor"
+      );
       // Get keys that actually have values
-      const keysWithValues = keys.filter(k => obj[k] !== undefined);
+      const keysWithValues = keys.filter((k) => obj[k] !== undefined);
       // If it only has 'value' and it's a primitive type, use the primitive value
-      if (keysWithValues.length === 1 && keysWithValues[0] === 'value' && (typeof obj.value === 'string' || typeof obj.value === 'number' || typeof obj.value === 'boolean')) {
-        return this.generateConstructorCall(obj.value, depth);
+      if (
+        keysWithValues.length === 1 && keysWithValues[0] === "value" &&
+        (typeof obj.value === "string" || typeof obj.value === "number" ||
+          typeof obj.value === "boolean")
+      ) {
+        return this.generateConstructorCall(obj.value, depth, ctx);
       }
     }
 
-    // Generate constructor with initialization object
-    return `new ${typeName}(${this.generateInitializationObject(obj, depth + 1)})`;
+    const initObject = this.generateInitializationObject(obj, depth + 1, {
+      parentType: typeName,
+    });
+
+    if (ctx?.isSerializationRoot) {
+      this.usedTypes.add(typeName);
+      return `new ${typeName}(${initObject})`;
+    }
+
+    const emission = this.resolveNestedEmission(ctx, typeName);
+    if (emission === "literal") {
+      return initObject;
+    }
+
+    this.usedTypes.add(typeName);
+    return `new ${typeName}(${initObject})`;
   }
 
   /**
    * Generate array code
    */
-  private generateArrayCode(arr: any[], depth: number): string {
+  private generateArrayCode(
+    arr: any[],
+    depth: number,
+    ctx?: SerializationContext,
+  ): string {
     if (arr.length === 0) {
-      return '[]';
+      return "[]";
     }
 
-    const indentStr = ' '.repeat(this.config.indent * (depth + 1));
-    const items = arr.map(item =>
-      indentStr + this.generateConstructorCall(item, depth + 1)
-    ).join(',\n');
+    const elementDeclType = ctx?.parentType && ctx?.attrName
+      ? this.listElementTypeName(ctx.parentType, ctx.attrName)
+      : undefined;
 
-    return `[\n${items}\n${' '.repeat(this.config.indent * depth)}]`;
+    const indentStr = " ".repeat(this.config.indent * (depth + 1));
+    const items = arr.map((item) => {
+      const itemCtx: SerializationContext = {
+        parentType: ctx?.parentType,
+        attrName: ctx?.attrName,
+        listElementTypeName: elementDeclType,
+      };
+      return indentStr + this.generateConstructorCall(item, depth + 1, itemCtx);
+    }).join(",\n");
+
+    return `[\n${items}\n${" ".repeat(this.config.indent * depth)}]`;
   }
 
   /**
    * Generate plain object code
    */
-  private generatePlainObjectCode(obj: Record<string, any>, depth: number): string {
-    const indentStr = ' '.repeat(this.config.indent * (depth + 1));
+  private generatePlainObjectCode(
+    obj: Record<string, any>,
+    depth: number,
+    parentType?: string,
+  ): string {
+    const indentStr = " ".repeat(this.config.indent * (depth + 1));
     const properties: string[] = [];
 
     for (const [key, value] of Object.entries(obj)) {
-      if (key.startsWith('_') || key === 'constructor') {
+      if (key.startsWith("_") || key === "constructor") {
         continue;
       }
-      const valueCode = this.generateConstructorCall(value, depth + 1);
+      const valueCode = this.generateConstructorCall(value, depth + 1, {
+        parentType,
+        attrName: key,
+      });
       properties.push(`${indentStr}${key}: ${valueCode}`);
     }
 
     if (properties.length === 0) {
-      return '{}';
+      return "{}";
     }
 
-    return `{\n${properties.join(',\n')}\n${' '.repeat(this.config.indent * depth)}}`;
+    return `{\n${properties.join(",\n")}\n${
+      " ".repeat(this.config.indent * depth)
+    }}`;
   }
 
   /**
    * Generate initialization object for a constructor
    */
-  private generateInitializationObject(obj: any, depth: number): string {
-    const indentStr = ' '.repeat(this.config.indent * depth);
+  private generateInitializationObject(
+    obj: any,
+    depth: number,
+    ctx: { parentType?: string },
+  ): string {
+    const indentStr = " ".repeat(this.config.indent * depth);
     const properties: string[] = [];
     const typeName = TypeRegistry.getTypeNameFromInstance(obj);
 
@@ -268,7 +379,7 @@ export class TypeScriptConstructorSerializer {
 
     for (const key of orderedKeys) {
       // Skip internal properties
-      if (key.startsWith('_') || key === 'constructor') {
+      if (key.startsWith("_") || key === "constructor") {
         continue;
       }
 
@@ -277,17 +388,21 @@ export class TypeScriptConstructorSerializer {
       // Handle undefined values
       if (value === undefined) {
         if (this.config.includeUndefinedAttributes) {
-          if (this.config.includeComments) {
-            properties.push(`${indentStr}${key}: undefined  // TODO: Set value`);
-          } else {
-            properties.push(`${indentStr}${key}: undefined`);
+          let propertyLine = `${indentStr}${key}: undefined`;
+          const comment = this.getUndefinedAttributeComment(typeName, key);
+          if (comment) {
+            propertyLine += `, // ${comment}`;
           }
+          properties.push(propertyLine);
         }
         continue;
       }
 
       // Generate property code
-      const valueCode = this.generateConstructorCall(value, depth);
+      const valueCode = this.generateConstructorCall(value, depth, {
+        parentType: typeName,
+        attrName: key,
+      });
       let propertyLine = `${indentStr}${key}: ${valueCode}`;
 
       // Add comments if requested
@@ -302,23 +417,89 @@ export class TypeScriptConstructorSerializer {
     }
 
     if (properties.length === 0) {
-      return '{}';
+      return "{}";
     }
 
-    return `{\n${properties.join(',\n')}\n${' '.repeat(this.config.indent * (depth - 1))}}`;
+    return `{\n${properties.join(",\n")}\n${
+      " ".repeat(this.config.indent * (depth - 1))
+    }}`;
+  }
+
+  private resolveNestedEmission(
+    ctx: SerializationContext | undefined,
+    childTypeName: string,
+  ): "literal" | "explicit" {
+    if (!this.config.useNestedObjectLiterals) {
+      return "explicit";
+    }
+    if (ctx?.isSerializationRoot) {
+      return "explicit";
+    }
+
+    const declared = this.declaredAttributeType(ctx);
+    if (!declared) {
+      return "literal";
+    }
+
+    const declaredBase = rmTypeBaseName(declared.typeName);
+
+    if (
+      declaredBase === "T" || declaredBase === "X" ||
+      isAbstractType(declaredBase) ||
+      declared.polymorphic
+    ) {
+      return "explicit";
+    }
+
+    if (declaredBase !== childTypeName) {
+      return "explicit";
+    }
+
+    return "literal";
+  }
+
+  private declaredAttributeType(
+    ctx?: SerializationContext,
+  ): RmAttributeMeta | undefined {
+    if (!ctx) return undefined;
+    if (ctx.listElementTypeName) {
+      const base = rmTypeBaseName(ctx.listElementTypeName);
+      return {
+        name: "__items__",
+        typeName: ctx.listElementTypeName,
+        multiplicity: { min: 0, max: null },
+        mandatory: false,
+        declaredIn: ctx.parentType ?? "",
+        polymorphic: isAbstractType(base),
+      };
+    }
+    if (!ctx.parentType || !ctx.attrName) {
+      return undefined;
+    }
+    return attributesFor(ctx.parentType).find((a) => a.name === ctx.attrName);
+  }
+
+  private listElementTypeName(
+    parentType: string,
+    attrName: string,
+  ): string | undefined {
+    const attr = attributesFor(parentType).find((a) => a.name === attrName);
+    if (!attr) return undefined;
+    const match = attr.typeName.match(/^(?:List|Array)<(.+)>$/);
+    return match?.[1];
   }
 
   /**
    * Get all property names from an object, including getters
    */
   private getAllPropertyNames(obj: any): string[] {
-    if (!obj || typeof obj !== 'object') return [];
+    if (!obj || typeof obj !== "object") return [];
 
     const allProperties = new Set<string>();
 
     // Add own properties
-    Object.keys(obj).forEach(key => {
-      if (!key.startsWith('_') && !key.startsWith('$')) {
+    Object.keys(obj).forEach((key) => {
+      if (!key.startsWith("_") && !key.startsWith("$")) {
         allProperties.add(key);
       }
     });
@@ -326,8 +507,10 @@ export class TypeScriptConstructorSerializer {
     // Add properties from prototype chain (getters)
     let proto = Object.getPrototypeOf(obj);
     while (proto && proto !== Object.prototype) {
-      Object.getOwnPropertyNames(proto).forEach(key => {
-        if (key !== 'constructor' && !key.startsWith('_') && !key.startsWith('$')) {
+      Object.getOwnPropertyNames(proto).forEach((key) => {
+        if (
+          key !== "constructor" && !key.startsWith("_") && !key.startsWith("$")
+        ) {
           const descriptor = Object.getOwnPropertyDescriptor(proto, key);
           if (descriptor && descriptor.get) {
             allProperties.add(key);
@@ -343,31 +526,83 @@ export class TypeScriptConstructorSerializer {
   /**
    * Get all possible keys for a type (including undefined ones)
    */
-  private getAllPossibleKeys(typeName: string, existingKeys: string[]): string[] {
-    // This would require access to the class definition
-    // For now, just return existing keys
-    // TODO: Implement type introspection if needed
-    return existingKeys;
+  private getAllPossibleKeys(
+    typeName: string,
+    existingKeys: string[],
+  ): string[] {
+    const fromMeta = attributesFor(typeName).map((a) => a.name);
+    if (!fromMeta.length) {
+      return existingKeys;
+    }
+    const merged = new Set<string>([...fromMeta, ...existingKeys]);
+    return Array.from(merged);
+  }
+
+  private formatRmMultiplicity(multiplicity: RmMultiplicity): string {
+    const max = multiplicity.max === null ? "*" : String(multiplicity.max);
+    return `[${multiplicity.min}..${max}]`;
+  }
+
+  private multiplicityFor(
+    ownerType: string | undefined,
+    attrName: string,
+  ): RmMultiplicity | undefined {
+    if (!ownerType) return undefined;
+    const override = this.config.attributeMultiplicityOverrides?.[
+      `${ownerType}.${attrName}`
+    ];
+    if (override) return override;
+    return attributesFor(ownerType).find((a) => a.name === attrName)
+      ?.multiplicity;
+  }
+
+  private isMandatoryFromMultiplicity(
+    multiplicity: RmMultiplicity,
+    attr?: RmAttributeMeta,
+  ): boolean {
+    if (attr?.mandatory !== undefined) return attr.mandatory;
+    return multiplicity.min >= 1;
+  }
+
+  private getUndefinedAttributeComment(
+    ownerType: string | undefined,
+    attrName: string,
+  ): string | null {
+    if (!this.config.includeComments) return null;
+    const attr = ownerType
+      ? attributesFor(ownerType).find((a) => a.name === attrName)
+      : undefined;
+    const multiplicity = this.multiplicityFor(ownerType ?? "", attrName);
+    if (!multiplicity) {
+      return "TODO: set value or remove if not needed";
+    }
+    const card = this.formatRmMultiplicity(multiplicity);
+    const mandatory = this.isMandatoryFromMultiplicity(multiplicity, attr);
+    const reqLabel = mandatory ? "required" : "optional";
+    const todo = mandatory
+      ? "TODO: set value"
+      : "TODO: set value or remove if not needed";
+    return `${card} ${reqLabel} - ${todo}`;
   }
 
   /**
    * Get terse form for CODE_PHRASE or DV_CODED_TEXT
    */
   private getTerseForm(obj: any, typeName: string): string | null {
-    if (typeName === 'CODE_PHRASE') {
+    if (typeName === "CODE_PHRASE") {
       const terminologyId = obj.terminology_id?.value;
       const codeString = obj.code_string;
       if (terminologyId && codeString) {
         return `${terminologyId}::${codeString}`;
       }
-    } else if (typeName === 'DV_CODED_TEXT') {
+    } else if (typeName === "DV_CODED_TEXT") {
       const value = obj.value;
       const definingCode = obj.defining_code;
       if (definingCode) {
         const terminologyId = definingCode.terminology_id?.value;
         const codeString = definingCode.code_string;
         if (terminologyId && codeString) {
-          return `${terminologyId}::${codeString}|${value || ''}|`;
+          return `${terminologyId}::${codeString}|${value || ""}|`;
         }
       }
     }
@@ -379,14 +614,14 @@ export class TypeScriptConstructorSerializer {
    */
   private isPrimitiveWrapper(typeName: string): boolean {
     const primitiveWrappers = [
-      'DV_TEXT',
-      'DV_CODED_TEXT',
-      'TERMINOLOGY_ID',
-      'OBJECT_VERSION_ID',
-      'ARCHETYPE_ID',
-      'TEMPLATE_ID',
-      'HIER_OBJECT_ID',
-      'GENERIC_ID',
+      "DV_TEXT",
+      "DV_CODED_TEXT",
+      "TERMINOLOGY_ID",
+      "OBJECT_VERSION_ID",
+      "ARCHETYPE_ID",
+      "TEMPLATE_ID",
+      "HIER_OBJECT_ID",
+      "GENERIC_ID",
     ];
     return primitiveWrappers.includes(typeName);
   }
@@ -396,27 +631,27 @@ export class TypeScriptConstructorSerializer {
    */
   private isBaseType(typeName: string): boolean {
     const baseTypes = [
-      'TERMINOLOGY_ID',
-      'CODE_PHRASE',
-      'ARCHETYPE_ID',
-      'OBJECT_VERSION_ID',
-      'TEMPLATE_ID',
-      'GENERIC_ID',
-      'OBJECT_ID',
-      'UID_BASED_ID',
-      'HIER_OBJECT_ID',
-      'PARTY_REF',
-      'OBJECT_REF',
-      'LOCATABLE_REF',
-      'ACCESS_GROUP_REF',
-      'VERSIONED_OBJECT_REF',
-      'Boolean',
-      'Integer',
-      'Integer64',
-      'Real',
-      'Any',
-      'Ordered',
-      'Ordered_Numeric',
+      "TERMINOLOGY_ID",
+      "CODE_PHRASE",
+      "ARCHETYPE_ID",
+      "OBJECT_VERSION_ID",
+      "TEMPLATE_ID",
+      "GENERIC_ID",
+      "OBJECT_ID",
+      "UID_BASED_ID",
+      "HIER_OBJECT_ID",
+      "PARTY_REF",
+      "OBJECT_REF",
+      "LOCATABLE_REF",
+      "ACCESS_GROUP_REF",
+      "VERSIONED_OBJECT_REF",
+      "Boolean",
+      "Integer",
+      "Integer64",
+      "Real",
+      "Any",
+      "Ordered",
+      "Ordered_Numeric",
     ];
     return baseTypes.includes(typeName);
   }
@@ -427,11 +662,11 @@ export class TypeScriptConstructorSerializer {
   private getDefaultVariableName(typeName: string): string {
     // Convert COMPOSITION -> composition, DV_TEXT -> dvText, etc.
     const name = typeName.toLowerCase();
-    if (name.includes('_')) {
+    if (name.includes("_")) {
       // Convert SNAKE_CASE to camelCase
-      return name.split('_').map((word, i) =>
+      return name.split("_").map((word, i) =>
         i === 0 ? word : word.charAt(0).toUpperCase() + word.slice(1)
-      ).join('');
+      ).join("");
     }
     return name;
   }
@@ -439,7 +674,11 @@ export class TypeScriptConstructorSerializer {
   /**
    * Get a comment for a property (for includeComments mode)
    */
-  private getPropertyComment(typeName: string | undefined, key: string, value: any): string | null {
+  private getPropertyComment(
+    _typeName: string | undefined,
+    _key: string,
+    _value: any,
+  ): string | null {
     // This could be enhanced to provide more useful comments
     // For now, just return null
     return null;
