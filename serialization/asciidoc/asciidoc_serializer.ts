@@ -36,6 +36,10 @@ import {
   formatOeValueAnnotationAsciidoc,
   needsOeValueAnnotation,
 } from '../documents_common/oe_value_annotation.ts';
+import {
+  ensureBlankLineBeforeBlock,
+  finalizeDocumentText,
+} from '../documents_common/document_emit.ts';
 
 /**
  * AsciiDoc Serializer for openEHR RM objects
@@ -81,7 +85,7 @@ export class AsciidocSerializer {
         this.serializeNode(obj, typeName, lines, 2);
       }
 
-      return lines.join('\n') + '\n';
+      return finalizeDocumentText(lines);
     } catch (error) {
       throw new SerializationError(
         `Failed to serialize to AsciiDoc: ${error instanceof Error ? error.message : String(error)}`,
@@ -110,7 +114,9 @@ export class AsciidocSerializer {
     // = Composition name (level 1 heading)
     const name = this.extractName(comp);
     const nodeIdAnnotation = this.formatNodeIdComment(comp);
-    if (nodeIdAnnotation) lines.push(nodeIdAnnotation);
+    if (nodeIdAnnotation) {
+      this.pushBlockCommentLine(lines, nodeIdAnnotation);
+    }
     lines.push(`= ${name}`);
     lines.push('');
 
@@ -234,7 +240,7 @@ export class AsciidocSerializer {
     const name = this.extractName(section);
     const nodeId = this.formatNodeIdComment(section);
 
-    if (nodeId) lines.push(nodeId);
+    if (nodeId) this.pushBlockCommentLine(lines, nodeId);
     this.writeHeading(name, depth, lines);
     lines.push('');
 
@@ -250,7 +256,7 @@ export class AsciidocSerializer {
     const nodeId = this.formatNodeIdComment(entry);
     const typeAnnotation = this.formatTypeAnnotation(typeName);
 
-    if (nodeId) lines.push(nodeId);
+    if (nodeId) this.pushBlockCommentLine(lines, nodeId);
     const headingText = typeAnnotation ? `${name} ${typeAnnotation}` : name;
     this.writeHeading(headingText, depth, lines);
     lines.push('');
@@ -320,6 +326,7 @@ export class AsciidocSerializer {
   private serializeInstruction(instr: any, lines: string[], depth: number): void {
     if (instr.narrative) {
       const narrative = this.formatDvText(instr.narrative);
+      ensureBlankLineBeforeBlock(lines);
       lines.push(`[quote]`);
       lines.push(`____`);
       lines.push(narrative);
@@ -366,6 +373,7 @@ export class AsciidocSerializer {
   private serializeActivity(activity: any, lines: string[], depth: number): void {
     const name = this.extractName(activity);
     if (name && name !== 'Activity') {
+      ensureBlankLineBeforeBlock(lines);
       lines.push(`*${name}*`);
       lines.push('');
     }
@@ -430,7 +438,8 @@ export class AsciidocSerializer {
     if (this.config.style !== 'compact' || name !== 'Any event') {
       if (name) {
         const typeAnn = (typeName === 'INTERVAL_EVENT') ? ' _(interval)_' : '';
-        if (nodeId) lines.push(nodeId);
+        if (nodeId) this.pushBlockCommentLine(lines, nodeId);
+        ensureBlankLineBeforeBlock(lines);
         lines.push(`*${name}*${typeAnn}`);
         lines.push('');
       }
@@ -462,11 +471,13 @@ export class AsciidocSerializer {
     }
     if (this.config.style === 'lossless') {
       const field = label.toLowerCase().replace(/\s+/g, "_");
+      ensureBlankLineBeforeBlock(lines);
       lines.push(`* _${field}:_`);
       lines.push("");
       this.serializeItemStructure(itemStruct, lines, depth);
       return;
     }
+    ensureBlankLineBeforeBlock(lines);
     lines.push(`*${label}:*`);
     lines.push("");
     this.serializeItemStructure(itemStruct, lines, depth);
@@ -573,6 +584,7 @@ export class AsciidocSerializer {
   }
 
   private renderItemsAsTable(items: any[], lines: string[]): void {
+    ensureBlankLineBeforeBlock(lines);
     const hasCode = this.config.codeRendering !== 'hidden' && items.some(item => {
       return item.value && this.getDataValueCode(item.value);
     });
@@ -909,7 +921,7 @@ export class AsciidocSerializer {
     const nodeId = this.formatNodeIdComment(obj);
 
     if (name) {
-      if (nodeId) lines.push(nodeId);
+      if (nodeId) this.pushBlockCommentLine(lines, nodeId);
       this.writeHeading(name, depth, lines);
       lines.push('');
     }
@@ -998,6 +1010,7 @@ export class AsciidocSerializer {
   }
 
   private writeHeading(text: string, depth: number, lines: string[]): void {
+    ensureBlankLineBeforeBlock(lines);
     if (depth <= this.config.maxHeadingDepth) {
       const equals = '='.repeat(depth);
       lines.push(`${equals} ${text}`);
@@ -1005,6 +1018,12 @@ export class AsciidocSerializer {
       // Beyond max heading depth, use bold
       lines.push(`*${text}*`);
     }
+  }
+
+  private pushBlockCommentLine(lines: string[], commentLine: string): void {
+    if (!commentLine) return;
+    ensureBlankLineBeforeBlock(lines);
+    lines.push(commentLine);
   }
 
   private getListPrefix(nestLevel: number): string {

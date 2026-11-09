@@ -34,6 +34,10 @@ import {
   formatOeValueAnnotationMarkdown,
   needsOeValueAnnotation,
 } from '../documents_common/oe_value_annotation.ts';
+import {
+  ensureBlankLineBeforeBlock,
+  finalizeDocumentText,
+} from '../documents_common/document_emit.ts';
 
 /**
  * Markdown Serializer for openEHR RM objects
@@ -79,7 +83,7 @@ export class MarkdownSerializer {
         this.serializeNode(obj, typeName, lines, 1);
       }
 
-      return lines.join('\n') + '\n';
+      return finalizeDocumentText(lines);
     } catch (error) {
       throw new SerializationError(
         `Failed to serialize to Markdown: ${error instanceof Error ? error.message : String(error)}`,
@@ -317,6 +321,7 @@ export class MarkdownSerializer {
   private serializeInstruction(instr: any, lines: string[], depth: number): void {
     if (instr.narrative) {
       const narrative = this.formatDvText(instr.narrative);
+      ensureBlankLineBeforeBlock(lines);
       lines.push(`> ${narrative}`);
       lines.push('');
     }
@@ -360,6 +365,7 @@ export class MarkdownSerializer {
   private serializeActivity(activity: any, lines: string[], depth: number): void {
     const name = this.extractName(activity);
     if (name && name !== 'Activity') {
+      ensureBlankLineBeforeBlock(lines);
       lines.push(`**${name}**`);
       lines.push('');
     }
@@ -427,6 +433,7 @@ export class MarkdownSerializer {
     if (this.config.style !== 'compact' || name !== 'Any event') {
       if (name) {
         const typeAnn = (typeName === 'INTERVAL_EVENT') ? ' _(interval)_' : '';
+        ensureBlankLineBeforeBlock(lines);
         lines.push(`**${name}**${typeAnn}${nodeId}`);
         lines.push('');
       }
@@ -462,11 +469,13 @@ export class MarkdownSerializer {
     }
     if (this.config.style === 'structural') {
       const field = label.toLowerCase().replace(/\s+/g, "_");
+      ensureBlankLineBeforeBlock(lines);
       lines.push(`- _${field}:_`);
       lines.push("");
       this.serializeItemStructure(itemStruct, lines, depth);
       return;
     }
+    ensureBlankLineBeforeBlock(lines);
     lines.push(`**${label}:**`);
     lines.push("");
     this.serializeItemStructure(itemStruct, lines, depth);
@@ -579,6 +588,7 @@ export class MarkdownSerializer {
   }
 
   private renderItemsAsTable(items: any[], lines: string[]): void {
+    ensureBlankLineBeforeBlock(lines);
     // Determine if we need a code column
     const hasCode = this.config.codeRendering !== 'hidden' && items.some(item => {
       return item.value && this.getDataValueCode(item.value);
@@ -992,6 +1002,7 @@ export class MarkdownSerializer {
   }
 
   private writeHeading(text: string, depth: number, lines: string[]): void {
+    ensureBlankLineBeforeBlock(lines);
     if (depth <= this.config.maxHeadingDepth) {
       const hashes = '#'.repeat(depth);
       lines.push(`${hashes} ${text}`);

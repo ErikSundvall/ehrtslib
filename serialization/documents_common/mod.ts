@@ -21,6 +21,10 @@ export {
   parseDvCodedTextDisplay,
 } from "./value_parse.ts";
 export {
+  ensureBlankLineBeforeBlock,
+  finalizeDocumentText,
+} from "./document_emit.ts";
+export {
   OE_VALUE_ANNOTATION_PREFIX,
   compactDataValue,
   dataValuesEqualForRoundTrip,

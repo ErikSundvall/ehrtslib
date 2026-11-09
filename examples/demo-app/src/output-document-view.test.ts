@@ -61,6 +61,14 @@ Deno.test("markdown pipeline strips comments and markdown-it emits GFM tables", 
   assertFalse(html.includes("<!--"));
 });
 
+Deno.test("active output view tab uses light text on dark code background", async () => {
+  const cssUrl = new URL("../public/styles.css", import.meta.url);
+  const css = await Deno.readTextFile(cssUrl);
+  assertStringIncludes(css, ".output-view-tab.active");
+  assertStringIncludes(css, "color: var(--text-code)");
+  assertStringIncludes(css, "background: var(--bg-code)");
+});
+
 Deno.test("document view toggle appears only for renderable output hosts", () => {
   happyDomWindow.document.body.innerHTML = `
     <div class="editor-block">
