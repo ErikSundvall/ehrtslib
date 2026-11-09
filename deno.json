@@ -36,7 +36,10 @@
     "@automerge/automerge": "npm:@automerge/automerge@3.0.0",
     "@std/assert": "jsr:@std/assert@1",
     "@std/fs": "jsr:@std/fs@1",
-    "@std/path": "jsr:@std/path@1"
+    "@std/path": "jsr:@std/path@1",
+    "markdown-it": "npm:markdown-it@^14.1.0",
+    "dompurify": "npm:dompurify@^3.2.4",
+    "@asciidoctor/core": "npm:@asciidoctor/core@3.0.2"
   },
   "tasks": {
     "test": "deno task refresh:openehr-its-xml && deno test test_data/tests/ --allow-read --allow-env --allow-net --allow-run --allow-write --no-check",

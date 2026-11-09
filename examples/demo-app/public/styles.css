@@ -1819,7 +1819,147 @@ body {
 }
 
 /* ==========================================
-   ZipEHR (x)HTML browser preview
+   Output Code / Document view
+   ========================================== */
+.output-view-tabs {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    flex-shrink: 0;
+    border: 1px solid #334155;
+    border-bottom: none;
+    background: var(--bg-tertiary);
+}
+
+.output-view-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: transparent;
+    border: none;
+    border-right: 1px solid #334155;
+    cursor: pointer;
+}
+
+.output-view-tab:last-child {
+    border-right: none;
+}
+
+.output-view-tab:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.output-view-tab.active {
+    color: var(--text-primary);
+    background: var(--bg-code);
+}
+
+.output-view-tab-icon {
+    flex-shrink: 0;
+}
+
+.output-view-panels {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+.output-view-panel {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+.has-output-document-view {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.output-document-frame {
+    flex: 1;
+    min-height: 16rem;
+    width: 100%;
+    border: 1px solid #334155;
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+    border-top: none;
+    background: #fff;
+}
+
+.output-view-panel--document {
+    background: var(--bg-code);
+}
+
+.output-document-html-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: 0.35rem var(--spacing-md);
+    background: var(--bg-tertiary);
+    border: 1px solid #334155;
+    border-top: none;
+    font-size: 0.75rem;
+}
+
+.output-document-css-label {
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+.output-document-css-select {
+    min-width: 10rem;
+    max-width: 14rem;
+}
+
+.output-document-css-details {
+    margin-left: auto;
+    font-size: 0.75rem;
+}
+
+.output-document-css-details summary {
+    cursor: pointer;
+    color: var(--primary-color);
+}
+
+.output-document-css-editor {
+    width: 100%;
+    min-height: 6rem;
+    margin-top: 0.35rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    padding: 0.5rem;
+    border: 1px solid #334155;
+    border-radius: var(--radius-md);
+    background: var(--bg-code);
+    color: var(--text-code);
+    resize: vertical;
+}
+
+.output-info .output-view-tabs {
+    margin-left: auto;
+    border-radius: var(--radius-sm);
+    border: 1px solid #475569;
+}
+
+.zipehr-variant-pane.has-output-document-view,
+.opt-html5-variant-pane .has-output-document-view {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ==========================================
+   ZipEHR (x)HTML browser preview (legacy)
    ========================================== */
 .zipehr-html-preview {
     margin-top: var(--spacing-md);

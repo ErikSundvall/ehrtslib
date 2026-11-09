@@ -1,6 +1,20 @@
 # Markdown Serialization for openEHR
 
-Token-efficient Markdown serializers for openEHR Reference Model objects, designed for LLM context windows.
+Token-efficient Markdown serializers for openEHR RM instances, designed for LLM context windows. Pair with `MarkdownDeserializer` for the **structural** dialect only.
+
+See also [`../documents-codecs.md`](../documents-codecs.md) for the cross-codec round-trip matrix.
+
+## Preset overview
+
+| Preset | Config | Parser accepts? | Emits / omits | Intended use |
+| :--- | :--- | :--- | :--- | :--- |
+| **Structural** (default) | `STRUCTURAL_MARKDOWN_CONFIG` | **Yes** (`MarkdownDeserializer`) | Frontmatter, heading hierarchy, `_[TYPE]_`, node-id HTML comments, terse codes, sparse `<!-- oe:v1:b64:… -->` only when display text is ambiguous; `_structure:` for non-`ITEM_TREE` item structures | Round-trip RM instances with operational template validation |
+| **Clinical** | `CLINICAL_MARKDOWN_CONFIG` | **No** (output-only) | GFM tables, wikilinks; omits node IDs, types, most metadata | Human clinical documents |
+| **Compact** | `COMPACT_MARKDOWN_CONFIG` | **No** | Inline values, minimal headings; strips structural carriers | Minimum tokens for LLM context |
+| **Embedding** | `EMBEDDING_MARKDOWN_CONFIG` | **No** | Clinical hierarchy and display text only; **no** frontmatter, node IDs, `oe:v1`, or terse codes (`useTerseFormat: false`) | RAG / embedding corpora (smallest readable clinical text) |
+| **Wikilink URN** | `WIKILINK_MARKDOWN_CONFIG` | **No** | AOM `urn:openehr:aom:…` wikilinks; hides type annotations for display | Wiki tools (Obsidian, Logseq) |
+
+**Structural vs compact vs embedding:** compact and embedding both drop path-identifying markers; **embedding** is the dedicated minimal clinical dialect (no `oe:v1`, no codes in line). **Compact** is similar but can still use terse inlined codes. Only **structural** is accepted by `MarkdownDeserializer` (`MARKDOWN_CODEC_MATRIX.losslessDialects`).
 
 ## Variants
 
@@ -30,49 +44,21 @@ composer: "Dr. Smith"
 
 ### 2. Structural Markdown (`STRUCTURAL_MARKDOWN_CONFIG`) - Default
 
-Lossless format that preserves all information needed for round-tripping when combined with the template. Uses HTML comments for archetype_node_ids and type annotations.
+Lossless dialect for round-tripping **when the operational template is available**. Uses HTML comments for archetype node ids, type annotations, and sparse `oe:v1:b64` value typing.
 
-**Use case:** LLM context that needs to be converted back to canonical JSON/XML
-
-**Example output:**
-```markdown
----
-uid: "907a3c-..."
-template_id: "Blood Pressure Template v1"
-archetype_id: "openEHR-EHR-COMPOSITION.encounter.v1"
-composer: "Dr. Smith"
-language: "ISO_639-1::en"
-territory: "ISO_3166-1::GB"
-category: "openehr::433|event|"
----
-# Blood Pressure Recording <!-- openEHR-EHR-COMPOSITION.encounter.v1 -->
-
-## Blood pressure _[OBSERVATION]_ <!-- openEHR-EHR-OBSERVATION.blood_pressure.v2 -->
-
-- _origin:_ 2026-04-13T10:30:00Z
-**Any event** <!-- at0006 -->
-
-- _time:_ 2026-04-13T10:30:00Z
-- **Systolic:** 145 mm[Hg] <!-- at0004 -->
-- **Diastolic:** 90 mm[Hg] <!-- at0005 -->
-```
+**Use case:** LLM context that must parse back to RM JSON with template validation
 
 ### 3. Compact Markdown (`COMPACT_MARKDOWN_CONFIG`)
 
-Maximum token efficiency. Strips all structural overhead. Only clinical content remains.
+Maximum token efficiency. Strips structural overhead; only clinical surface content remains.
 
-**Use case:** Fitting maximum patient data into LLM context windows (~70-80% reduction vs canonical JSON)
+### 4. Embedding Markdown (`EMBEDDING_MARKDOWN_CONFIG`)
 
-**Example output:**
-```markdown
-# Blood Pressure Recording
+Human-readable hierarchy without machine annotations — intentionally **not** parseable as structural Markdown (`InvalidFormatError` if you try).
 
-## Blood pressure
+### 5. Wikilink URN (`WIKILINK_MARKDOWN_CONFIG`)
 
-- Systolic: 145 mm[Hg]
-- Diastolic: 90 mm[Hg]
-- Mean arterial pressure: 108 mm[Hg]
-```
+Clinical-style layout with `[[urn:openehr:aom:…|label]]` links; output-only.
 
 ## Structural Mapping
 
@@ -93,38 +79,32 @@ Maximum token efficiency. Strips all structural overhead. Only clinical content 
 ## Usage
 
 ```typescript
-import { MarkdownSerializer, CLINICAL_MARKDOWN_CONFIG, COMPACT_MARKDOWN_CONFIG } from './mod.ts';
+import {
+  MarkdownSerializer,
+  MarkdownDeserializer,
+  CLINICAL_MARKDOWN_CONFIG,
+  COMPACT_MARKDOWN_CONFIG,
+  EMBEDDING_MARKDOWN_CONFIG,
+} from "ehrtslib/serialization-markdown";
 
-// Clinical (human-readable)
-const clinical = new MarkdownSerializer(CLINICAL_MARKDOWN_CONFIG);
-const doc = clinical.serialize(composition);
-
-// Structural (lossless, default)
 const structural = new MarkdownSerializer();
-const lossless = structural.serialize(composition);
-
-// Compact (max token efficiency)
-const compact = new MarkdownSerializer(COMPACT_MARKDOWN_CONFIG);
-const efficient = compact.serialize(composition);
-
-// One-shot with custom config
-const custom = MarkdownSerializer.serializeWith(composition, {
-  style: 'structural',
-  includeArchetypeNodeIds: true,
-  codeRendering: 'wikilink',
-  maxHeadingDepth: 3,
-});
+const md = structural.serialize(composition);
+const round = new MarkdownDeserializer({ validateAgainstTemplate: opt })
+  .deserialize(md);
 ```
 
 ## Round-tripping (Structural variant)
 
-The structural variant preserves enough information for round-tripping **when the template is available**:
+`MarkdownDeserializer` accepts **structural** dialect only. It preserves:
 
-1. YAML frontmatter stores composition-level metadata (uid, template_id, archetype_id, composer, language, territory, category)
-2. HTML comments store archetype_node_ids at each level
-3. Type annotations (e.g., `_[OBSERVATION]_`) disambiguate entry types
-4. All data values are preserved with their types
-5. Given the template, the deserializer can reconstruct the full path structure
+1. YAML frontmatter (composition metadata)
+2. HTML comments for `archetype_node_id`
+3. Type annotations on entries
+4. Sparse `<!-- oe:v1:b64:… -->` when display text alone is ambiguous
+
+Tests: `test_data/tests/serialization/markdown_roundtrip.test.ts`, `documents_codec_matrix.test.ts`, `opt_template_roundtrip.test.ts`.
+
+**Limits:** Round-trip is **template-validated** RM instance reconstruction, not guaranteed **canonical JSON equality** when optional document branches are elided on large OPT-generated instances. Embedding/clinical/compact/wikilink output is rejected with `InvalidFormatError`.
 
 ## Token Efficiency
 
@@ -135,4 +115,4 @@ Approximate token savings vs canonical JSON for a typical blood pressure composi
 | Canonical JSON | 100% (baseline) |
 | Structural Markdown | ~35-40% |
 | Clinical Markdown | ~25-30% |
-| Compact Markdown | ~15-25% |
+| Compact / Embedding | ~15-25% (embedding often smallest) |

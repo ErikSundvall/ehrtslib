@@ -70,15 +70,10 @@ import {
 } from "./codemirror-setup.ts";
 import { initEditorDisplaySettings } from "./editor-settings.ts";
 import {
-  initZipehrHtmlPreview,
-  onZipehrMarkupVariantChanged,
-  refreshZipehrHtmlPreview,
-} from "./zipehr-html-preview.ts";
-import {
-  initOptHtml5Preview,
-  onOptHtml5VariantChanged,
-  refreshOptHtml5Preview,
-} from "./opt-html5-preview.ts";
+  initOutputDocumentViews,
+  onHtmlOutputVariantChanged,
+  refreshActiveDocumentViews,
+} from "./output-document-view.ts";
 
 /** Primary instance example: Ehrlibs Accident report FLAT (see model-examples-catalog). */
 const DEFAULT_INSTANCE_EXAMPLE = "accident-report-vitals";
@@ -142,24 +137,7 @@ function init() {
   syncInputEditorLanguage();
   setupEventListeners();
   installInfoTips();
-  initZipehrHtmlPreview({
-    getActiveVariant: () => getActiveZipehrVariant(),
-    getActiveHtml: () => {
-      const v = getActiveZipehrVariant();
-      return getDemoEditor(`output-${v}-content`)?.value ??
-        currentOutputs[v] ??
-        "";
-    },
-  });
-  initOptHtml5Preview({
-    getActiveVariant: () => getActiveOptHtml5Variant(),
-    getActiveHtml: () => {
-      const v = getActiveOptHtml5Variant();
-      return getDemoEditor(`output-${v}-content`)?.value ??
-        currentOutputs[v] ??
-        "";
-    },
-  });
+  initOutputDocumentViews();
   updateAutoConvertButtonUi();
   updateTemplateLanguageOptions();
   syncOptHtml5TemplateUi();
@@ -475,7 +453,7 @@ function switchOptHtml5VariantPane(): void {
   const html = getDemoEditor(`output-${variant}-content`)?.value ??
     currentOutputs[variant] ??
     "";
-  onOptHtml5VariantChanged(variant, html);
+  onHtmlOutputVariantChanged(variant, html);
 }
 
 function setupOptHtml5VariantListener(): void {
@@ -629,7 +607,7 @@ function switchZipehrVariantPane(): void {
   const html = getDemoEditor(`output-${variant}-content`)?.value ??
     currentOutputs[variant] ??
     "";
-  onZipehrMarkupVariantChanged(variant, html);
+  onHtmlOutputVariantChanged(variant, html);
 }
 
 function switchSimplifiedVariantPane(): void {
@@ -2468,25 +2446,12 @@ function updateOutputs(outputs: Record<string, string>) {
   });
   // Refresh output info (counts and styles) for current active tab
   updateOutputInfo();
-  syncZipehrHtmlPreviewFromOutputs();
-  syncOptHtml5PreviewFromOutputs();
+  refreshActiveDocumentViews((formatKey) =>
+    getDemoEditor(`output-${formatKey}-content`)?.value ??
+      currentOutputs[formatKey] ??
+      ""
+  );
   syncOptXmlTemplateUi();
-}
-
-function syncZipehrHtmlPreviewFromOutputs(): void {
-  const variant = getActiveZipehrVariant();
-  const html = getDemoEditor(`output-${variant}-content`)?.value ??
-    currentOutputs[variant] ??
-    "";
-  void refreshZipehrHtmlPreview({ variant, html });
-}
-
-function syncOptHtml5PreviewFromOutputs(): void {
-  const variant = getActiveOptHtml5Variant();
-  const html = getDemoEditor(`output-${variant}-content`)?.value ??
-    currentOutputs[variant] ??
-    "";
-  void refreshOptHtml5Preview({ variant, html });
   syncOptHtml5TemplateUi();
 }
 
