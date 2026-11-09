@@ -3,7 +3,8 @@
  */
 
 import type { openehr_am } from "../../am/openehr_am.ts";
-import { parseCodePhraseDisplay, parseDataValueDisplay, parseDvCodedTextDisplay } from "./value_parse.ts";
+import { parseCodePhraseDisplay, parseDvCodedTextDisplay } from "./value_parse.ts";
+import { resolveDataValueFromDisplayAndAnnotation } from "./oe_value_annotation.ts";
 import type { DocumentBlock, DocumentBoldBlock, DocumentHeadingBlock, DocumentListItemBlock } from "./document_blocks.ts";
 import { ENTRY_TYPES } from "./document_blocks.ts";
 
@@ -83,12 +84,34 @@ function itemTree(): Record<string, unknown> {
   return { _type: "ITEM_TREE", items: [] as unknown[] };
 }
 
+function listItemStructureTarget(
+  stack: StackFrame[],
+  entryForMeta?: Extract<StackFrame, { kind: "entry" }>,
+): Record<string, unknown> | null {
+  const top = stack[stack.length - 1];
+  if (top?.kind === "event") return top.data;
+  if (top?.kind === "items") return top.parent;
+  if (top?.kind === "history") return top.obj;
+  if (entryForMeta) {
+    const withData = new Set(["OBSERVATION", "EVALUATION", "ADMIN_ENTRY", "INSTRUCTION"]);
+    if (withData.has(entryForMeta.entryType)) {
+      if (!entryForMeta.obj.data) {
+        entryForMeta.obj.data = entryForMeta.entryType === "OBSERVATION"
+          ? { _type: "HISTORY", events: [] }
+          : itemTree();
+      }
+      return entryForMeta.obj.data as Record<string, unknown>;
+    }
+  }
+  return null;
+}
+
 function parseListMeta(
   block: DocumentListItemBlock,
 ): { field?: string; name?: string; valueText?: string } {
   const raw = block.raw.replace(/<!--\s*[^>]+\s*-->/, "").trim();
   const meta = raw.replace(/^-\s*/, "");
-  const metaMatch = meta.match(/^_(.+?):_\s*(.+)$/);
+  const metaMatch = meta.match(/^_(.+?):_\s*(.*)$/s);
   if (metaMatch) {
     return { field: metaMatch[1].toLowerCase(), valueText: metaMatch[2].trim() };
   }
@@ -101,11 +124,12 @@ function addElement(
   name: string,
   valueText: string,
   nodeId?: string,
+  oeValuePayload?: string,
 ): void {
   const el: Record<string, unknown> = {
     _type: "ELEMENT",
     name: dvText(name),
-    value: parseDataValueDisplay(valueText),
+    value: resolveDataValueFromDisplayAndAnnotation(valueText, oeValuePayload),
   };
   if (nodeId) el.archetype_node_id = nodeId;
   items.push(el);
@@ -303,6 +327,77 @@ export function blocksToRmObject(
         : [...stack].reverse().find(
           (f): f is Extract<StackFrame, { kind: "entry" }> => f.kind === "entry",
         );
+      if (parsed.field === "language" && entryForMeta) {
+        const cp = parseCodePhraseDisplay(parsed.valueText ?? "");
+        if (cp) entryForMeta.obj.language = cp;
+        continue;
+      }
+      if (parsed.field === "encoding" && entryForMeta) {
+        const cp = parseCodePhraseDisplay(parsed.valueText ?? "");
+        if (cp) entryForMeta.obj.encoding = cp;
+        continue;
+      }
+      if (parsed.field === "subject" && entryForMeta) {
+        entryForMeta.obj.subject = { _type: parsed.valueText ?? "PARTY_SELF" };
+        continue;
+      }
+      if (parsed.field === "item_node_id") {
+        const target = listItemStructureTarget(stack, entryForMeta);
+        if (target) {
+          target.archetype_node_id = parsed.valueText;
+          continue;
+        }
+      }
+      if (parsed.field === "item_name") {
+        const target = listItemStructureTarget(stack, entryForMeta);
+        if (target) {
+          target.name = dvText(parsed.valueText ?? "");
+          continue;
+        }
+      }
+      if (parsed.field === "protocol") {
+        const entry = entryForMeta;
+        if (entry?.entryType === "OBSERVATION" || entry?.entryType === "EVALUATION" ||
+          entry?.entryType === "INSTRUCTION" || entry?.entryType === "ACTION") {
+          if (!entry.obj.protocol) entry.obj.protocol = itemTree();
+          while (stack.length > 0 && stack[stack.length - 1].kind !== "entry") stack.pop();
+          stack.push({
+            kind: "items",
+            parent: entry.obj.protocol as Record<string, unknown>,
+            itemsKey: "items",
+          });
+          continue;
+        }
+      }
+      if (parsed.field === "state") {
+        const eventFrame = [...stack].reverse().find(
+          (f): f is Extract<StackFrame, { kind: "event" }> => f.kind === "event",
+        );
+        if (eventFrame) {
+          if (!eventFrame.obj.state) eventFrame.obj.state = itemTree();
+          while (stack.length > 0 && stack[stack.length - 1].kind !== "event") stack.pop();
+          stack.push({
+            kind: "items",
+            parent: eventFrame.obj.state as Record<string, unknown>,
+            itemsKey: "items",
+          });
+          continue;
+        }
+      }
+      if (parsed.field === "summary") {
+        const entry = entryForMeta;
+        if (entry?.entryType === "OBSERVATION" && entry.obj.data) {
+          const hist = entry.obj.data as Record<string, unknown>;
+          if (!hist.summary) hist.summary = itemTree();
+          while (stack.length > 0 && stack[stack.length - 1].kind !== "entry") stack.pop();
+          stack.push({
+            kind: "items",
+            parent: hist.summary as Record<string, unknown>,
+            itemsKey: "items",
+          });
+          continue;
+        }
+      }
       if (parsed.field === "structure") {
         const rmType = parsed.valueText?.trim();
         if (rmType && /^[A-Z][A-Z0-9_]*$/.test(rmType)) {
@@ -328,10 +423,22 @@ export function blocksToRmObject(
         top.obj.time = { _type: "DV_DATE_TIME", value: parsed.valueText ?? "" };
         continue;
       }
+      if (parsed.name && parsed.valueText === undefined && li.label && !parsed.field) {
+        const items = currentItems();
+        if (items) {
+          const cluster: Record<string, unknown> = {
+            _type: "CLUSTER",
+            name: dvText(parsed.name),
+          };
+          if (li.archetypeNodeId) cluster.archetype_node_id = li.archetypeNodeId;
+          items.push(cluster);
+          continue;
+        }
+      }
       if (parsed.name && parsed.valueText !== undefined) {
         const items = currentItems();
         if (items) {
-          addElement(items, parsed.name, parsed.valueText, li.archetypeNodeId);
+          addElement(items, parsed.name, parsed.valueText ?? "", li.archetypeNodeId, li.oeValuePayload);
           continue;
         }
         if (top?.kind === "section") {
@@ -339,8 +446,9 @@ export function blocksToRmObject(
           addElement(
             ensureArray(tree, "items"),
             parsed.name,
-            parsed.valueText,
+            parsed.valueText ?? "",
             li.archetypeNodeId,
+            li.oeValuePayload,
           );
           ensureArray(top.obj, "items").push(tree);
         }
@@ -361,7 +469,13 @@ export function blocksToRmObject(
           const li = block as DocumentListItemBlock;
           const parsed = parseListMeta(li);
           if (parsed.name && parsed.valueText) {
-            addElement(ensureArray(items, "items"), parsed.name, parsed.valueText, li.archetypeNodeId);
+            addElement(
+              ensureArray(items, "items"),
+              parsed.name,
+              parsed.valueText ?? "",
+              li.archetypeNodeId,
+              li.oeValuePayload,
+            );
           }
         }
       }

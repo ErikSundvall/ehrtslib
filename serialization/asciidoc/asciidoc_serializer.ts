@@ -32,6 +32,10 @@ import {
   DEFAULT_ASCIIDOC_SERIALIZATION_CONFIG,
 } from './asciidoc_config.ts';
 import { toOpenehrAomArchetypeUrn } from '../documents_common/openehr_aom_urn.ts';
+import {
+  formatOeValueAnnotationAsciidoc,
+  needsOeValueAnnotation,
+} from '../documents_common/oe_value_annotation.ts';
 
 /**
  * AsciiDoc Serializer for openEHR RM objects
@@ -259,6 +263,10 @@ export class AsciidocSerializer {
       if (entry.encoding) {
         lines.push(`* _encoding:_ ${this.formatCodePhrase(entry.encoding)}`);
       }
+      if (entry.subject) {
+        const st = this.getTypeName(entry.subject);
+        if (st) lines.push(`* _subject:_ ${st}`);
+      }
     }
 
     // Type-specific content
@@ -387,7 +395,17 @@ export class AsciidocSerializer {
 
   // ─── HISTORY ─────────────────────────────────────────────────────────
 
+  private emitItemStructureMeta(itemStruct: any, lines: string[]): void {
+    if (this.config.style !== "lossless" || !itemStruct) return;
+    if (itemStruct.archetype_node_id) {
+      lines.push(`* _item_node_id:_ ${itemStruct.archetype_node_id}`);
+    }
+    const n = this.extractName(itemStruct);
+    if (n) lines.push(`* _item_name:_ ${n}`);
+  }
+
   private serializeHistory(history: any, label: string, lines: string[], depth: number): void {
+    this.emitItemStructureMeta(history, lines);
     if (history.origin && this.config.style !== 'compact') {
       lines.push(`* _origin:_ ${this.formatDateTime(history.origin)}`);
     }
@@ -440,11 +458,18 @@ export class AsciidocSerializer {
   private serializeNamedItemStructure(itemStruct: any, label: string, lines: string[], depth: number): void {
     if (this.config.style === 'compact') {
       this.serializeItemStructure(itemStruct, lines, depth);
-    } else {
-      lines.push(`*${label}:*`);
-      lines.push('');
-      this.serializeItemStructure(itemStruct, lines, depth);
+      return;
     }
+    if (this.config.style === 'lossless') {
+      const field = label.toLowerCase().replace(/\s+/g, "_");
+      lines.push(`* _${field}:_`);
+      lines.push("");
+      this.serializeItemStructure(itemStruct, lines, depth);
+      return;
+    }
+    lines.push(`*${label}:*`);
+    lines.push("");
+    this.serializeItemStructure(itemStruct, lines, depth);
   }
 
   private serializeItemStructure(itemStruct: any, lines: string[], _depth: number): void {
@@ -453,6 +478,7 @@ export class AsciidocSerializer {
     const typeName = this.getTypeName(itemStruct);
 
     if (typeName === 'ITEM_TREE' || typeName === 'ITEM_LIST' || typeName === 'ITEM_TABLE') {
+      this.emitItemStructureMeta(itemStruct, lines);
       if (this.config.style === 'lossless' && typeName !== 'ITEM_TREE') {
         lines.push(`* _structure:_ ${typeName}`);
       }
@@ -522,12 +548,19 @@ export class AsciidocSerializer {
     }
 
     const valueStr = this.formatDataValue(element.value);
+    const dvAnn = this.formatSparseValueAnnotation(element.value, valueStr);
 
     if (this.config.style === 'compact' || this.config.dataValueRendering === 'inline') {
-      lines.push(`${indent} ${name}: ${valueStr}${nodeId}`);
+      lines.push(`${indent} ${name}: ${valueStr}${nodeId}${dvAnn}`);
     } else {
-      lines.push(`${indent} *${name}:* ${valueStr}${nodeId}`);
+      lines.push(`${indent} *${name}:* ${valueStr}${nodeId}${dvAnn}`);
     }
+  }
+
+  private formatSparseValueAnnotation(dv: unknown, display: string): string {
+    if (this.config.style !== 'lossless' || !dv || typeof dv !== 'object') return '';
+    if (!needsOeValueAnnotation(dv as Record<string, unknown>, display)) return '';
+    return formatOeValueAnnotationAsciidoc(dv as Record<string, unknown>);
   }
 
   // ─── TABLE RENDERING ─────────────────────────────────────────────────

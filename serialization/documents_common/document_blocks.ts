@@ -2,6 +2,11 @@
  * Normalized block stream for Markdown and AsciiDoc document deserializers.
  */
 
+import {
+  isOeValueAnnotationInner,
+  OE_VALUE_ANNOTATION_PREFIX,
+} from "./oe_value_annotation.ts";
+
 export type DocumentHeadingBlock = {
   kind: "heading";
   level: number;
@@ -18,6 +23,8 @@ export type DocumentListItemBlock = {
   value?: string;
   raw: string;
   archetypeNodeId?: string;
+  /** Inner payload `oe:v1:b64:…` when present (sparse value typing). */
+  oeValuePayload?: string;
 };
 
 export type DocumentBoldBlock = {
@@ -61,14 +68,22 @@ export const ENTRY_TYPES = new Set([
 
 export function stripNodeIdAndType(
   line: string,
-): { text: string; archetypeNodeId?: string; rmType?: string } {
+): { text: string; archetypeNodeId?: string; rmType?: string; oeValuePayload?: string } {
   let rest = line.trim();
   let archetypeNodeId: string | undefined;
+  let oeValuePayload: string | undefined;
 
-  const comment = rest.match(/<!--\s*([^>]+)\s*-->/);
-  if (comment) {
-    archetypeNodeId = comment[1].trim();
-    rest = rest.replace(/<!--\s*[^>]+\s*-->/g, "").trim();
+  for (const comment of rest.matchAll(/<!--\s*([^>]+?)\s*-->/g)) {
+    const inner = comment[1].trim();
+    if (isOeValueAnnotationInner(inner)) oeValuePayload = inner;
+    else if (isArchetypeNodeIdMarker(inner)) archetypeNodeId ??= inner;
+  }
+  rest = rest.replace(/<!--\s*[^>]+?\s*-->/g, "").trim();
+
+  const oeAdoc = rest.match(new RegExp(String.raw`\s+//\s+(${OE_VALUE_ANNOTATION_PREFIX}\S+)\s*$`));
+  if (oeAdoc) {
+    oeValuePayload = oeAdoc[1].trim();
+    rest = rest.replace(new RegExp(String.raw`\s+//\s+${OE_VALUE_ANNOTATION_PREFIX}\S+\s*$`), "").trim();
   }
 
   const inlineAdoc = rest.match(/\s+\/\/\s+([^\s]+)\s*$/);
@@ -89,7 +104,7 @@ export function stripNodeIdAndType(
 
   rest = rest.replace(/\[\[urn:openehr:aom:[^\]]+\|[^\]]*\]\]/g, "").trim();
 
-  return { text: rest, archetypeNodeId, rmType };
+  return { text: rest, archetypeNodeId, rmType, oeValuePayload };
 }
 
 /** AsciiDoc `//` comment lines that carry round-trip archetype node ids (not free-form doc notes). */

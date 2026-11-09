@@ -84,7 +84,7 @@ export function lexAsciidocLossless(text: string): {
     if (list) {
       const stripped = stripNodeIdAndType(list[1]);
       const itemText = stripped.text;
-      const meta = itemText.match(/^_(.+?):_\s*(.+)$/);
+      const meta = itemText.match(/^_(.+?):_\s*(.*)$/s);
       if (meta) {
         blocks.push({
           kind: "list_item",
@@ -93,6 +93,7 @@ export function lexAsciidocLossless(text: string): {
           label: meta[1],
           value: meta[2],
           archetypeNodeId: stripped.archetypeNodeId ?? pendingNodeId,
+          oeValuePayload: stripped.oeValuePayload,
         });
       } else {
         const kv = itemText.match(/^\*\*(.+?)\*\*::\s*(.+)$/) ??
@@ -106,6 +107,7 @@ export function lexAsciidocLossless(text: string): {
             value: kv[2],
             raw: itemText,
             archetypeNodeId: stripped.archetypeNodeId ?? pendingNodeId,
+            oeValuePayload: stripped.oeValuePayload,
           });
         } else {
           const plain = itemText.match(/^(.+?):\s*(.+)$/);
@@ -116,6 +118,7 @@ export function lexAsciidocLossless(text: string): {
             value: plain?.[2],
             raw: itemText,
             archetypeNodeId: stripped.archetypeNodeId ?? pendingNodeId,
+            oeValuePayload: stripped.oeValuePayload,
           });
         }
       }

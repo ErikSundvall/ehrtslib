@@ -40,4 +40,17 @@ Measure sizes with the demo’s `gpt-tokenizer` `o200k_base` counter (exact for 
 
 Structural Markdown / lossless AsciiDoc emit `- _structure:_ ITEM_LIST` (etc.) when the RM type is not `ITEM_TREE`, so nested item structures round-trip with the correct RM class.
 
-**Limits:** Document codecs round-trip **RM instances** with template-assisted validation; they do not claim full reversibility of archetypes, operational templates, or ADL/OPT authoring artefacts.
+### Sparse machine annotations (`oe:v1`)
+
+Structural serializers add **hidden value typing only when display text is ambiguous** — not on every field.
+
+| Dialect | Carrier |
+| --- | --- |
+| Markdown `structural` | `<!-- oe:v1:b64:… -->` after the list item |
+| AsciiDoc `lossless` | `// oe:v1:b64:…` at end of line |
+
+Payload: base64url-encoded UTF-8 JSON (`_type` + minimal value fields). Parsers treat it as authoritative; bad payloads → `InvalidFormatError`. Embedding output includes **no** `oe:v1` markers.
+
+Typically **no** annotation: clear quantities (`145 mm[Hg]`), terse coded values with `[term::code]` in the line. Typically **yes**: coded rubrics without visible codes, `DV_COUNT`, `DV_ORDINAL`, `DV_TEXT` that looks like a date/quantity, extra fields such as `precision`.
+
+**Limits:** Document codecs round-trip **RM instances** with template-assisted validation; they do not claim full reversibility of archetypes, operational templates, or ADL/OPT authoring artefacts. Large OPT example instances may be template-valid after round-trip without full canonical JSON equality when optional document branches are elided.

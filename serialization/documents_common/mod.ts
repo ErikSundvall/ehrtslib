@@ -20,3 +20,16 @@ export {
   parseDataValueDisplay,
   parseDvCodedTextDisplay,
 } from "./value_parse.ts";
+export {
+  OE_VALUE_ANNOTATION_PREFIX,
+  compactDataValue,
+  dataValuesEqualForRoundTrip,
+  displayTextRecoversDataValue,
+  encodeOeValueAnnotationPayload,
+  formatOeValueAnnotationAsciidoc,
+  formatOeValueAnnotationMarkdown,
+  isOeValueAnnotationInner,
+  needsOeValueAnnotation,
+  parseOeValueAnnotationPayload,
+  resolveDataValueFromDisplayAndAnnotation,
+} from "./oe_value_annotation.ts";
