@@ -22,14 +22,20 @@ export function rmPatchDiff(
 ): Record<string, unknown> | null {
   const patch: Record<string, unknown> = {};
   const type = target._type;
-  if (typeof type === "string") patch._type = type;
   for (const [key, val] of Object.entries(target)) {
     if (key === "_type") continue;
     if (!(key in recovered) || stableJson(recovered[key]) !== stableJson(val)) {
       patch[key] = val;
     }
   }
-  if (Object.keys(patch).length <= 1) return null;
+  const recoveredType = recovered._type;
+  if (
+    typeof type === "string" &&
+    (typeof recoveredType !== "string" || recoveredType !== type)
+  ) {
+    patch._type = type;
+  }
+  if (Object.keys(patch).length === 0) return null;
   return compactRmObject(patch) as Record<string, unknown>;
 }
 
@@ -39,10 +45,12 @@ export function mergeRmPatch(
 ): Record<string, unknown> {
   const out = { ...base };
   for (const [k, v] of Object.entries(patch)) {
-    if (k === "_type" && out._type) continue;
+    if (k === "_type" && typeof v === "string") {
+      out._type = v;
+      continue;
+    }
     out[k] = v;
   }
-  if (patch._type && !out._type) out._type = patch._type;
   return out;
 }
 
@@ -52,7 +60,7 @@ export function mergeRmPatchPayload(
 ): Record<string, unknown> {
   if (!payload) return base;
   try {
-    const patch = parseOeRmAnnotationPayload(payload);
+    const patch = parseOeRmAnnotationPayload(payload, undefined, { requireType: false });
     return mergeRmPatch(base, patch);
   } catch {
     return base;

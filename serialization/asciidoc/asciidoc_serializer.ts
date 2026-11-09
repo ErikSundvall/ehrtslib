@@ -44,6 +44,7 @@ import {
   computeCompositionEntryDefaults,
   entryMetadataDiffersFromDefaults,
   formatSubjectMeta,
+  formatSubjectStructural,
   writeEntryDefaultsToAsciidocAttrs,
   type CompositionEntryDefaults,
 } from '../documents_common/document_entry_defaults.ts';
@@ -485,7 +486,7 @@ export class AsciidocSerializer {
       if (entry.language) lines.push(`* _language:_ ${this.formatCodePhrase(entry.language)}`);
       if (entry.encoding) lines.push(`* _encoding:_ ${this.formatCodePhrase(entry.encoding)}`);
       if (entry.subject) {
-        lines.push(`* _subject:_ ${formatSubjectMeta(entry.subject)}`);
+        lines.push(`* _subject:_ ${formatSubjectStructural(entry.subject, "asciidoc")}`);
       }
       return;
     }
@@ -497,7 +498,7 @@ export class AsciidocSerializer {
       lines.push(`* _encoding:_ ${this.formatCodePhrase(entry.encoding)}`);
     }
     if (diff.subject && entry.subject) {
-      lines.push(`* _subject:_ ${formatSubjectMeta(entry.subject)}`);
+      lines.push(`* _subject:_ ${formatSubjectStructural(entry.subject, "asciidoc")}`);
     }
   }
 

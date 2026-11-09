@@ -19,7 +19,11 @@ import type {
   DocumentStructureMetaBlock,
 } from "./document_blocks.ts";
 import { ENTRY_TYPES } from "./document_blocks.ts";
-import { applyCompositionEntryDefaults, parseSubjectMeta } from "./document_entry_defaults.ts";
+import {
+  applyCompositionEntryDefaults,
+  parseSubjectFromList,
+  parseSubjectMeta,
+} from "./document_entry_defaults.ts";
 
 export interface DocumentMetadata {
   frontmatter: Record<string, string>;
@@ -186,7 +190,13 @@ function parseContextScalarField(
   text: string,
   oeRm?: string,
 ): unknown {
-  if (oeRm) return parseOeRmAnnotationPayload(oeRm);
+  if (oeRm) {
+    const fromText = parseContextScalarField(field, text, undefined);
+    const base = (fromText && typeof fromText === "object")
+      ? { ...(fromText as Record<string, unknown>) }
+      : { _type: "DV_TEXT", value: text };
+    return mergeRmPatchPayload(base, oeRm);
+  }
   const t = text.trim();
   if (field === "start_time" || field === "end_time") {
     return { _type: "DV_DATE_TIME", value: t };
@@ -459,13 +469,78 @@ export function blocksToRmObject(
       }
       const parsed = parseListMeta(li);
       const comp = compositionFromStack(stack);
-      if (comp && parsed.field) {
+      const entryOnStack = entryFromStack(stack);
+      const entryScopedMeta = new Set([
+        "link",
+        "feeder_audit",
+        "archetype_details",
+        "language",
+        "encoding",
+        "subject",
+        "other_participation",
+      ]);
+      const handleAtComposition = comp && parsed.field &&
+        !(entryOnStack && top?.kind === "entry" && entryScopedMeta.has(parsed.field));
+
+      const entryForMeta = top?.kind === "entry"
+        ? top
+        : [...stack].reverse().find(
+          (f): f is Extract<StackFrame, { kind: "entry" }> => f.kind === "entry",
+        );
+
+      if (entryForMeta && parsed.field === "language") {
+        const cp = parseCodePhraseDisplay(parsed.valueText ?? "");
+        if (cp) entryForMeta.obj.language = cp;
+        continue;
+      }
+      if (entryForMeta && parsed.field === "encoding") {
+        const cp = parseCodePhraseDisplay(parsed.valueText ?? "");
+        if (cp) entryForMeta.obj.encoding = cp;
+        continue;
+      }
+      if (entryForMeta && parsed.field === "subject") {
+        entryForMeta.obj.subject = parseSubjectFromList(
+          parsed.valueText ?? "",
+          li.oeRmPayload,
+        );
+        continue;
+      }
+      if (entryForMeta && parsed.field === "feeder_audit") {
+        entryForMeta.obj.feeder_audit = mergeRmPatchPayload(
+          { _type: "FEEDER_AUDIT" },
+          li.oeRmPayload,
+        );
+        continue;
+      }
+      if (entryForMeta && parsed.field === "link") {
+        ensureArray(entryForMeta.obj, "links").push(
+          mergeRmPatchPayload({ _type: "LINK" }, li.oeRmPayload),
+        );
+        continue;
+      }
+      if (entryForMeta && parsed.field === "other_participation") {
+        ensureArray(entryForMeta.obj, "other_participations").push(
+          mergeRmPatchPayload({ _type: "PARTICIPATION" }, li.oeRmPayload),
+        );
+        continue;
+      }
+      if (entryForMeta && parsed.field === "archetype_details" && li.oeRmPayload) {
+        entryForMeta.obj.archetype_details = mergeRmPatchPayload(
+          { _type: "ARCHETYPED" },
+          li.oeRmPayload,
+        );
+        continue;
+      }
+
+      if (handleAtComposition) {
         if (parsed.field === "context") continue;
         if (parsed.field === "composer") {
-          comp.composer = mergeRmPatchPayload(
-            { _type: "PARTY_IDENTIFIED" },
-            li.oeRmPayload,
-          );
+          const vis = (parsed.valueText ?? li.value ?? "").trim();
+          const base: Record<string, unknown> = { _type: "PARTY_IDENTIFIED" };
+          if (vis && vis !== "—") {
+            base.name = vis.split(" · ")[0].trim();
+          }
+          comp.composer = mergeRmPatchPayload(base, li.oeRmPayload);
           continue;
         }
         if (parsed.field === "feeder_audit") {
@@ -482,13 +557,10 @@ export function blocksToRmObject(
           continue;
         }
         if (parsed.field === "archetype_details" && li.oeRmPayload) {
-          const entry = entryFromStack(stack);
-          if (entry) {
-            entry.obj.archetype_details = parseOeRmAnnotationPayload(li.oeRmPayload);
-          } else {
-            const ad = parseOeRmAnnotationPayload(li.oeRmPayload);
-            comp.archetype_details = ad;
-          }
+          comp.archetype_details = mergeRmPatchPayload(
+            { _type: "ARCHETYPED" },
+            li.oeRmPayload,
+          );
           continue;
         }
         const ctxFields = new Set([
@@ -522,7 +594,7 @@ export function blocksToRmObject(
               kind: "items",
               parent: tree,
               itemsKey: "items",
-              listIndent: li.indent,
+              listIndent: Math.max(-1, li.indent - 1),
             });
             continue;
           }
@@ -535,35 +607,6 @@ export function blocksToRmObject(
           }
           continue;
         }
-      }
-      const entryForMeta = top?.kind === "entry"
-        ? top
-        : [...stack].reverse().find(
-          (f): f is Extract<StackFrame, { kind: "entry" }> => f.kind === "entry",
-        );
-      if (parsed.field === "language" && entryForMeta) {
-        const cp = parseCodePhraseDisplay(parsed.valueText ?? "");
-        if (cp) entryForMeta.obj.language = cp;
-        continue;
-      }
-      if (parsed.field === "encoding" && entryForMeta) {
-        const cp = parseCodePhraseDisplay(parsed.valueText ?? "");
-        if (cp) entryForMeta.obj.encoding = cp;
-        continue;
-      }
-      if (parsed.field === "subject" && entryForMeta) {
-        entryForMeta.obj.subject = parseSubjectMeta(parsed.valueText ?? "PARTY_SELF");
-        continue;
-      }
-      if (entryForMeta && parsed.field === "feeder_audit" && li.oeRmPayload) {
-        entryForMeta.obj.feeder_audit = parseOeRmAnnotationPayload(li.oeRmPayload);
-        continue;
-      }
-      if (entryForMeta && parsed.field === "link" && li.oeRmPayload) {
-        ensureArray(entryForMeta.obj, "links").push(
-          parseOeRmAnnotationPayload(li.oeRmPayload),
-        );
-        continue;
       }
       if (parsed.field === "item_node_id") {
         const target = listItemStructureTarget(stack, entryForMeta);

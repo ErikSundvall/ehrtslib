@@ -66,7 +66,9 @@ export function isOeRmAnnotationInner(text: string): boolean {
 export function parseOeRmAnnotationPayload(
   payload: string,
   source?: string,
+  options?: { requireType?: boolean },
 ): Record<string, unknown> {
+  const requireType = options?.requireType !== false;
   if (!payload.startsWith(OE_RM_ANNOTATION_PREFIX)) {
     throw new InvalidFormatError(
       `Malformed RM annotation (expected ${OE_RM_ANNOTATION_PREFIX}…)`,
@@ -77,7 +79,10 @@ export function parseOeRmAnnotationPayload(
   try {
     const text = new TextDecoder().decode(base64UrlDecode(b64));
     const parsed = JSON.parse(text) as Record<string, unknown>;
-    if (!parsed || typeof parsed !== "object" || typeof parsed._type !== "string") {
+    if (!parsed || typeof parsed !== "object") {
+      throw new InvalidFormatError("RM annotation is not a JSON object", source);
+    }
+    if (requireType && typeof parsed._type !== "string") {
       throw new InvalidFormatError("RM annotation missing _type", source);
     }
     return parsed;

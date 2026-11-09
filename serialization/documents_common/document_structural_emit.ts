@@ -32,10 +32,26 @@ export function emitStructuralEventContextMarkdown(
   push: StructuralTextSink,
 ): void {
   push("- _context:_");
-  if (ctx.start_time) push(`- _start_time:_ ${rmDisplay(ctx.start_time)}`);
-  if (ctx.end_time) push(`- _end_time:_ ${rmDisplay(ctx.end_time)}`);
-  if (ctx.location) push(`- _location:_ ${rmDisplay(ctx.location)}`);
-  if (ctx.setting) push(`- _setting:_ ${rmDisplay(ctx.setting)}`);
+  const ctxScalar = (
+    key: string,
+    raw: unknown,
+    defaultType: string,
+  ) => {
+    const o = { ...(raw as Record<string, unknown>) };
+    if (!o._type) o._type = defaultType;
+    const vis = rmDisplay(o);
+    const recovered: Record<string, unknown> = { _type: defaultType };
+    if (defaultType === "DV_CODED_TEXT" && vis.includes("[")) {
+      recovered.value = vis.split("[")[0].trim();
+    } else {
+      recovered.value = vis;
+    }
+    push(`- _${key}:_ ${vis}${mdAnn(o, recovered)}`);
+  };
+  if (ctx.start_time) ctxScalar("start_time", ctx.start_time, "DV_DATE_TIME");
+  if (ctx.end_time) ctxScalar("end_time", ctx.end_time, "DV_DATE_TIME");
+  if (ctx.location) ctxScalar("location", ctx.location, "DV_TEXT");
+  if (ctx.setting) ctxScalar("setting", ctx.setting, "DV_CODED_TEXT");
   if (ctx.health_care_facility) {
     const party = { ...(ctx.health_care_facility as Record<string, unknown>) };
     if (!party._type) party._type = "PARTY_IDENTIFIED";
@@ -61,10 +77,26 @@ export function emitStructuralEventContextAsciidoc(
   push: StructuralTextSink,
 ): void {
   push("* _context:_");
-  if (ctx.start_time) push(`* _start_time:_ ${rmDisplay(ctx.start_time)}`);
-  if (ctx.end_time) push(`* _end_time:_ ${rmDisplay(ctx.end_time)}`);
-  if (ctx.location) push(`* _location:_ ${rmDisplay(ctx.location)}`);
-  if (ctx.setting) push(`* _setting:_ ${rmDisplay(ctx.setting)}`);
+  const ctxScalar = (
+    key: string,
+    raw: unknown,
+    defaultType: string,
+  ) => {
+    const o = { ...(raw as Record<string, unknown>) };
+    if (!o._type) o._type = defaultType;
+    const vis = rmDisplay(o);
+    const recovered: Record<string, unknown> = { _type: defaultType };
+    if (defaultType === "DV_CODED_TEXT" && vis.includes("[")) {
+      recovered.value = vis.split("[")[0].trim();
+    } else {
+      recovered.value = vis;
+    }
+    push(`* _${key}:_ ${vis}${adAnn(o, recovered)}`);
+  };
+  if (ctx.start_time) ctxScalar("start_time", ctx.start_time, "DV_DATE_TIME");
+  if (ctx.end_time) ctxScalar("end_time", ctx.end_time, "DV_DATE_TIME");
+  if (ctx.location) ctxScalar("location", ctx.location, "DV_TEXT");
+  if (ctx.setting) ctxScalar("setting", ctx.setting, "DV_CODED_TEXT");
   if (ctx.health_care_facility) {
     const party = { ...(ctx.health_care_facility as Record<string, unknown>) };
     if (!party._type) party._type = "PARTY_IDENTIFIED";
@@ -158,6 +190,14 @@ export function emitStructuralEntryExtrasMarkdown(
     const vis = rmDisplay(fa);
     push(`- _feeder_audit:_ ${vis}${mdAnn(fa, vis)}`);
   }
+  if (Array.isArray(entry.other_participations)) {
+    for (const p of entry.other_participations) {
+      if (!p || typeof p !== "object") continue;
+      const part = p as Record<string, unknown>;
+      const vis = rmDisplay(part);
+      push(`- _other_participation:_ ${vis}${mdAnn(part, vis)}`);
+    }
+  }
   if (Array.isArray(entry.links)) {
     for (const link of entry.links) {
       if (!link || typeof link !== "object") continue;
@@ -181,6 +221,14 @@ export function emitStructuralEntryExtrasAsciidoc(
     const fa = entry.feeder_audit as Record<string, unknown>;
     const vis = rmDisplay(fa);
     push(`* _feeder_audit:_ ${vis}${adAnn(fa, vis)}`);
+  }
+  if (Array.isArray(entry.other_participations)) {
+    for (const p of entry.other_participations) {
+      if (!p || typeof p !== "object") continue;
+      const part = p as Record<string, unknown>;
+      const vis = rmDisplay(part);
+      push(`* _other_participation:_ ${vis}${adAnn(part, vis)}`);
+    }
   }
   if (Array.isArray(entry.links)) {
     for (const link of entry.links) {

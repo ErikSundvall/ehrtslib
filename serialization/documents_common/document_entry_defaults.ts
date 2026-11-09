@@ -3,6 +3,9 @@
  */
 
 import { parseCodePhraseDisplay } from "./value_parse.ts";
+import { mergeRmPatchPayload } from "./oe_rm_sparse.ts";
+import { renderRmValue } from "./document_rm_render.ts";
+import { formatSparseRmAsciidoc, formatSparseRmMarkdown } from "./oe_rm_sparse.ts";
 import type { DocumentMetadata } from "./document_to_rm.ts";
 import { ENTRY_TYPES } from "./document_blocks.ts";
 
@@ -61,6 +64,50 @@ export function parseSubjectMeta(raw: string): Record<string, unknown> {
     };
   }
   return { _type: trimmed || "PARTY_SELF" };
+}
+
+const SUBJECT_RENDER_OPTS = {
+  lossy: false,
+  useTerseFormat: false,
+  codeRendering: "inline_bracket" as const,
+  includeTypeAnnotations: false,
+};
+
+export function formatSubjectStructural(
+  subject: Record<string, unknown>,
+  codec: "markdown" | "asciidoc",
+): string {
+  const vis = renderRmValue(subject, SUBJECT_RENDER_OPTS, 0);
+  const recovered: Record<string, unknown> = {};
+  if (subject._type === "PARTY_IDENTIFIED" && typeof subject.name === "string") {
+    recovered._type = "PARTY_IDENTIFIED";
+    recovered.name = subject.name;
+  } else if (typeof subject._type === "string") {
+    recovered._type = subject._type;
+  }
+  const ann = codec === "markdown"
+    ? formatSparseRmMarkdown(subject, recovered)
+    : formatSparseRmAsciidoc(subject, recovered);
+  return `${vis}${ann}`;
+}
+
+export function parseSubjectFromList(
+  visible: string,
+  oeRmPayload?: string,
+): Record<string, unknown> {
+  const vis = visible.trim();
+  if (vis && vis !== "—") {
+    if (vis.startsWith("PARTY_IDENTIFIED:")) {
+      return mergeRmPatchPayload(parseSubjectMeta(vis), oeRmPayload);
+    }
+    const base: Record<string, unknown> = {};
+    if (typeof vis === "string" && vis.split(" · ")[0]) {
+      base.name = vis.split(" · ")[0].trim();
+    }
+    if (oeRmPayload) return mergeRmPatchPayload(base, oeRmPayload);
+    return parseSubjectMeta(vis);
+  }
+  return mergeRmPatchPayload(parseSubjectMeta("PARTY_SELF"), oeRmPayload);
 }
 
 function walkEntries(

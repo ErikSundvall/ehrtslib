@@ -42,6 +42,7 @@ import {
   computeCompositionEntryDefaults,
   entryMetadataDiffersFromDefaults,
   formatSubjectMeta,
+  formatSubjectStructural,
   writeEntryDefaultsToFrontmatter,
   type CompositionEntryDefaults,
 } from '../documents_common/document_entry_defaults.ts';
@@ -466,7 +467,7 @@ export class MarkdownSerializer {
       if (entry.language) lines.push(`- _language:_ ${this.formatCodePhrase(entry.language)}`);
       if (entry.encoding) lines.push(`- _encoding:_ ${this.formatCodePhrase(entry.encoding)}`);
       if (entry.subject) {
-        lines.push(`- _subject:_ ${formatSubjectMeta(entry.subject)}`);
+        lines.push(`- _subject:_ ${formatSubjectStructural(entry.subject, "markdown")}`);
       }
       return;
     }
@@ -478,7 +479,7 @@ export class MarkdownSerializer {
       lines.push(`- _encoding:_ ${this.formatCodePhrase(entry.encoding)}`);
     }
     if (diff.subject && entry.subject) {
-      lines.push(`- _subject:_ ${formatSubjectMeta(entry.subject)}`);
+      lines.push(`- _subject:_ ${formatSubjectStructural(entry.subject, "markdown")}`);
     }
   }
 
