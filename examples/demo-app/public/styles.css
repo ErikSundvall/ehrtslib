@@ -465,6 +465,10 @@ body {
 .output-tabs-row .tabs {
     margin-bottom: 0;
     border-bottom: 2px solid var(--border-light);
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
 }
 
 .input-pane-toolbar {
