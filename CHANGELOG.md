@@ -8,6 +8,7 @@ Add an entry under **Unreleased** in every PR that changes user-visible behaviou
 
 ## [Unreleased]
 
+- **Demo.** Contribution Builder: presence badges sit after field headings (sharper shape for focus-only), sort by recent activity, and edit badges fade to a faint grey without disappearing; narrative shows remote carets and fading edit highlights; each clone can scrub Automerge history with read-only preview ([#293](https://github.com/ErikSundvall/ehrtslib/issues/293)).
 - **Docs (Markdown/AsciiDoc).** [`serialization/documents-presets.md`](serialization/documents-presets.md) — preset anchors, RM simplification rule matrix, shared `DOCUMENT_PRESET_RM_POLICIES`; demo preset selectors link to GitHub doc sections.
 - **Serialization (Markdown/AsciiDoc).** Lossy presets omit HISTORY event titles when there is exactly one event, and omit `origin` when it matches the sole or earliest event time; structural output unchanged.
 - **Breaking (Markdown/AsciiDoc).** Shared preset ids are `structural`, `compact`, `embedding`, `wikilink`. Removed `CLINICAL_MARKDOWN_CONFIG`, `LOSSLESS_ASCIIDOC_CONFIG`, and AsciiDoc style `lossless` (no aliases). **Compact** is the merged human-readable preset (tables with Item/Value/Time, wikilink codes, optional front matter). AsciiDoc round-trip uses `STRUCTURAL_ASCIIDOC_CONFIG` / dialect `structural`. Added `WIKILINK_ASCIIDOC_CONFIG`.

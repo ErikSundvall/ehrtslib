@@ -24,6 +24,25 @@ import {
   type PresenceWireMessage,
 } from "./cb-presence.ts";
 import { ensurePresenceHosts, paintPresenceBadges } from "./cb-presence-ui.ts";
+import {
+  diffRange,
+  NarrativeCollabView,
+  type NarrativeCollabWireMessage,
+} from "./cb-narrative-collab.ts";
+import {
+  ensureNarrativeShell,
+  paintNarrativeCollab,
+} from "./cb-narrative-ui.ts";
+import {
+  createHistoricalCaller,
+  enterScrubbing,
+  initialTimeTravelState,
+  isCloneReadOnly,
+  leaveScrubbing,
+  refreshTimeline,
+  setScrubStep,
+  type TimeTravelState,
+} from "./cb-time-travel.ts";
 
 const PRESENCE_FIELDS: Field[] = [
   "heading",
@@ -61,7 +80,13 @@ interface PresencePacket {
   message: PresenceWireMessage;
   recipients: string[];
 }
-type Packet = LogPacket | PresencePacket;
+interface CollabPacket {
+  epoch: number;
+  kind: "collab";
+  message: NarrativeCollabWireMessage;
+  recipients: string[];
+}
+type Packet = LogPacket | PresencePacket | CollabPacket;
 let epoch = 0;
 let inFlight = 0;
 const composing = new Set<string>();
@@ -71,10 +96,22 @@ let busy = false;
 let sent = false;
 const presenceViews = new Map<string, PresenceView>();
 const presenceHosts = new Map<string, Map<Field, HTMLElement>>();
-const presenceBeats = new Map<string, ReturnType<typeof globalThis.setInterval>>();
-const presenceFocus = new Map<string, { field: Field; state: LivePresenceState }>();
+const presenceBeats = new Map<
+  string,
+  ReturnType<typeof globalThis.setInterval>
+>();
+const presenceFocus = new Map<
+  string,
+  { field: Field; state: LivePresenceState }
+>();
 let presenceClock = 0;
 let presenceTicker: ReturnType<typeof globalThis.setInterval> | undefined;
+const narrativeViews = new Map<string, NarrativeCollabView>();
+const timeTravel = new Map<string, TimeTravelState>();
+const scrubPreview = new Map<
+  string,
+  { step: number; caller: DemoClone["caller"] }
+>();
 
 function later(fn: () => void, ms: number): Timer {
   const timer = globalThis.setTimeout(() => {
@@ -97,6 +134,26 @@ function feedback(clone: DemoClone, text: string, error = false): void {
 function nowMs(): number {
   return Date.now();
 }
+function broadcastCollab(
+  clone: DemoClone,
+  message: NarrativeCollabWireMessage,
+): void {
+  const recipients = session.clones.filter((peer) => peer.id !== clone.id)
+    .map((peer) => peer.id);
+  if (!recipients.length) return;
+  const channel = channels.get(clone.id);
+  if (!channel) return;
+  inFlight += recipients.length;
+  channel.port2.postMessage(
+    {
+      epoch,
+      kind: "collab",
+      message,
+      recipients,
+    } satisfies CollabPacket,
+  );
+}
+
 function broadcastPresence(
   clone: DemoClone,
   message: PresenceWireMessage,
@@ -107,12 +164,14 @@ function broadcastPresence(
   const channel = channels.get(clone.id);
   if (!channel) return;
   inFlight += recipients.length;
-  channel.port2.postMessage({
-    epoch,
-    kind: "presence",
-    message,
-    recipients,
-  } satisfies PresencePacket);
+  channel.port2.postMessage(
+    {
+      epoch,
+      kind: "presence",
+      message,
+      recipients,
+    } satisfies PresencePacket,
+  );
 }
 function emitPresence(
   clone: DemoClone,
@@ -156,9 +215,95 @@ function applyPresence(clone: DemoClone, message: PresenceWireMessage): void {
   applyWireMessage(view, message);
   renderPresence(clone);
 }
+function applyCollab(
+  clone: DemoClone,
+  message: NarrativeCollabWireMessage,
+): void {
+  const view = narrativeViews.get(clone.id);
+  if (!view) return;
+  view.apply(message);
+  const panel = panels.get(clone.id);
+  const textarea = panel?.querySelector<HTMLTextAreaElement>(
+    '[data-field="narrative"]',
+  );
+  if (textarea) {
+    paintNarrativeCollab(textarea, view, nowMs());
+  }
+}
 function renderAllPresence(): void {
   presenceClock = nowMs();
-  for (const clone of session.clones) renderPresence(clone);
+  for (const clone of session.clones) {
+    renderPresence(clone);
+    renderNarrativeCollab(clone);
+  }
+}
+function renderNarrativeCollab(clone: DemoClone): void {
+  const view = narrativeViews.get(clone.id);
+  const panel = panels.get(clone.id);
+  const textarea = panel?.querySelector<HTMLTextAreaElement>(
+    '[data-field="narrative"]',
+  );
+  if (!view || !textarea) return;
+  paintNarrativeCollab(textarea, view, presenceClock || nowMs());
+}
+function cloneReadOnly(clone: DemoClone): boolean {
+  const state = timeTravel.get(clone.id);
+  return state ? isCloneReadOnly(state) : false;
+}
+function refreshTimeTravel(clone: DemoClone): void {
+  const bytes = clone.caller.adapter.save();
+  const prev = timeTravel.get(clone.id) ??
+    initialTimeTravelState(0);
+  const next = refreshTimeline(bytes, prev);
+  timeTravel.set(clone.id, next);
+  const panel = panels.get(clone.id);
+  if (!panel) return;
+  const scrub = $(".time-travel-scrub", panel);
+  scrub.max = String(next.maxStep);
+  scrub.min = "0";
+  scrub.value = String(next.step);
+  scrub.setAttribute("aria-valuemax", String(next.maxStep));
+  scrub.setAttribute(
+    "aria-valuetext",
+    next.step >= next.maxStep ? "Live" : `Step ${next.step} of ${next.maxStep}`,
+  );
+  const status = $(".time-travel-status", panel);
+  status.textContent = next.scrubbing && next.step < next.maxStep
+    ? `Viewing history step ${next.step} of ${next.maxStep} (read-only)`
+    : "Live editing";
+  panel.classList.toggle("clone--scrubbing", isCloneReadOnly(next));
+  updateCloneInputsDisabled(clone);
+}
+function updateCloneInputsDisabled(clone: DemoClone): void {
+  const panel = panels.get(clone.id);
+  if (!panel) return;
+  const readOnly = cloneReadOnly(clone) || busy || sent;
+  for (
+    const el of panel.querySelectorAll<
+      HTMLInputElement | HTMLTextAreaElement | HTMLButtonElement
+    >("input[data-field],textarea[data-field],button.commit")
+  ) {
+    el.disabled = readOnly;
+    el.setAttribute("aria-readonly", readOnly ? "true" : "false");
+  }
+}
+function readFieldForPanel(clone: DemoClone, field: Field): string | number {
+  const state = timeTravel.get(clone.id);
+  if (state && isCloneReadOnly(state)) {
+    const cached = scrubPreview.get(clone.id);
+    let caller = cached?.step === state.step ? cached.caller : undefined;
+    if (!caller) {
+      caller = createHistoricalCaller(
+        { author: clone.author, replica: clone.id },
+        clone.caller.adapter.save(),
+        state.step,
+        clone.caller.build.buildId,
+      ).caller;
+      scrubPreview.set(clone.id, { step: state.step, caller });
+    }
+    return readField(session, { ...clone, caller }, field);
+  }
+  return readField(session, clone, field);
 }
 function renderPresence(clone: DemoClone): void {
   const hosts = presenceHosts.get(clone.id);
@@ -206,6 +351,8 @@ function connect(clone: DemoClone): void {
     inFlight--;
     if (event.data.kind === "presence") {
       applyPresence(clone, event.data.message);
+    } else if (event.data.kind === "collab") {
+      applyCollab(clone, event.data.message);
     } else {
       applyIncoming(clone, event.data.bytes);
     }
@@ -298,9 +445,12 @@ function render(clone: DemoClone): void {
     // A focused whole-value edit retains its base rev and unsubmitted value.
     if (document.activeElement === input && field !== "narrative") continue;
     if (composing.has(clone.id) && field === "narrative") continue;
-    updateText(input, String(readField(session, clone, field)));
-    input.dataset.rev = clone.caller.build.logRev();
+    updateText(input, String(readFieldForPanel(clone, field)));
+    if (!cloneReadOnly(clone)) {
+      input.dataset.rev = clone.caller.build.logRev();
+    }
   }
+  refreshTimeTravel(clone);
   const validation = session.validator.validate(
     clone.caller.build,
     session.draftId,
@@ -320,8 +470,53 @@ function render(clone: DemoClone): void {
   renderSync();
   renderLog();
 }
+function setupTimeTravel(clone: DemoClone, panel: HTMLElement): void {
+  const toggle = $(".time-travel-toggle", panel);
+  const panelEl = $(".time-travel-panel", panel);
+  const scrub = $(".time-travel-scrub", panel);
+  const liveBtn = $(".time-travel-live", panel);
+  timeTravel.set(
+    clone.id,
+    initialTimeTravelState(0),
+  );
+  toggle.addEventListener("click", () => {
+    const state = timeTravel.get(clone.id)!;
+    const next = state.scrubbing
+      ? leaveScrubbing(state)
+      : enterScrubbing(state);
+    timeTravel.set(
+      clone.id,
+      refreshTimeline(clone.caller.adapter.save(), next),
+    );
+    panelEl.hidden = !next.scrubbing;
+    scrubPreview.delete(clone.id);
+    render(clone);
+  });
+  scrub.addEventListener("input", () => {
+    const state = timeTravel.get(clone.id)!;
+    const next = setScrubStep(state, Number(scrub.value));
+    timeTravel.set(clone.id, next);
+    scrubPreview.delete(clone.id);
+    render(clone);
+  });
+  liveBtn.addEventListener("click", () => {
+    const state = timeTravel.get(clone.id)!;
+    const next = leaveScrubbing(
+      refreshTimeline(clone.caller.adapter.save(), state),
+    );
+    timeTravel.set(clone.id, next);
+    scrubPreview.delete(clone.id);
+    panelEl.hidden = true;
+    render(clone);
+  });
+}
+
 function createPanel(clone: DemoClone): void {
-  presenceViews.set(clone.id, new PresenceView(clone.id, DEFAULT_PRESENCE_CONFIG));
+  presenceViews.set(
+    clone.id,
+    new PresenceView(clone.id, DEFAULT_PRESENCE_CONFIG),
+  );
+  narrativeViews.set(clone.id, new NarrativeCollabView(clone.id));
   const template = $<HTMLTemplateElement>("#clone-template");
   const panel = template.content.firstElementChild!.cloneNode(
     true,
@@ -344,6 +539,7 @@ function createPanel(clone: DemoClone): void {
   });
   const hosts = ensurePresenceHosts(panel, PRESENCE_FIELDS);
   presenceHosts.set(clone.id, hosts);
+  setupTimeTravel(clone, panel);
   ensurePresenceTicker();
   for (
     const input of panel.querySelectorAll<
@@ -361,8 +557,10 @@ function createPanel(clone: DemoClone): void {
       stopPresenceBeat(clone.id);
       emitPresence(clone, null, "focused");
     });
-  const edit = () => {
-      if (busy || sent || composing.has(clone.id)) return;
+    const edit = () => {
+      if (busy || sent || composing.has(clone.id) || cloneReadOnly(clone)) {
+        return;
+      }
       if (!input.reportValidity()) return;
       try {
         const before = String(readField(session, clone, field));
@@ -392,6 +590,17 @@ function createPanel(clone: DemoClone): void {
             to: after,
             atMs: nowMs(),
           });
+          if (field === "narrative") {
+            const { start, end } = diffRange(before, after);
+            broadcastCollab(clone, {
+              t: "text-hl",
+              userId: clone.id,
+              name: clone.username,
+              start,
+              end,
+              atMs: nowMs(),
+            });
+          }
         }
         feedback(clone, "Local edit appended; waiting for this clone’s link.");
         schedule(clone);
@@ -407,10 +616,41 @@ function createPanel(clone: DemoClone): void {
       }
     };
     if (field === "narrative") {
+      ensureNarrativeShell(input);
       input.addEventListener("input", () => {
         emitPresence(clone, field, "editing");
         startPresenceBeat(clone);
+        const offset = input.selectionStart ?? input.value.length;
+        broadcastCollab(clone, {
+          t: "caret",
+          userId: clone.id,
+          name: clone.username,
+          offset,
+          atMs: nowMs(),
+        });
         edit();
+      });
+      input.addEventListener("keyup", () => {
+        if (cloneReadOnly(clone)) return;
+        const offset = input.selectionStart ?? input.value.length;
+        broadcastCollab(clone, {
+          t: "caret",
+          userId: clone.id,
+          name: clone.username,
+          offset,
+          atMs: nowMs(),
+        });
+      });
+      input.addEventListener("select", () => {
+        if (cloneReadOnly(clone)) return;
+        const offset = input.selectionStart ?? input.value.length;
+        broadcastCollab(clone, {
+          t: "caret",
+          userId: clone.id,
+          name: clone.username,
+          offset,
+          atMs: nowMs(),
+        });
       });
     } else {
       input.addEventListener("change", edit);
@@ -443,6 +683,8 @@ function createPanel(clone: DemoClone): void {
   updateLogChoices();
   render(clone);
   renderPresence(clone);
+  renderNarrativeCollab(clone);
+  refreshTimeTravel(clone);
 }
 function updateLogChoices(): void {
   const select = $<HTMLSelectElement>("#log-clone");
@@ -465,11 +707,14 @@ function setBusy(value: boolean): void {
       | HTMLSelectElement
       | HTMLButtonElement
       | HTMLTextAreaElement
-    >("input,select,textarea,button")
+    >("input,select,textarea,button.commit")
   ) element.disabled = value || sent;
+  if (session) {
+    for (const clone of session.clones) updateCloneInputsDisabled(clone);
+  }
 }
 async function commit(clone: DemoClone): Promise<void> {
-  if (busy || sent) return;
+  if (busy || sent || cloneReadOnly(clone)) return;
   const isCdr = $<HTMLSelectElement>("#destination").value === "cdr";
   if (isCdr && (timers.size || inFlight || composing.size)) {
     feedback(

@@ -4,9 +4,9 @@ import {
   DEFAULT_PRESENCE_CONFIG,
   formatRelative,
   PresenceView,
+  type PresenceWireMessage,
   summarizeChange,
   userInitials,
-  type PresenceWireMessage,
 } from "./cb-presence.ts";
 
 const FIELDS = ["heading", "narrative", "systolic"] as const;
@@ -22,12 +22,15 @@ function msg(m: PresenceWireMessage): PresenceWireMessage {
 
 Deno.test("presence: join shows focused badge on default field", () => {
   const view = new PresenceView("self");
-  applyWireMessage(view, msg({
-    t: "join",
-    userId: "u1",
-    name: "nurse.andersson",
-    atMs: t0,
-  }));
+  applyWireMessage(
+    view,
+    msg({
+      t: "join",
+      userId: "u1",
+      name: "nurse.andersson",
+      atMs: t0,
+    }),
+  );
   const onHeading = view.badgesForField("heading", t0 + 100);
   assertEquals(onHeading.badges.length, 1);
   assertEquals(onHeading.badges[0]!.initials, "NA");
@@ -39,7 +42,10 @@ Deno.test("presence: focus moves badge between fields", () => {
   const view = new PresenceView("self");
   const p = peer("u2", "dr.berg");
   view.heartbeat(p, "systolic", "focused", t0);
-  assertEquals(view.badgesForField("systolic", t0 + 50).badges[0]!.kind, "focused");
+  assertEquals(
+    view.badgesForField("systolic", t0 + 50).badges[0]!.kind,
+    "focused",
+  );
   view.heartbeat(p, "diastolic", "focused", t0 + 200);
   assertEquals(view.badgesForField("systolic", t0 + 250).badges.length, 0);
   assertEquals(view.badgesForField("diastolic", t0 + 250).badges.length, 1);
@@ -47,15 +53,18 @@ Deno.test("presence: focus moves badge between fields", () => {
 
 Deno.test("presence: editing and recent-edit with change summary", () => {
   const view = new PresenceView("self");
-  applyWireMessage(view, msg({
-    t: "edit",
-    userId: "u3",
-    name: "midwife.chen",
-    field: "heading",
-    from: "Old dx",
-    to: "New dx",
-    atMs: t0,
-  }));
+  applyWireMessage(
+    view,
+    msg({
+      t: "edit",
+      userId: "u3",
+      name: "midwife.chen",
+      field: "heading",
+      from: "Old dx",
+      to: "New dx",
+      atMs: t0,
+    }),
+  );
   const live = view.badgesForField("heading", t0 + 100).badges[0]!;
   assertEquals(live.kind, "editing");
   assertEquals(live.changeSummary, summarizeChange("Old dx", "New dx"));
@@ -72,22 +81,27 @@ Deno.test("presence: live presence expires after stale timeout", () => {
   assertEquals(view.badgesForField("pulse", t0 + 1500).badges.length, 0);
 });
 
-Deno.test("presence: recent-edit fades and is removed", () => {
+Deno.test("presence: recent-edit fades toward grey floor but remains", () => {
   const cfg = {
     ...DEFAULT_PRESENCE_CONFIG,
     staleMs: 500,
     recentEditFadeMs: 10_000,
+    recentEditMinOpacity: 0.12,
   };
   const view = new PresenceView("self", cfg);
   view.recordEdit(peer("u5", "physio.ek"), "spo2", "90", "95", t0);
   view.heartbeat(peer("u5", "physio.ek"), null, "focused", t0 + 1);
-  const mid = view.badgesForField("spo2", t0 + 5_000).badges[0]!;
+  const mid = view.badgesForField("spo2", t0 + 2_000).badges[0]!;
   assertEquals(mid.kind, "recent-edit");
   assertEquals(mid.opacity, 1);
   const late = view.badgesForField("spo2", t0 + 9_500).badges[0]!;
   assertEquals(late.opacity < 1, true);
-  assertEquals(late.opacity >= 0.35, true);
-  assertEquals(view.badgesForField("spo2", t0 + 11_000).badges.length, 0);
+  assertEquals(late.opacity >= cfg.recentEditMinOpacity, true);
+  assertEquals(view.badgesForField("spo2", t0 + 11_000).badges.length, 1);
+  assertEquals(
+    view.badgesForField("spo2", t0 + 200_000).badges[0]!.heavilyFaded,
+    true,
+  );
 });
 
 Deno.test("presence: never shows the local user", () => {

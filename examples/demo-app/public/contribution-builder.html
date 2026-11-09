@@ -50,20 +50,31 @@
           <label>Sync profile <select class="profile"><option value="office">Office LAN</option><option value="ward">Ward Wi-Fi</option><option value="rural">Rural phone</option></select></label>
         </div>
         <p class="sync-state" aria-live="polite"></p>
+        <div class="clone-tools">
+          <button type="button" class="time-travel-toggle">Time travel</button>
+          <div class="time-travel-panel" hidden>
+            <label class="time-travel-scrub-label">Document history
+              <input type="range" class="time-travel-scrub" min="0" max="0" value="0" step="1"
+                aria-valuemin="0" aria-valuemax="0" aria-valuetext="Live">
+            </label>
+            <button type="button" class="time-travel-live">Return to live</button>
+            <span class="time-travel-status" aria-live="polite"></span>
+          </div>
+        </div>
         <form>
           <fieldset>
             <legend>Vital signs</legend>
             <div class="vitals">
-              <label>Systolic (mmHg)<input data-field="systolic" type="number" min="0" max="999" step="1" required></label>
-              <label>Diastolic (mmHg)<input data-field="diastolic" type="number" min="0" max="999" step="1" required></label>
-              <label>Pulse (/min)<input data-field="pulse" type="number" min="0" max="999" step="1" required></label>
-              <label>SpO₂ (%)<input data-field="spo2" type="number" min="0" max="100" step="0.1" required></label>
+              <label class="field-shell"><span class="field-heading field-heading--systolic">Systolic (mmHg)</span><input data-field="systolic" type="number" min="0" max="999" step="1" required></label>
+              <label class="field-shell"><span class="field-heading field-heading--diastolic">Diastolic (mmHg)</span><input data-field="diastolic" type="number" min="0" max="999" step="1" required></label>
+              <label class="field-shell"><span class="field-heading field-heading--pulse">Pulse (/min)</span><input data-field="pulse" type="number" min="0" max="999" step="1" required></label>
+              <label class="field-shell"><span class="field-heading field-heading--spo2">SpO₂ (%)</span><input data-field="spo2" type="number" min="0" max="100" step="0.1" required></label>
             </div>
           </fieldset>
-          <label>Problem / diagnosis heading <input data-field="heading" required></label>
+          <label class="field-shell"><span class="field-heading field-heading--heading">Problem / diagnosis heading</span> <input data-field="heading" required></label>
           <p
             class="hint">Whole-value edits carry the revision seen when you focus the field. A stale edit is rejected, never silently overwritten.</p>
-          <label>Problem / diagnosis narrative <textarea data-field="narrative" rows="9" spellcheck="false" required></textarea></label>
+          <label class="field-shell"><span class="field-heading field-heading--narrative">Problem / diagnosis narrative</span> <textarea data-field="narrative" rows="9" spellcheck="false" required></textarea></label>
           <p
             class="hint">Native Automerge text: type in both clones during a rural-phone delay to see concurrent inserts merge. This is the diagnosis DV_TEXT; the heading is EVALUATION.name.</p>
           <details>

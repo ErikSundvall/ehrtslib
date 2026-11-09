@@ -80,19 +80,18 @@ label {
   font-weight: 600;
   margin-bottom: .7rem;
 }
-.field-shell {
-  position: relative;
-  padding-top: 1.35rem;
+.field-heading {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .35rem;
 }
 .presence-badges {
-  position: absolute;
-  top: 0;
-  right: 0;
-  display: flex;
+  display: inline-flex;
   flex-wrap: wrap;
-  justify-content: flex-end;
+  align-items: center;
   gap: .2rem;
-  max-width: 55%;
+  vertical-align: middle;
   pointer-events: auto;
   min-height: 1.15rem;
 }
@@ -105,11 +104,12 @@ label {
   text-align: center;
   color: white;
   background: var(--presence-accent, #12618f);
-  cursor: default;
+  cursor: pointer;
   position: relative;
   box-shadow: 0 0 0 1px rgba(255, 255, 255, .35) inset;
 }
 .presence-badge--focused {
+  border-radius: .15rem;
   box-shadow: 0 0 0 2px var(--presence-accent, #12618f);
   background: color-mix(in srgb, var(--presence-accent, #12618f) 18%, white);
   color: #0e2f44;
@@ -126,8 +126,17 @@ label {
   border: 1px solid white;
 }
 .presence-badge--recent-edit {
-  opacity: .85;
   filter: saturate(.85);
+}
+.presence-badge--heavily-faded {
+  background: #e3e8ec !important;
+  color: #5a6f7e !important;
+  box-shadow: 0 0 0 1px #c5d0d8 inset !important;
+  filter: none;
+}
+.presence-badge--heavily-faded:focus-visible {
+  outline-color: #12618f;
+  opacity: 1 !important;
 }
 .presence-badge--overflow {
   background: #d4dfe6;
@@ -257,6 +266,92 @@ details[open] > summary {
 }
 #status {
   margin: .6rem 0 0;
+}
+.clone-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .6rem;
+  margin-bottom: .8rem;
+}
+.time-travel-panel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .6rem;
+  flex: 1 1 12rem;
+  padding: .55rem .7rem;
+  border: 1px dashed #90a9ba;
+  border-radius: .35rem;
+  background: #f8fbfd;
+}
+.time-travel-scrub-label {
+  flex: 1 1 10rem;
+  font-weight: 600;
+  font-size: .85rem;
+  margin: 0;
+}
+.time-travel-scrub {
+  width: 100%;
+  margin-top: .25rem;
+}
+.time-travel-status {
+  font-size: .82rem;
+  color: #4d687b;
+}
+.clone.clone--scrubbing input,
+.clone.clone--scrubbing textarea,
+.clone.clone--scrubbing button.commit {
+  opacity: .72;
+}
+.clone.clone--scrubbing input,
+.clone.clone--scrubbing textarea {
+  background: #f4f7f9;
+}
+.narrative-shell {
+  position: relative;
+  width: 100%;
+}
+.narrative-backdrop {
+  position: absolute;
+  inset: 0;
+  padding: inherit;
+  border: 1px solid transparent;
+  border-radius: .3rem;
+  pointer-events: none;
+  white-space: pre-wrap;
+  overflow: hidden;
+  color: transparent;
+  font: inherit;
+  line-height: inherit;
+  z-index: 0;
+}
+.narrative-input {
+  position: relative;
+  z-index: 1;
+  background: transparent !important;
+}
+.narrative-hl {
+  border-radius: .15rem;
+  background: color-mix(in srgb, var(--hl-accent, #12618f) 22%, white);
+  box-decoration-break: clone;
+}
+.narrative-carets {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+.narrative-remote-caret {
+  position: absolute;
+  font: 700 .62rem/1 system-ui, sans-serif;
+  padding: .08rem .22rem;
+  border-radius: .12rem;
+  color: white;
+  background: var(--caret-accent, #12618f);
+  border: 1px solid white;
+  transform: translateY(-100%);
+  white-space: nowrap;
 }
 @media (max-width: 600px) {
   main,
