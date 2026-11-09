@@ -16,6 +16,24 @@ import {
   setProfile,
   writeField,
 } from "./contribution-demo.ts";
+import {
+  applyWireMessage,
+  DEFAULT_PRESENCE_CONFIG,
+  type LivePresenceState,
+  PresenceView,
+  type PresenceWireMessage,
+} from "./cb-presence.ts";
+import { ensurePresenceHosts, paintPresenceBadges } from "./cb-presence-ui.ts";
+
+const PRESENCE_FIELDS: Field[] = [
+  "heading",
+  "narrative",
+  "systolic",
+  "diastolic",
+  "pulse",
+  "spo2",
+];
+const PRESENCE_BEAT_MS = 2_500;
 
 const $ = <T extends HTMLElement>(
   selector: string,
@@ -31,11 +49,19 @@ const channels = new Map<string, MessageChannel>();
 type Timer = ReturnType<typeof globalThis.setTimeout>;
 const timers = new Set<Timer>();
 const sending = new Map<string, Timer>();
-interface Packet {
+interface LogPacket {
   epoch: number;
+  kind: "log";
   bytes: Uint8Array;
   recipients: string[];
 }
+interface PresencePacket {
+  epoch: number;
+  kind: "presence";
+  message: PresenceWireMessage;
+  recipients: string[];
+}
+type Packet = LogPacket | PresencePacket;
 let epoch = 0;
 let inFlight = 0;
 const composing = new Set<string>();
@@ -43,6 +69,12 @@ const deferred = new Map<string, Uint8Array[]>();
 let session: DemoSession;
 let busy = false;
 let sent = false;
+const presenceViews = new Map<string, PresenceView>();
+const presenceHosts = new Map<string, Map<Field, HTMLElement>>();
+const presenceBeats = new Map<string, ReturnType<typeof globalThis.setInterval>>();
+const presenceFocus = new Map<string, { field: Field; state: LivePresenceState }>();
+let presenceClock = 0;
+let presenceTicker: ReturnType<typeof globalThis.setInterval> | undefined;
 
 function later(fn: () => void, ms: number): Timer {
   const timer = globalThis.setTimeout(() => {
@@ -61,6 +93,83 @@ function feedback(clone: DemoClone, text: string, error = false): void {
   const el = $(".feedback", panels.get(clone.id)!);
   el.textContent = text;
   el.classList.toggle("error", error);
+}
+function nowMs(): number {
+  return Date.now();
+}
+function broadcastPresence(
+  clone: DemoClone,
+  message: PresenceWireMessage,
+): void {
+  const recipients = session.clones.filter((peer) => peer.id !== clone.id)
+    .map((peer) => peer.id);
+  if (!recipients.length) return;
+  const channel = channels.get(clone.id);
+  if (!channel) return;
+  inFlight += recipients.length;
+  channel.port2.postMessage({
+    epoch,
+    kind: "presence",
+    message,
+    recipients,
+  } satisfies PresencePacket);
+}
+function emitPresence(
+  clone: DemoClone,
+  field: Field | null,
+  state: LivePresenceState,
+): void {
+  const atMs = nowMs();
+  broadcastPresence(clone, {
+    t: "heartbeat",
+    userId: clone.id,
+    name: clone.username,
+    field,
+    state,
+    atMs,
+  });
+  const focus = field ? { field, state } : undefined;
+  if (focus) presenceFocus.set(clone.id, focus);
+  else presenceFocus.delete(clone.id);
+}
+function stopPresenceBeat(cloneId: string): void {
+  const timer = presenceBeats.get(cloneId);
+  if (timer !== undefined) {
+    clearInterval(timer);
+    presenceBeats.delete(cloneId);
+    timers.delete(timer);
+  }
+}
+function startPresenceBeat(clone: DemoClone): void {
+  stopPresenceBeat(clone.id);
+  const timer = globalThis.setInterval(() => {
+    const focus = presenceFocus.get(clone.id);
+    if (!focus || busy || sent) return;
+    emitPresence(clone, focus.field, focus.state);
+  }, PRESENCE_BEAT_MS);
+  presenceBeats.set(clone.id, timer);
+  timers.add(timer);
+}
+function applyPresence(clone: DemoClone, message: PresenceWireMessage): void {
+  const view = presenceViews.get(clone.id);
+  if (!view) return;
+  applyWireMessage(view, message);
+  renderPresence(clone);
+}
+function renderAllPresence(): void {
+  presenceClock = nowMs();
+  for (const clone of session.clones) renderPresence(clone);
+}
+function renderPresence(clone: DemoClone): void {
+  const hosts = presenceHosts.get(clone.id);
+  const view = presenceViews.get(clone.id);
+  if (!hosts || !view) return;
+  paintPresenceBadges(hosts, view, presenceClock || nowMs());
+}
+function ensurePresenceTicker(): void {
+  if (presenceTicker !== undefined) return;
+  presenceTicker = globalThis.setInterval(renderAllPresence, 800);
+  timers.add(presenceTicker);
 }
 function applyIncoming(clone: DemoClone, bytes: Uint8Array): void {
   if (composing.has(clone.id)) {
@@ -95,7 +204,11 @@ function connect(clone: DemoClone): void {
   channel.port2.onmessage = (event: MessageEvent<Packet>) => {
     if (event.data.epoch !== epoch) return;
     inFlight--;
-    applyIncoming(clone, event.data.bytes);
+    if (event.data.kind === "presence") {
+      applyPresence(clone, event.data.message);
+    } else {
+      applyIncoming(clone, event.data.bytes);
+    }
     renderSync();
   };
 }
@@ -114,6 +227,7 @@ function schedule(clone: DemoClone): void {
       inFlight += recipients.length;
       channels.get(clone.id)!.port2.postMessage({
         epoch,
+        kind: "log",
         recipients,
         bytes: clone.caller.adapter.save(),
       });
@@ -207,6 +321,7 @@ function render(clone: DemoClone): void {
   renderLog();
 }
 function createPanel(clone: DemoClone): void {
+  presenceViews.set(clone.id, new PresenceView(clone.id, DEFAULT_PRESENCE_CONFIG));
   const template = $<HTMLTemplateElement>("#clone-template");
   const panel = template.content.firstElementChild!.cloneNode(
     true,
@@ -227,6 +342,9 @@ function createPanel(clone: DemoClone): void {
     setProfile(clone, profile.value as DelayProfile);
     renderSync();
   });
+  const hosts = ensurePresenceHosts(panel, PRESENCE_FIELDS);
+  presenceHosts.set(clone.id, hosts);
+  ensurePresenceTicker();
   for (
     const input of panel.querySelectorAll<
       HTMLInputElement | HTMLTextAreaElement
@@ -236,11 +354,18 @@ function createPanel(clone: DemoClone): void {
     input.id = `${clone.id}-${field}`;
     input.addEventListener("focus", () => {
       input.dataset.rev = clone.caller.build.logRev();
+      emitPresence(clone, field, "focused");
+      startPresenceBeat(clone);
     });
-    const edit = () => {
+    input.addEventListener("blur", () => {
+      stopPresenceBeat(clone.id);
+      emitPresence(clone, null, "focused");
+    });
+  const edit = () => {
       if (busy || sent || composing.has(clone.id)) return;
       if (!input.reportValidity()) return;
       try {
+        const before = String(readField(session, clone, field));
         const value =
           input instanceof HTMLInputElement && input.type === "number"
             ? input.valueAsNumber
@@ -255,6 +380,19 @@ function createPanel(clone: DemoClone): void {
             : input.dataset.rev,
         );
         input.dataset.rev = clone.caller.build.logRev();
+        const after = String(value);
+        if (before !== after) {
+          emitPresence(clone, field, "editing");
+          broadcastPresence(clone, {
+            t: "edit",
+            userId: clone.id,
+            name: clone.username,
+            field,
+            from: before,
+            to: after,
+            atMs: nowMs(),
+          });
+        }
         feedback(clone, "Local edit appended; waiting for this clone’s link.");
         schedule(clone);
         render(clone);
@@ -268,7 +406,15 @@ function createPanel(clone: DemoClone): void {
         );
       }
     };
-    input.addEventListener(field === "narrative" ? "input" : "change", edit);
+    if (field === "narrative") {
+      input.addEventListener("input", () => {
+        emitPresence(clone, field, "editing");
+        startPresenceBeat(clone);
+        edit();
+      });
+    } else {
+      input.addEventListener("change", edit);
+    }
     input.addEventListener("blur", () => render(clone));
     if (field === "narrative") {
       input.addEventListener("compositionstart", () => composing.add(clone.id));
@@ -288,8 +434,15 @@ function createPanel(clone: DemoClone): void {
   });
   $("#clones").append(panel);
   connect(clone);
+  broadcastPresence(clone, {
+    t: "join",
+    userId: clone.id,
+    name: clone.username,
+    atMs: nowMs(),
+  });
   updateLogChoices();
   render(clone);
+  renderPresence(clone);
 }
 function updateLogChoices(): void {
   const select = $<HTMLSelectElement>("#log-clone");
@@ -469,7 +622,17 @@ async function start(): Promise<void> {
   $("#add-clone").addEventListener("click", () => {
     const clone = addClone(session);
     createPanel(clone);
-    for (const peer of session.clones) schedule(peer);
+    for (const peer of session.clones) {
+      if (peer !== clone) {
+        broadcastPresence(peer, {
+          t: "join",
+          userId: peer.id,
+          name: peer.username,
+          atMs: nowMs(),
+        });
+      }
+      schedule(peer);
+    }
   });
   $("#sync-now").addEventListener("click", () => {
     if (composing.size) {

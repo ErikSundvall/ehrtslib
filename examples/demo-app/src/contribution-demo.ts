@@ -15,24 +15,12 @@ import {
 } from "../../../addons/cb_automerge/mod.ts";
 import { deserializeFromFlat } from "../../../serialization/simplified/flat_deserializer.ts";
 import { parseWebTemplate } from "../../../serialization/simplified/web_template_parser.ts";
+import {
+  allocateDemoUsername,
+  USERNAMES,
+} from "./cb-username-allocator.ts";
 
-export const USERNAMES = [
-  "nurse.andersson",
-  "dr.berg",
-  "midwife.chen",
-  "gp.dalton",
-  "physio.ek",
-  "student.falk",
-  "consultant.green",
-  "paramedic.holm",
-  "dietitian.ivarsson",
-  "oncology.johansson",
-  "cardio.khan",
-  "ward.clerk.lind",
-  "anesthetist.mori",
-  "radiologist.nguyen",
-  "psych.olsson",
-] as const;
+export { USERNAMES };
 
 export const DELAY_PROFILES = {
   office: { label: "Office LAN", min: 80, max: 350 },
@@ -106,9 +94,6 @@ function binding(
   };
 }
 
-export function suggestUsername(): string {
-  return USERNAMES[Math.floor(Math.random() * USERNAMES.length)];
-}
 export function delayFor(clone: DemoClone): number {
   return Math.round(
     clone.minDelay + Math.random() * (clone.maxDelay - clone.minDelay),
@@ -122,9 +107,13 @@ export function setProfile(clone: DemoClone, profile: DelayProfile): void {
   clone.minDelay = Math.round(base.min * factor);
   clone.maxDelay = Math.round(base.max * factor);
 }
-function makeClone(bytes?: Uint8Array, buildId?: string): DemoClone {
+function makeClone(
+  bytes?: Uint8Array,
+  buildId?: string,
+  inUse: Iterable<string> = [],
+): DemoClone {
   const id = `c${crypto.randomUUID().replaceAll("-", "")}`;
-  const username = suggestUsername();
+  const username = allocateDemoUsername(new Set(inUse));
   const author = { id, name: username };
   const clone: DemoClone = {
     id,
@@ -249,7 +238,11 @@ export async function createDemoSession(
 
 export function addClone(session: DemoSession): DemoClone {
   const source = session.clones[0].caller;
-  const clone = makeClone(source.adapter.save(), source.build.buildId);
+  const clone = makeClone(
+    source.adapter.save(),
+    source.build.buildId,
+    session.clones.map((c) => c.username),
+  );
   session.clones.push(clone);
   return clone;
 }

@@ -43,7 +43,9 @@ Deno.test("Contribution Builder demo: two independent clones bind the real OPT/W
   );
   const c = addClone(s);
   assertEquals(s.clones.length, 3);
-  assert(USERNAMES.some((name) => name === c.username));
+  assertEquals(a.username, USERNAMES[0]);
+  assertEquals(b.username, USERNAMES[1]);
+  assertEquals(c.username, USERNAMES[2]);
   assert(c.id !== a.id);
   setProfile(c, "rural");
   for (let i = 0; i < 50; i++) {
