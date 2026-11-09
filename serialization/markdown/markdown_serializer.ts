@@ -62,6 +62,7 @@ import { formatOeMetaMarkdown } from '../documents_common/oe_structure_meta.ts';
 export class MarkdownSerializer {
   private config: Required<MarkdownSerializationConfig>;
   private activeEntryDefaults?: CompositionEntryDefaults;
+  private compactTableEventTime = "";
 
   constructor(config: MarkdownSerializationConfig = {}) {
     this.config = { ...DEFAULT_MARKDOWN_SERIALIZATION_CONFIG, ...config };
@@ -489,7 +490,7 @@ export class MarkdownSerializer {
     }
 
     // Width (for INTERVAL_EVENT)
-    if (event.width) {
+    if (event.width && this.config.style !== 'compact') {
       if (this.config.style === 'embedding') {
         lines.push(`width: ${this.formatDuration(event.width)}`);
       } else {
@@ -497,15 +498,22 @@ export class MarkdownSerializer {
       }
     }
 
-    // Data
+    const prevCompactTime = this.compactTableEventTime;
+    if (this.config.style === 'compact') {
+      this.compactTableEventTime = this.formatEventTimeForCompactTable(event);
+    }
     if (event.data) {
       this.serializeItemStructure(event.data, lines, depth);
     }
 
-    // State
     if (event.state) {
-      this.serializeNamedItemStructure(event.state, 'State', lines, depth);
+      if (this.config.style === 'compact') {
+        this.serializeItemStructure(event.state, lines, depth);
+      } else {
+        this.serializeNamedItemStructure(event.state, 'State', lines, depth);
+      }
     }
+    this.compactTableEventTime = prevCompactTime;
   }
 
   // ─── ITEM STRUCTURES ─────────────────────────────────────────────────
@@ -645,15 +653,31 @@ export class MarkdownSerializer {
     });
   }
 
+  private formatEventTimeForCompactTable(event: any): string {
+    if (!event) return "";
+    const time = event.time ? this.formatDateTime(event.time) : "";
+    if (!time) return "";
+    const typeName = this.getTypeName(event);
+    if (typeName === "INTERVAL_EVENT" && event.width) {
+      const width = this.formatDuration(event.width);
+      const math = event.math_function
+        ? `; ${this.formatDvCodedText(event.math_function)}`
+        : "";
+      return `${time} (+ ${width}${math})`;
+    }
+    return time;
+  }
+
   private renderItemsAsTable(items: any[], lines: string[]): void {
     ensureBlankLineBeforeBlock(lines);
-    // Determine if we need a code column
-    const hasCode = this.config.codeRendering !== 'hidden' && items.some(item => {
-      return item.value && this.getDataValueCode(item.value);
-    });
+    const compactWithTime = this.config.style === "compact";
+    const hasCode = !compactWithTime && this.config.codeRendering !== 'hidden' &&
+      items.some(item => item.value && this.getDataValueCode(item.value));
 
-    // Header
-    if (hasCode) {
+    if (compactWithTime) {
+      lines.push('| Item | Value | Time |');
+      lines.push('| --- | --- | --- |');
+    } else if (hasCode) {
       lines.push('| Item | Value | Code |');
       lines.push('| :--- | :--- | :--- |');
     } else {
@@ -661,13 +685,14 @@ export class MarkdownSerializer {
       lines.push('| :--- | :--- |');
     }
 
-    // Rows
+    const timeCol = this.compactTableEventTime || "—";
     for (const item of items) {
       const name = this.extractName(item);
       const valueStr = item.value ? this.formatDataValueForTable(item.value) : '—';
-      const code = hasCode ? this.getDataValueCode(item.value) || '' : '';
-
-      if (hasCode) {
+      if (compactWithTime) {
+        lines.push(`| ${name} | ${valueStr} | ${timeCol} |`);
+      } else if (hasCode) {
+        const code = this.getDataValueCode(item.value) || '';
         lines.push(`| ${name} | ${valueStr} | ${code} |`);
       } else {
         lines.push(`| ${name} | ${valueStr} |`);

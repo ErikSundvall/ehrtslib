@@ -135,6 +135,12 @@ const markdownHeadingPattern = /^#{2,6}\s/;
 const markdownTablePattern = /^\| Item \|/;
 const asciidocHeadingPattern = /^={2,6}\s/;
 const asciidocTablePattern = /^\[cols=/;
+/** Opening pipe table only (not the closing `|===`). */
+function isAsciiDocPipeTableOpen(lines: string[], index: number): boolean {
+  if (lines[index] !== "|===") return false;
+  const next = lines[index + 1]?.trim() ?? "";
+  return next.startsWith("| Item");
+}
 const asciidocEventTitlePattern = /^\*[^*\s]|^\./;
 
 const markdownConfigs = [
@@ -166,7 +172,7 @@ for (const [name, config] of markdownConfigs) {
     assertMatch(html, /<h2[\s>]/);
     const h2Count = (html.match(/<h2[\s>]/g) ?? []).length;
     assert(h2Count >= 2, `expected multiple h2 headings, got ${h2Count}`);
-    if (name === "clinical" || name === "wikilink") {
+    if (name === "clinical" || name === "wikilink" || name === "compact") {
       assertStringIncludes(html, "<table");
     }
   });
@@ -180,7 +186,16 @@ for (const [name, config] of asciidocConfigs) {
     assertBlankBeforePattern(ad, asciidocHeadingPattern, `asciidoc-${name}-heading`);
     assertBlankBeforePattern(ad, asciidocEventTitlePattern, `asciidoc-${name}-event`);
     if (name === "compact") {
-      assertBlankBeforePattern(ad, asciidocTablePattern, `asciidoc-${name}-table`);
+      const lines = ad.replace(/\r\n/g, "\n").split("\n");
+      for (let i = 0; i < lines.length; i++) {
+        if (!isAsciiDocPipeTableOpen(lines, i)) continue;
+        assertEquals(
+          lines[i - 1]?.trim() ?? "",
+          "",
+          `asciidoc-${name}-table: opening |=== must follow blank line`,
+        );
+      }
+      assertEquals(ad.includes("[cols="), false);
     }
     const Asciidoctor = (await import("@asciidoctor/core")).default;
     const html = Asciidoctor().convert(ad, {

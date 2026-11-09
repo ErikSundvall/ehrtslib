@@ -11,6 +11,7 @@ Add an entry under **Unreleased** in every PR that changes user-visible behaviou
 - **Demo.** Document view strips YAML/AsciiDoc header metadata into a compact panel; shows AsciiDoc/Markdown document titles (`showtitle`); wikilink headings no longer duplicate labels in rendered HTML.
 - **Serialization (Markdown/AsciiDoc).** Embedding presets use compact `key: value` / definition-list lines (lower `o200k_base` token count); AsciiDoc context omits a trailing hard line break on the last context line.
 - **Serialization (Markdown/AsciiDoc).** Wikilink/URN heading output puts the link in the title (no repeated label); AsciiDoc URN links apply outside lossless round-trip.
+- **Serialization (Markdown/AsciiDoc).** Compact preset tables use implicit-header `| Item | Value | Time` (no AsciiDoc `[cols=…]` line); event times appear per row.
 - **Demo.** Active Code/Document output tab uses light text on the dark code panel background (WCAG-friendly contrast).
 - **Serialization (Markdown/AsciiDoc).** ENTRY `language`/`encoding`/`subject` emit once per composition (front matter / header attrs); per-entry lines only when values differ; deserializers restore defaults on every ENTRY.
 - **Serialization (Markdown/AsciiDoc).** Round-trip `item_node_id`, `item_name`, and `_structure:` markers move to hidden `oe:meta:` comments (not visible in Document view).

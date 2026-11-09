@@ -256,7 +256,7 @@ export const COMPACT_MARKDOWN_CONFIG: MarkdownSerializationConfig = {
   includeArchetypeNodeIds: false,
   includeTypeAnnotations: false,
   codeRendering: 'hidden',
-  dataValueRendering: 'inline',
+  dataValueRendering: 'table',
   useTerseFormat: true,
   includeNullFlavour: false,
   includeCompositionMetadata: false,

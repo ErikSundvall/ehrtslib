@@ -64,6 +64,8 @@ import { formatOeMetaAsciidoc } from '../documents_common/oe_structure_meta.ts';
 export class AsciidocSerializer {
   private config: Required<AsciidocSerializationConfig>;
   private activeEntryDefaults?: CompositionEntryDefaults;
+  /** Set while serializing event data in compact table mode (Time column). */
+  private compactTableEventTime = "";
 
   constructor(config: AsciidocSerializationConfig = {}) {
     this.config = { ...DEFAULT_ASCIIDOC_SERIALIZATION_CONFIG, ...config };
@@ -508,7 +510,7 @@ export class AsciidocSerializer {
       }
     }
 
-    if (event.width) {
+    if (event.width && this.config.style !== 'compact') {
       if (this.config.style === 'embedding') {
         lines.push(`width:: ${this.formatDuration(event.width)}`);
       } else {
@@ -516,13 +518,22 @@ export class AsciidocSerializer {
       }
     }
 
+    const prevCompactTime = this.compactTableEventTime;
+    if (this.config.style === 'compact') {
+      this.compactTableEventTime = this.formatEventTimeForCompactTable(event);
+    }
     if (event.data) {
       this.serializeItemStructure(event.data, lines, depth);
     }
 
     if (event.state) {
-      this.serializeNamedItemStructure(event.state, 'State', lines, depth);
+      if (this.config.style === 'compact') {
+        this.serializeItemStructure(event.state, lines, depth);
+      } else {
+        this.serializeNamedItemStructure(event.state, 'State', lines, depth);
+      }
     }
+    this.compactTableEventTime = prevCompactTime;
   }
 
   // ─── ITEM STRUCTURES ─────────────────────────────────────────────────
@@ -656,35 +667,53 @@ export class AsciidocSerializer {
     });
   }
 
+  private formatEventTimeForCompactTable(event: any): string {
+    if (!event) return "";
+    const time = event.time ? this.formatDateTime(event.time) : "";
+    if (!time) return "";
+    const typeName = this.getTypeName(event);
+    if (typeName === "INTERVAL_EVENT" && event.width) {
+      const width = this.formatDuration(event.width);
+      const math = event.math_function
+        ? `; ${this.formatDvCodedText(event.math_function)}`
+        : "";
+      return `${time} (+ ${width}${math})`;
+    }
+    return time;
+  }
+
   private renderItemsAsTable(items: any[], lines: string[]): void {
     ensureBlankLineBeforeBlock(lines);
-    const hasCode = this.config.codeRendering !== 'hidden' && items.some(item => {
-      return item.value && this.getDataValueCode(item.value);
-    });
+    const compactWithTime = this.config.style === "compact";
+    const hasCode = !compactWithTime && this.config.codeRendering !== 'hidden' &&
+      items.some(item => item.value && this.getDataValueCode(item.value));
 
-    // AsciiDoc table syntax
-    if (hasCode) {
-      lines.push('[cols="2,2,1", options="header"]');
-    } else {
-      lines.push('[cols="1,2", options="header"]');
+    if (!compactWithTime) {
+      if (hasCode) {
+        lines.push('[cols="2,2,1", options="header"]');
+      } else {
+        lines.push('[cols="1,2", options="header"]');
+      }
     }
     lines.push('|===');
 
-    // Header row
-    if (hasCode) {
+  if (compactWithTime) {
+      lines.push('| Item | Value | Time');
+    } else if (hasCode) {
       lines.push('| Item | Value | Code');
     } else {
       lines.push('| Item | Value');
     }
     lines.push('');
 
-    // Data rows
+    const timeCol = this.compactTableEventTime || "—";
     for (const item of items) {
       const name = this.extractName(item);
       const valueStr = item.value ? this.formatDataValueForTable(item.value) : '—';
-      const code = hasCode ? this.getDataValueCode(item.value) || '' : '';
-
-      if (hasCode) {
+      if (compactWithTime) {
+        lines.push(`| ${name} | ${valueStr} | ${timeCol}`);
+      } else if (hasCode) {
+        const code = this.getDataValueCode(item.value) || '';
         lines.push(`| ${name} | ${valueStr} | ${code}`);
       } else {
         lines.push(`| ${name} | ${valueStr}`);
