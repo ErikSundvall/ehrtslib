@@ -8,6 +8,8 @@ Add an entry under **Unreleased** in every PR that changes user-visible behaviou
 
 ## [Unreleased]
 
+- **Demo.** Markdown and AsciiDoc output format checkboxes and tabs are exposed (structural/lossless and embedding presets, with token counts).
+- **Serialization (TypeScript stubs).** Undefined-attribute TODO comments include RM multiplicity and required/optional wording; nested init-object literals replace redundant `new SubType(...)` where the parent attribute type is unambiguous (polymorphic slots still use explicit constructors).
 - **Serialization.** Markdown and AsciiDoc are optional codecs (`ehrtslib/serialization-markdown`, `ehrtslib/serialization-asciidoc`) with structural/lossless parsers, `EMBEDDING_*` output-only presets, and AOM archetype URNs (`urn:openehr:aom:`). The default `serialization/mod.ts` barrel no longer re-exports them ([#284](https://github.com/ErikSundvall/ehrtslib/issues/284)).
 - **Demo.** Format converter accepts Markdown and AsciiDoc input; output panels show `gpt-tokenizer` `o200k_base` token counts beside characters and lines (demo-only dependency; literal BPE via `disallowedSpecial: new Set()`, not `allowedSpecial: "all"`).
 - **Serialization (Markdown/AsciiDoc).** Broader structural round-trip tests, `ITEM_LIST`/`ITEM_TABLE` `_structure:` markers, AsciiDoc header/comment fixes, no legacy `urn:openehr:am:` parsing ([#284](https://github.com/ErikSundvall/ehrtslib/issues/284)).

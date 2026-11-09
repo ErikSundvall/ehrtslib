@@ -40,7 +40,7 @@
   },
   "tasks": {
     "test": "deno task refresh:openehr-its-xml && deno test test_data/tests/ --allow-read --allow-env --allow-net --allow-run --allow-write --no-check",
-    "check": "deno check openehr_*.ts base/*.ts rm/*.ts am/mod.ts am/openehr_am.ts lang/*.ts term/*.ts meta/mod.ts serialization/terse_format.ts serialization/terse_strings.ts",
+    "check": "deno check openehr_*.ts base/*.ts rm/*.ts am/mod.ts am/openehr_am.ts lang/*.ts term/*.ts meta/mod.ts serialization/terse_format.ts serialization/terse_strings.ts serialization/typescript/typescript_constructor_serializer.ts",
     "check:all": "deno check mod.ts base/*.ts rm/*.ts am/*.ts am/util/mod.ts lang/*.ts term/*.ts parser/mod.ts serialization/mod.ts validation/mod.ts generation/mod.ts meta/mod.ts spec/mod.ts contribution_builder/mod.ts",
     "generate:rm-meta": "deno run --allow-read --allow-net --allow-write tasks/generate_rm_meta.ts",
     "generate:spec-docs": "deno run --allow-read --allow-net --allow-write tasks/generate_spec_docs.ts",

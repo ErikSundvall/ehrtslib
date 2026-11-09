@@ -3,8 +3,21 @@
 // Package boundaries follow the BMM package structure; edit the class bodies here,
 // but re-run the splitter rather than hand-moving declarations between packages.
 
+import { applyRmInit, type RmInit } from "../apply_rm_init.ts";
 import { Any } from "../foundation_types/foundation_types.ts";
 import { Boolean, String } from "../foundation_types/primitive_types.ts";
+
+function applyObjectIdInit(
+  instance: OBJECT_ID,
+  init?: string | RmInit,
+): void {
+  if (init === undefined) return;
+  if (typeof init === "string") {
+    instance.value = init;
+    return;
+  }
+  applyRmInit(instance, init);
+}
 
 /**
  * Ancestor class of identifiers of informational objects. Ids may be completely meaningless, in which case their only job is to refer to something, or may carry some information to do with the identified object.
@@ -53,6 +66,11 @@ export abstract class OBJECT_ID {
  * Lexical form: \`rm_originator  '-' rm_name  '-' rm_entity  '.' concept_name {  '-' specialisation }*  '.v' number\`.
  */
 export class ARCHETYPE_ID extends OBJECT_ID {
+  constructor(init?: string | RmInit) {
+    super();
+    applyObjectIdInit(this, init);
+  }
+
   /**
    * Globally qualified reference model entity, e.g.  \`"openehr-EHR-OBSERVATION"\`.
    * @returns Result value
@@ -158,6 +176,11 @@ export class ARCHETYPE_ID extends OBJECT_ID {
  * Generic identifier type for identifiers whose format is otherwise unknown to openEHR. Includes an attribute for naming the identification scheme (which may well be local).
  */
 export class GENERIC_ID extends OBJECT_ID {
+  constructor(init?: string | RmInit) {
+    super();
+    applyObjectIdInit(this, init);
+  }
+
   /**
    * Internal storage for scheme
    * @protected
@@ -197,6 +220,11 @@ export class GENERIC_ID extends OBJECT_ID {
  * Abstract model of UID-based identifiers consisting of a root part and an optional extension; lexical form: \`root '::' extension\`.
  */
 export abstract class UID_BASED_ID extends OBJECT_ID {
+  constructor(init?: string | RmInit) {
+    super();
+    applyObjectIdInit(this, init);
+  }
+
   /**
    * The identifier of the conceptual namespace in which the object exists, within the identification scheme. Returns the part to the left of the first '::' separator, if any, or else the whole string.
    * @returns Result value
@@ -511,6 +539,11 @@ export class PARTY_REF extends OBJECT_REF {
  * Lexical form: \`name [  '(' version  ')' ]\`.
  */
 export class TERMINOLOGY_ID extends OBJECT_ID {
+  constructor(init?: string | RmInit) {
+    super();
+    applyObjectIdInit(this, init);
+  }
+
   /**
    * Return the terminology id (which includes the  version  in some cases). Distinct names correspond to distinct (i.e. non-compatible) terminologies. Thus the names  \`"ICD10AM"\` and \`"ICD10"\` refer to distinct terminologies.
    * @returns Result value
@@ -691,6 +724,10 @@ export class ISO_OID extends UID {
  * Identifier for templates. Lexical form to be determined.
  */
 export class TEMPLATE_ID extends OBJECT_ID {
+  constructor(init?: string | RmInit) {
+    super();
+    applyObjectIdInit(this, init);
+  }
 }
 
 /**
