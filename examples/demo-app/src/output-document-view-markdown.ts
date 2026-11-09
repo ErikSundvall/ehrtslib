@@ -3,6 +3,11 @@
  */
 
 import { stripMarkdownDisplayComments } from "./output-render-sources.ts";
+import {
+  buildMetadataPanelHtml,
+  DOCUMENT_METADATA_CSS,
+  splitMarkdownForDocumentView,
+} from "./document-view-split.ts";
 
 let loadPromise: Promise<typeof importMarkdownPipeline> | undefined;
 
@@ -44,6 +49,7 @@ export function preprocessMarkdownWikilinks(source: string): string {
 }
 
 const PROSE_CSS = `
+${DOCUMENT_METADATA_CSS}
 body { margin: 0; padding: 1rem 1.25rem; font-family: system-ui, sans-serif; line-height: 1.55; color: #0f172a; }
 h1,h2,h3,h4 { margin-top: 1.25em; margin-bottom: 0.5em; font-weight: 600; }
 table { border-collapse: collapse; width: 100%; margin: 0.75em 0; font-size: 0.95em; }
@@ -59,7 +65,9 @@ export async function renderMarkdownDocumentHtml(source: string): Promise<string
     loadPromise = importMarkdownPipeline();
   }
   const { md, purify } = await loadPromise;
-  const cleaned = preprocessMarkdownWikilinks(stripMarkdownDisplayComments(source));
+  const { metadata, body } = splitMarkdownForDocumentView(source);
+  const metaPanel = buildMetadataPanelHtml(metadata);
+  const cleaned = preprocessMarkdownWikilinks(stripMarkdownDisplayComments(body));
   const rawHtml = md.render(cleaned);
   const safeBody = purify.sanitize(rawHtml, {
     ALLOWED_TAGS: [
@@ -99,6 +107,6 @@ export async function renderMarkdownDocumentHtml(source: string): Promise<string
 <title>Markdown preview</title>
 <style>${PROSE_CSS}</style>
 </head>
-<body>${safeBody}</body>
+<body>${metaPanel}${safeBody}</body>
 </html>`;
 }

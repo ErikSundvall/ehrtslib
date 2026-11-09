@@ -135,7 +135,7 @@ const markdownHeadingPattern = /^#{2,6}\s/;
 const markdownTablePattern = /^\| Item \|/;
 const asciidocHeadingPattern = /^={2,6}\s/;
 const asciidocTablePattern = /^\[cols=/;
-const asciidocEventTitlePattern = /^\*[^*\s]/;
+const asciidocEventTitlePattern = /^\*[^*\s]|^\./;
 
 const markdownConfigs = [
   ["structural", STRUCTURAL_MARKDOWN_CONFIG],

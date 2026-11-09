@@ -124,11 +124,12 @@ export class AsciidocSerializer {
 
     // = Composition name (level 1 heading)
     const name = this.extractName(comp);
-    const nodeIdAnnotation = this.formatNodeIdComment(comp);
+    const title = this.formatLocatableHeadingTitle(comp, name);
+    const nodeIdAnnotation = this.formatBlockNodeIdComment(comp);
     if (nodeIdAnnotation) {
       this.pushBlockCommentLine(lines, nodeIdAnnotation);
     }
-    lines.push(`= ${name}`);
+    lines.push(`= ${title}`);
     lines.push('');
 
     // Context (if present)
@@ -221,9 +222,23 @@ export class AsciidocSerializer {
     if (parts.length > 0) {
       if (this.config.style === 'compact') {
         lines.push(parts.join(' | '));
-      } else {
+      } else if (this.config.style === 'embedding') {
         for (const part of parts) {
-          lines.push(part + ' +');
+          const plain = part.replace(/\*([^*]+)\*/g, "$1");
+          const colon = plain.indexOf(":");
+          if (colon > 0) {
+            const key = plain.slice(0, colon).trim();
+            const val = plain.slice(colon + 1).trim();
+            lines.push(`${key}:: ${val}`);
+          } else {
+            lines.push(plain);
+          }
+        }
+      } else {
+        for (let i = 0; i < parts.length; i++) {
+          const part = parts[i];
+          const isLast = i === parts.length - 1;
+          lines.push(isLast ? part : part + " +");
         }
       }
       lines.push('');
@@ -252,10 +267,11 @@ export class AsciidocSerializer {
 
   private serializeSection(section: any, lines: string[], depth: number): void {
     const name = this.extractName(section);
-    const nodeId = this.formatNodeIdComment(section);
+    const headingTitle = this.formatLocatableHeadingTitle(section, name);
+    const nodeId = this.formatBlockNodeIdComment(section);
 
     if (nodeId) this.pushBlockCommentLine(lines, nodeId);
-    this.writeHeading(name, depth, lines);
+    this.writeHeading(headingTitle, depth, lines);
     lines.push('');
 
     if (section.items && Array.isArray(section.items)) {
@@ -267,11 +283,12 @@ export class AsciidocSerializer {
 
   private serializeEntry(entry: any, typeName: string | undefined, lines: string[], depth: number): void {
     const name = this.extractName(entry);
-    const nodeId = this.formatNodeIdComment(entry);
+    const headingTitle = this.formatLocatableHeadingTitle(entry, name);
+    const nodeId = this.formatBlockNodeIdComment(entry);
     const typeAnnotation = this.formatTypeAnnotation(typeName);
 
     if (nodeId) this.pushBlockCommentLine(lines, nodeId);
-    const headingText = typeAnnotation ? `${name} ${typeAnnotation}` : name;
+    const headingText = typeAnnotation ? `${headingTitle} ${typeAnnotation}` : headingTitle;
     this.writeHeading(headingText, depth, lines);
     lines.push('');
 
@@ -442,7 +459,12 @@ export class AsciidocSerializer {
   private serializeHistory(history: any, label: string, lines: string[], depth: number): void {
     this.emitItemStructureMeta(history, lines);
     if (history.origin && this.config.style !== 'compact') {
-      lines.push(`* _origin:_ ${this.formatDateTime(history.origin)}`);
+      if (this.config.style === 'embedding') {
+        ensureBlankLineBeforeBlock(lines);
+        lines.push(`origin:: ${this.formatDateTime(history.origin)}`);
+      } else {
+        lines.push(`* _origin:_ ${this.formatDateTime(history.origin)}`);
+      }
     }
 
     if (history.events && Array.isArray(history.events)) {
@@ -458,7 +480,7 @@ export class AsciidocSerializer {
 
   private serializeEvent(event: any, lines: string[], depth: number): void {
     const name = this.extractName(event);
-    const nodeId = this.formatNodeIdComment(event);
+    const nodeId = this.formatBlockNodeIdComment(event);
     const typeName = this.getTypeName(event);
 
     // For single "Any event" we skip the heading in compact mode
@@ -467,17 +489,31 @@ export class AsciidocSerializer {
         const typeAnn = (typeName === 'INTERVAL_EVENT') ? ' _(interval)_' : '';
         if (nodeId) this.pushBlockCommentLine(lines, nodeId);
         ensureBlankLineBeforeBlock(lines);
-        lines.push(`*${name}*${typeAnn}`);
+        if (this.config.style === 'embedding') {
+          const title = this.formatLocatableHeadingTitle(event, name);
+          lines.push(`.${title}${typeAnn}`);
+        } else {
+          const title = this.formatLocatableHeadingTitle(event, name);
+          lines.push(`*${title}*${typeAnn}`);
+        }
         lines.push('');
       }
     }
 
     if (event.time && this.config.style !== 'compact') {
-      lines.push(`* _time:_ ${this.formatDateTime(event.time)}`);
+      if (this.config.style === 'embedding') {
+        lines.push(`time:: ${this.formatDateTime(event.time)}`);
+      } else {
+        lines.push(`* _time:_ ${this.formatDateTime(event.time)}`);
+      }
     }
 
     if (event.width) {
-      lines.push(`* _width:_ ${this.formatDuration(event.width)}`);
+      if (this.config.style === 'embedding') {
+        lines.push(`width:: ${this.formatDuration(event.width)}`);
+      } else {
+        lines.push(`* _width:_ ${this.formatDuration(event.width)}`);
+      }
     }
 
     if (event.data) {
@@ -560,10 +596,18 @@ export class AsciidocSerializer {
 
   private serializeCluster(cluster: any, lines: string[], nestLevel: number): void {
     const name = this.extractName(cluster);
-    const nodeId = this.formatNodeIdInline(cluster);
     const indent = this.getListPrefix(nestLevel);
-
-    lines.push(`${indent} *${name}*${nodeId}`);
+    const title = this.formatLocatableHeadingTitle(cluster, name);
+    if (
+      this.config.style !== "lossless" &&
+      this.config.useOpenehrUrnLinks &&
+      this.isArchetypeId(cluster?.archetype_node_id)
+    ) {
+      lines.push(`${indent} ${title}`);
+    } else {
+      const nodeId = this.formatNodeIdInline(cluster);
+      lines.push(`${indent} *${name}*${nodeId}`);
+    }
 
     if (cluster.items && Array.isArray(cluster.items)) {
       this.serializeItems(cluster.items, lines, nestLevel + 1);
@@ -588,7 +632,9 @@ export class AsciidocSerializer {
     const valueStr = this.formatDataValue(element.value);
     const dvAnn = this.formatSparseValueAnnotation(element.value, valueStr);
 
-    if (this.config.style === 'compact' || this.config.dataValueRendering === 'inline') {
+    if (this.config.style === 'embedding') {
+      lines.push(`${indent}${name}:: ${valueStr}${nodeId}${dvAnn}`);
+    } else if (this.config.style === 'compact' || this.config.dataValueRendering === 'inline') {
       lines.push(`${indent} ${name}: ${valueStr}${nodeId}${dvAnn}`);
     } else {
       lines.push(`${indent} *${name}:* ${valueStr}${nodeId}${dvAnn}`);
@@ -945,11 +991,12 @@ export class AsciidocSerializer {
 
   private serializeNode(obj: any, typeName: string | undefined, lines: string[], depth: number): void {
     const name = this.extractName(obj);
-    const nodeId = this.formatNodeIdComment(obj);
+    const title = this.formatLocatableHeadingTitle(obj, name);
+    const nodeId = this.formatBlockNodeIdComment(obj);
 
     if (name) {
       if (nodeId) this.pushBlockCommentLine(lines, nodeId);
-      this.writeHeading(name, depth, lines);
+      this.writeHeading(title, depth, lines);
       lines.push('');
     }
 
@@ -982,6 +1029,34 @@ export class AsciidocSerializer {
     if (party.name) return party.name;
     if (party.external_ref?.id?.value) return party.external_ref.id.value;
     return '';
+  }
+
+  private formatLocatableHeadingTitle(obj: any, fallbackName: string): string {
+    const nodeId = obj?.archetype_node_id;
+    const name = fallbackName || this.extractName(obj);
+    if (
+      this.config.style !== "lossless" &&
+      this.config.useOpenehrUrnLinks &&
+      nodeId &&
+      this.isArchetypeId(nodeId)
+    ) {
+      return `link:${this.toOpenehrUrn(nodeId)}[${name}]`;
+    }
+    return name;
+  }
+
+  /** Block-level node id comments (omit when heading carries an openEHR URN link). */
+  private formatBlockNodeIdComment(obj: any): string {
+    const nodeId = obj?.archetype_node_id;
+    if (
+      this.config.style !== "lossless" &&
+      this.config.useOpenehrUrnLinks &&
+      nodeId &&
+      this.isArchetypeId(nodeId)
+    ) {
+      return "";
+    }
+    return this.formatNodeIdComment(obj);
   }
 
   /**
@@ -1071,8 +1146,8 @@ export class AsciidocSerializer {
   /**
    * Check if a node ID looks like a full archetype ID (vs a local at-code)
    */
-  private isArchetypeId(nodeId: string): boolean {
-    return nodeId.startsWith('openEHR-');
+  private isArchetypeId(nodeId: string | undefined): boolean {
+    return !!nodeId && nodeId.startsWith('openEHR-');
   }
 
   /**
