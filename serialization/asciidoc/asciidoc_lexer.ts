@@ -92,20 +92,22 @@ export function lexAsciidocLossless(text: string): {
       }
     }
 
-    const list = line.match(LIST_RE);
+    const list = line.match(/^(\*+)\s+(.+)$/);
     if (list) {
-      const stripped = stripNodeIdAndType(list[1]);
+      const listIndent = list[1].length - 1;
+      const stripped = stripNodeIdAndType(list[2]);
       const itemText = stripped.text;
       const meta = itemText.match(/^_(.+?):_\s*(.*)$/s);
       if (meta) {
         blocks.push({
           kind: "list_item",
-          indent: 0,
+          indent: listIndent,
           raw: itemText,
           label: meta[1],
           value: meta[2],
           archetypeNodeId: stripped.archetypeNodeId ?? pendingNodeId,
           oeValuePayload: stripped.oeValuePayload,
+          oeRmPayload: stripped.oeRmPayload,
         });
       } else {
         const kv = itemText.match(/^\*\*(.+?)\*\*::\s*(.+)$/) ??
@@ -114,23 +116,25 @@ export function lexAsciidocLossless(text: string): {
         if (kv) {
           blocks.push({
             kind: "list_item",
-            indent: 0,
+            indent: listIndent,
             label: kv[1],
             value: kv[2],
             raw: itemText,
             archetypeNodeId: stripped.archetypeNodeId ?? pendingNodeId,
             oeValuePayload: stripped.oeValuePayload,
+          oeRmPayload: stripped.oeRmPayload,
           });
         } else {
           const plain = itemText.match(/^(.+?):\s*(.+)$/);
           blocks.push({
             kind: "list_item",
-            indent: 0,
+            indent: listIndent,
             label: plain?.[1],
             value: plain?.[2],
             raw: itemText,
             archetypeNodeId: stripped.archetypeNodeId ?? pendingNodeId,
             oeValuePayload: stripped.oeValuePayload,
+          oeRmPayload: stripped.oeRmPayload,
           });
         }
       }

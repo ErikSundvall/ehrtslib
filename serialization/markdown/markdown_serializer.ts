@@ -47,9 +47,17 @@ import {
 } from '../documents_common/document_entry_defaults.ts';
 import { formatOeMetaMarkdown } from '../documents_common/oe_structure_meta.ts';
 import {
+  emitStructuralCompositionExtrasMarkdown,
+  emitStructuralEntryExtrasMarkdown,
+  emitStructuralEventContextMarkdown,
+  formatStructuralCompositionRoundtripMarkdown,
+  hasExtraRmFields,
+} from "../documents_common/document_structural_emit.ts";
+import {
   shouldEmitHistoryOrigin,
   shouldSkipLossyEventTitles,
 } from '../documents_common/history_lossy_emit.ts';
+import { formatOeRmAnnotationMarkdown } from "../documents_common/oe_rm_annotation.ts";
 import {
   type DocumentRmRenderOptions,
   renderRmValue,
@@ -135,6 +143,11 @@ export class MarkdownSerializer {
     lines.push(`# ${headingTitle}`);
     lines.push('');
 
+    if (this.config.style === "structural") {
+      emitStructuralCompositionExtrasMarkdown(comp, (line) => lines.push(line));
+      lines.push("");
+    }
+
     // Context (if present)
     if (comp.context) {
       this.serializeEventContext(comp.context, lines);
@@ -145,6 +158,11 @@ export class MarkdownSerializer {
       for (const item of comp.content) {
         this.serializeContentItem(item, lines, 2);
       }
+    }
+
+    if (this.config.style === "structural") {
+      lines.push("");
+      lines.push(formatStructuralCompositionRoundtripMarkdown(comp));
     }
   }
 
@@ -171,6 +189,9 @@ export class MarkdownSerializer {
         ? comp.archetype_details.archetype_id.value
         : comp.archetype_details.archetype_id;
       if (archValue) lines.push(`archetype_id: "${archValue}"`);
+    }
+    if (comp.archetype_details?.rm_version) {
+      lines.push(`rm_version: "${comp.archetype_details.rm_version}"`);
     }
 
     // Composer
@@ -204,6 +225,15 @@ export class MarkdownSerializer {
   // ─── EVENT CONTEXT ───────────────────────────────────────────────────
 
   private serializeEventContext(ctx: any, lines: string[]): void {
+    if (this.config.style === "structural") {
+      emitStructuralEventContextMarkdown(ctx, (line) => lines.push(line));
+      if (ctx.other_context) {
+        this.serializeItemStructure(ctx.other_context, lines, 1);
+      }
+      lines.push("");
+      return;
+    }
+
     const parts: string[] = [];
 
     if (ctx.start_time) {
@@ -283,6 +313,15 @@ export class MarkdownSerializer {
     lines.push('');
 
     this.emitEntryMetadataWhenDiffers(entry, lines);
+    if (this.config.style === "structural") {
+      emitStructuralEntryExtrasMarkdown(entry, (line) => lines.push(line));
+      if (entry.archetype_details) {
+        const ad = entry.archetype_details as Record<string, unknown>;
+        lines.push(
+          `- _archetype_details:_ ${renderRmValue(ad, this.rmRenderOptions(), 0)}${formatOeRmAnnotationMarkdown(ad)}`,
+        );
+      }
+    }
 
     // Type-specific content
     switch (typeName) {
@@ -617,6 +656,20 @@ export class MarkdownSerializer {
     const name = this.extractName(cluster);
     const indent = this.getIndent(nestLevel);
     const label = this.formatLocatableHeadingTitle(cluster, name);
+    if (this.config.style === "structural") {
+      const { items: _i, ...clusterHead } = cluster as Record<string, unknown>;
+      const head: Record<string, unknown> = { _type: "CLUSTER", ...clusterHead };
+      delete head.items;
+      const tail = hasExtraRmFields(head)
+        ? formatOeRmAnnotationMarkdown(head)
+        : "";
+      const nodeId = this.formatInlineNodeIdAnnotation(cluster);
+      lines.push(`${indent}- **${name}**${tail}${nodeId}`);
+      if (cluster.items && Array.isArray(cluster.items)) {
+        this.serializeItems(cluster.items, lines, nestLevel + 1);
+      }
+      return;
+    }
     if (this.usePlainKeyValueBody()) {
       ensureBlankLineBeforeBlock(lines);
       if (this.config.useOpenehrUrnWikilinks && this.isArchetypeId(cluster?.archetype_node_id)) {
@@ -661,15 +714,18 @@ export class MarkdownSerializer {
     const valueStr = this.formatDataValue(element.value);
     const dvAnn = this.formatSparseValueAnnotation(element.value, valueStr);
     const lineBody = this.formatElementValueLine(name, valueStr);
+    const elRmAnn = this.config.style === "structural"
+      ? formatOeRmAnnotationMarkdown(element as Record<string, unknown>)
+      : "";
 
     if (this.config.style === 'embedding') {
       lines.push(`${indent}${lineBody}${nodeId}${dvAnn}`);
     } else if (this.config.style === 'compact' || this.config.dataValueRendering === 'inline') {
-      lines.push(`${indent}- ${lineBody}${nodeId}${dvAnn}`);
+      lines.push(`${indent}- ${lineBody}${nodeId}${dvAnn}${elRmAnn}`);
     } else if (lineBody === valueStr) {
-      lines.push(`${indent}- ${valueStr}${nodeId}${dvAnn}`);
+      lines.push(`${indent}- ${valueStr}${nodeId}${dvAnn}${elRmAnn}`);
     } else {
-      lines.push(`${indent}- **${name}:** ${valueStr}${nodeId}${dvAnn}`);
+      lines.push(`${indent}- **${name}:** ${valueStr}${nodeId}${dvAnn}${elRmAnn}`);
     }
   }
 

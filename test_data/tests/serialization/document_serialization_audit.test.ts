@@ -235,14 +235,15 @@ Deno.test("document audit: full fixture sweep (structural paths + lossy silent d
   await Deno.mkdir("/opt/cursor/artifacts", { recursive: true });
   await Deno.writeTextFile(FINDINGS_PATH, JSON.stringify(findings, null, 2));
 
-  const bloodMd = structuralRows.find((r) =>
-    r.fixture === "codec-matrix-blood-pressure" && r.codec === "markdown"
-  );
-  const bloodAd = structuralRows.find((r) =>
-    r.fixture === "codec-matrix-blood-pressure" && r.codec === "asciidoc"
-  );
-  assert(bloodMd?.equal, "blood pressure markdown structural must round-trip");
-  assert(bloodAd?.equal, "blood pressure asciidoc structural must round-trip");
+  const failures = structuralRows.filter((r) => !r.equal);
+  if (failures.length > 0) {
+    const summary = failures.slice(0, 8).map((r) =>
+      `${r.fixture}/${r.codec}: dropped=${r.droppedCount} altered=${r.alteredCount}${r.error ? ` err=${r.error}` : ""}`
+    ).join("\n");
+    throw new Error(
+      `Structural round-trip must be lossless for all audit fixtures (${failures.length} failures):\n${summary}`,
+    );
+  }
 
   const chemoClusterMd = new MarkdownSerializer(EMBEDDING_MARKDOWN_CONFIG).serialize(
     chemoContextComposition(),

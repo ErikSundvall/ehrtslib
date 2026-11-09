@@ -141,6 +141,15 @@ These RM paths are **not** written in `compact` / `embedding` / `wikilink` outpu
 
 Participations, facility identifiers, and extension clusters **inside** `EVENT_CONTEXT.other_context` (or clinical content) are rendered when present in the instance tree.
 
+### Structural lossless encoding (#296)
+
+Structural presets serialize:
+
+- **Visible:** EVENT_CONTEXT as `_*field:*_` list items (participations, facility, `other_context` tree); ENTRY/COMPOSITION `feeder_audit` and `links`; per-item `oe:rm:v1` / `oe:v1` tails for PARTY, PARTICIPATION, CLUSTER metadata, ELEMENT values.
+- **Hidden tail:** full `COMPOSITION` snapshot in a trailing `oe:rm:v1:b64:` comment (MD `<!-- … -->`, AD `// …`) so deserializers recover every audited path; block parse remains for incremental parity.
+
+`document_serialization_audit.test.ts` fails on any structural dropped/altered path across **40** templated fixtures.
+
 ### Code reference
 
 - Shared policies: [`document_preset_rules.ts`](documents_common/document_preset_rules.ts) — `DOCUMENT_PRESET_RM_POLICIES`

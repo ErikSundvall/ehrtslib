@@ -3,7 +3,12 @@
  */
 
 import type { openehr_am } from "../../am/openehr_am.ts";
-import { parseCodePhraseDisplay, parseDvCodedTextDisplay } from "./value_parse.ts";
+import {
+  parseCodePhraseDisplay,
+  parseDataValueDisplay,
+  parseDvCodedTextDisplay,
+} from "./value_parse.ts";
+import { parseOeRmAnnotationPayload } from "./oe_rm_annotation.ts";
 import { resolveDataValueFromDisplayAndAnnotation } from "./oe_value_annotation.ts";
 import type {
   DocumentBlock,
@@ -25,7 +30,7 @@ type StackFrame =
   | { kind: "entry"; obj: Record<string, unknown>; entryType: string }
   | { kind: "history"; obj: Record<string, unknown> }
   | { kind: "event"; obj: Record<string, unknown>; data: Record<string, unknown> }
-  | { kind: "items"; parent: Record<string, unknown>; itemsKey: string };
+  | { kind: "items"; parent: Record<string, unknown>; itemsKey: string; listIndent: number };
 
 function dvText(value: string): Record<string, unknown> {
   return { _type: "DV_TEXT", value };
@@ -57,6 +62,9 @@ function parseFrontmatterValue(key: string, raw: string): unknown {
   if (key === "archetype_id") {
     return { _type: "ARCHETYPE_ID", value: unquoted };
   }
+  if (key === "rm_version" || key === "rm-version") {
+    return unquoted;
+  }
   return unquoted;
 }
 
@@ -68,8 +76,9 @@ function applyCompositionFrontmatter(
   let hasAd = false;
   for (const [key, raw] of Object.entries(meta.frontmatter)) {
     const val = parseFrontmatterValue(key, raw);
-    if (key === "template_id" || key === "archetype_id") {
-      ad[key] = val;
+    if (key === "template_id" || key === "archetype_id" || key === "rm_version" || key === "rm-version") {
+      const k = key === "rm-version" ? "rm_version" : key;
+      ad[k] = val;
       hasAd = true;
       continue;
     }
@@ -132,7 +141,19 @@ function addElement(
   valueText: string,
   nodeId?: string,
   oeValuePayload?: string,
+  oeRmPayload?: string,
 ): void {
+  if (oeRmPayload) {
+    const rm = parseOeRmAnnotationPayload(oeRmPayload);
+    if (rm._type === "ELEMENT") {
+      items.push(rm);
+      return;
+    }
+    if (rm._type === "CLUSTER") {
+      items.push(rm);
+      return;
+    }
+  }
   const el: Record<string, unknown> = {
     _type: "ELEMENT",
     name: dvText(name),
@@ -140,6 +161,53 @@ function addElement(
   };
   if (nodeId) el.archetype_node_id = nodeId;
   items.push(el);
+}
+
+function popItemsForIndent(stack: StackFrame[], indent: number): void {
+  while (stack.length > 0) {
+    const top = stack[stack.length - 1];
+    if (top.kind === "items" && top.listIndent >= indent) {
+      stack.pop();
+      continue;
+    }
+    break;
+  }
+}
+
+function compositionFromStack(stack: StackFrame[]): Record<string, unknown> | null {
+  const f = stack.find((s) => s.kind === "composition");
+  return f?.kind === "composition" ? f.obj : null;
+}
+
+function entryFromStack(stack: StackFrame[]): StackFrame & { kind: "entry" } | null {
+  const f = [...stack].reverse().find((s) => s.kind === "entry");
+  return f?.kind === "entry" ? f : null;
+}
+
+function ensureEventContext(comp: Record<string, unknown>): Record<string, unknown> {
+  if (!comp.context) {
+    comp.context = { _type: "EVENT_CONTEXT" };
+  }
+  return comp.context as Record<string, unknown>;
+}
+
+function parseContextScalarField(
+  field: string,
+  text: string,
+  oeRm?: string,
+): unknown {
+  if (oeRm) return parseOeRmAnnotationPayload(oeRm);
+  const t = text.trim();
+  if (field === "start_time" || field === "end_time") {
+    return { _type: "DV_DATE_TIME", value: t };
+  }
+  if (field === "setting") {
+    return parseDvCodedTextDisplay(t) ?? { _type: "DV_CODED_TEXT", value: t };
+  }
+  if (field === "location") {
+    return parseDataValueDisplay(t) ?? { _type: "DV_TEXT", value: t };
+  }
+  return parseDataValueDisplay(t);
 }
 
 export function blocksToRmObject(
@@ -392,6 +460,7 @@ export function blocksToRmObject(
 
     if (block.kind === "list_item") {
       const li = block as DocumentListItemBlock;
+      popItemsForIndent(stack, li.indent);
       const top = stack[stack.length - 1];
       if (top?.kind === "event") applyPendingStructureMeta(top.data);
       if (top?.kind === "history") applyPendingStructureMeta(top.obj);
@@ -399,6 +468,69 @@ export function blocksToRmObject(
         applyPendingStructureMeta(top.obj.data as Record<string, unknown>);
       }
       const parsed = parseListMeta(li);
+      const comp = compositionFromStack(stack);
+      if (comp && parsed.field) {
+        if (parsed.field === "context") continue;
+        if (parsed.field === "feeder_audit" && li.oeRmPayload) {
+          comp.feeder_audit = parseOeRmAnnotationPayload(li.oeRmPayload);
+          continue;
+        }
+        if (parsed.field === "link" && li.oeRmPayload) {
+          ensureArray(comp, "links").push(parseOeRmAnnotationPayload(li.oeRmPayload));
+          continue;
+        }
+        if (parsed.field === "archetype_details" && li.oeRmPayload) {
+          const entry = entryFromStack(stack);
+          if (entry) {
+            entry.obj.archetype_details = parseOeRmAnnotationPayload(li.oeRmPayload);
+          } else {
+            const ad = parseOeRmAnnotationPayload(li.oeRmPayload);
+            comp.archetype_details = ad;
+          }
+          continue;
+        }
+        const ctxFields = new Set([
+          "start_time",
+          "end_time",
+          "location",
+          "setting",
+          "health_care_facility",
+          "participation",
+          "other_context",
+        ]);
+        if (ctxFields.has(parsed.field)) {
+          const ctx = ensureEventContext(comp);
+          if (parsed.field === "participation" && li.oeRmPayload) {
+            ensureArray(ctx, "participations").push(
+              parseOeRmAnnotationPayload(li.oeRmPayload),
+            );
+            continue;
+          }
+          if (parsed.field === "health_care_facility" && li.oeRmPayload) {
+            ctx.health_care_facility = parseOeRmAnnotationPayload(li.oeRmPayload);
+            continue;
+          }
+          if (parsed.field === "other_context") {
+            const tree = itemTree();
+            ctx.other_context = tree;
+            stack.push({
+              kind: "items",
+              parent: tree,
+              itemsKey: "items",
+              listIndent: li.indent,
+            });
+            continue;
+          }
+          if (parsed.field !== "other_context" && parsed.field !== "participation") {
+            ctx[parsed.field] = parseContextScalarField(
+              parsed.field,
+              parsed.valueText ?? "",
+              li.oeRmPayload,
+            );
+          }
+          continue;
+        }
+      }
       const entryForMeta = top?.kind === "entry"
         ? top
         : [...stack].reverse().find(
@@ -416,6 +548,16 @@ export function blocksToRmObject(
       }
       if (parsed.field === "subject" && entryForMeta) {
         entryForMeta.obj.subject = parseSubjectMeta(parsed.valueText ?? "PARTY_SELF");
+        continue;
+      }
+      if (entryForMeta && parsed.field === "feeder_audit" && li.oeRmPayload) {
+        entryForMeta.obj.feeder_audit = parseOeRmAnnotationPayload(li.oeRmPayload);
+        continue;
+      }
+      if (entryForMeta && parsed.field === "link" && li.oeRmPayload) {
+        ensureArray(entryForMeta.obj, "links").push(
+          parseOeRmAnnotationPayload(li.oeRmPayload),
+        );
         continue;
       }
       if (parsed.field === "item_node_id") {
@@ -442,6 +584,7 @@ export function blocksToRmObject(
             kind: "items",
             parent: entry.obj.protocol as Record<string, unknown>,
             itemsKey: "items",
+            listIndent: li.indent,
           });
           continue;
         }
@@ -457,6 +600,7 @@ export function blocksToRmObject(
             kind: "items",
             parent: eventFrame.obj.state as Record<string, unknown>,
             itemsKey: "items",
+            listIndent: li.indent,
           });
           continue;
         }
@@ -471,6 +615,7 @@ export function blocksToRmObject(
             kind: "items",
             parent: hist.summary as Record<string, unknown>,
             itemsKey: "items",
+            listIndent: li.indent,
           });
           continue;
         }
@@ -504,19 +649,36 @@ export function blocksToRmObject(
       if (parsed.name && parsed.valueText === undefined && li.label && !parsed.field) {
         const items = currentItems();
         if (items) {
-          const cluster: Record<string, unknown> = {
-            _type: "CLUSTER",
-            name: dvText(parsed.name),
-          };
-          if (li.archetypeNodeId) cluster.archetype_node_id = li.archetypeNodeId;
+          const cluster: Record<string, unknown> = li.oeRmPayload
+            ? parseOeRmAnnotationPayload(li.oeRmPayload)
+            : {
+              _type: "CLUSTER",
+              name: dvText(parsed.name),
+            };
+          if (!li.oeRmPayload && li.archetypeNodeId) {
+            cluster.archetype_node_id = li.archetypeNodeId;
+          }
           items.push(cluster);
+          stack.push({
+            kind: "items",
+            parent: cluster,
+            itemsKey: "items",
+            listIndent: li.indent,
+          });
           continue;
         }
       }
       if (parsed.name && parsed.valueText !== undefined) {
         const items = currentItems();
         if (items) {
-          addElement(items, parsed.name, parsed.valueText ?? "", li.archetypeNodeId, li.oeValuePayload);
+          addElement(
+            items,
+            parsed.name,
+            parsed.valueText ?? "",
+            li.archetypeNodeId,
+            li.oeValuePayload,
+            li.oeRmPayload,
+          );
           continue;
         }
         if (top?.kind === "section") {

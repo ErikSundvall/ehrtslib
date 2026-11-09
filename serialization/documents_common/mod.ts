@@ -25,9 +25,22 @@ export {
   finalizeDocumentText,
 } from "./document_emit.ts";
 export {
+  formatStructuralCompositionRoundtripAsciidoc,
+  formatStructuralCompositionRoundtripMarkdown,
+} from "./document_structural_emit.ts";
+export { extractStructuralCompositionFromText } from "./document_structural_deserialize.ts";
+export {
   assertNoLeadingColonDlistLines,
   asciidocDlistTermLine,
 } from "./document_list_layout.ts";
+export {
+  compactRmObject,
+  formatOeRmAnnotationAsciidoc,
+  formatOeRmAnnotationMarkdown,
+  isOeRmAnnotationInner,
+  OE_RM_ANNOTATION_PREFIX,
+  parseOeRmAnnotationPayload,
+} from "./oe_rm_annotation.ts";
 export {
   collectLossySensitiveSpots,
   flattenScalarPaths,

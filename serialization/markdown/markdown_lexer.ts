@@ -104,6 +104,7 @@ export function lexMarkdownStructural(body: string): DocumentBlock[] {
           value: meta[2],
           archetypeNodeId: stripped.archetypeNodeId,
           oeValuePayload: stripped.oeValuePayload,
+          oeRmPayload: stripped.oeRmPayload,
         });
         continue;
       }
@@ -117,6 +118,7 @@ export function lexMarkdownStructural(body: string): DocumentBlock[] {
           value: kv[2],
           archetypeNodeId: stripped.archetypeNodeId,
           oeValuePayload: stripped.oeValuePayload,
+          oeRmPayload: stripped.oeRmPayload,
         });
         continue;
       }
@@ -132,6 +134,7 @@ export function lexMarkdownStructural(body: string): DocumentBlock[] {
           value: plain[2],
           archetypeNodeId: stripped.archetypeNodeId,
           oeValuePayload: stripped.oeValuePayload,
+          oeRmPayload: stripped.oeRmPayload,
         });
         continue;
       }
@@ -144,6 +147,7 @@ export function lexMarkdownStructural(body: string): DocumentBlock[] {
           label: clusterOnly[1],
           archetypeNodeId: stripped.archetypeNodeId,
           oeValuePayload: stripped.oeValuePayload,
+          oeRmPayload: stripped.oeRmPayload,
         });
         continue;
       }

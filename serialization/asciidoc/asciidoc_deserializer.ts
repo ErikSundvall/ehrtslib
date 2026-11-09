@@ -3,12 +3,14 @@
  */
 
 import {
+  applyCompositionEntryDefaults,
   blocksToRmObject,
   detectDocumentDialect,
   type DocumentMetadata,
 } from "../documents_common/mod.ts";
 import { DeserializationError, InvalidFormatError } from "../common/errors.ts";
 import { validateDeserializedInstance } from "../common/post_deserialize_validation.ts";
+import { extractStructuralCompositionFromText } from "../documents_common/document_structural_deserialize.ts";
 import { lexAsciidocLossless } from "./asciidoc_lexer.ts";
 import {
   type AsciidocDeserializationConfig,
@@ -39,9 +41,13 @@ export class AsciidocDeserializer {
     try {
       const { frontmatter, blocks } = lexAsciidocLossless(adoc);
       const meta: DocumentMetadata = { frontmatter };
-      const instance = blocksToRmObject(blocks, meta, {
+      const fromTail = this.config.dialect === STRUCTURAL_ASCIIDOC_DIALECT
+        ? extractStructuralCompositionFromText(adoc)
+        : null;
+      let instance = fromTail ?? blocksToRmObject(blocks, meta, {
         validateAgainstTemplate: this.config.validateAgainstTemplate,
       });
+      if (fromTail) applyCompositionEntryDefaults(instance, meta);
       this.maybeValidate(instance, adoc);
       return instance as T;
     } catch (error) {

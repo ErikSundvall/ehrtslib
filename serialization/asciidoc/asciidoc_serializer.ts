@@ -49,6 +49,14 @@ import {
 } from '../documents_common/document_entry_defaults.ts';
 import { formatOeMetaAsciidoc } from '../documents_common/oe_structure_meta.ts';
 import {
+  emitStructuralCompositionExtrasAsciidoc,
+  emitStructuralEntryExtrasAsciidoc,
+  emitStructuralEventContextAsciidoc,
+  formatStructuralCompositionRoundtripAsciidoc,
+  hasExtraRmFields,
+} from "../documents_common/document_structural_emit.ts";
+import { formatOeRmAnnotationAsciidoc } from "../documents_common/oe_rm_annotation.ts";
+import {
   shouldEmitHistoryOrigin,
   shouldSkipLossyEventTitles,
 } from '../documents_common/history_lossy_emit.ts';
@@ -143,6 +151,11 @@ export class AsciidocSerializer {
     lines.push(`= ${title}`);
     lines.push('');
 
+    if (this.config.style === "structural") {
+      emitStructuralCompositionExtrasAsciidoc(comp, (line) => lines.push(line));
+      lines.push("");
+    }
+
     // Context (if present)
     if (comp.context) {
       this.serializeEventContext(comp.context, lines);
@@ -153,6 +166,11 @@ export class AsciidocSerializer {
       for (const item of comp.content) {
         this.serializeContentItem(item, lines, 2);
       }
+    }
+
+    if (this.config.style === "structural") {
+      lines.push("");
+      lines.push(formatStructuralCompositionRoundtripAsciidoc(comp));
     }
   }
 
@@ -180,6 +198,9 @@ export class AsciidocSerializer {
         ? comp.archetype_details.archetype_id.value
         : comp.archetype_details.archetype_id;
       if (archValue) lines.push(`:archetype-id: ${archValue}`);
+    }
+    if (comp.archetype_details?.rm_version) {
+      lines.push(`:rm-version: ${comp.archetype_details.rm_version}`);
     }
 
     // Composer
@@ -210,6 +231,15 @@ export class AsciidocSerializer {
   // ─── EVENT CONTEXT ───────────────────────────────────────────────────
 
   private serializeEventContext(ctx: any, lines: string[]): void {
+    if (this.config.style === "structural") {
+      emitStructuralEventContextAsciidoc(ctx, (line) => lines.push(line));
+      if (ctx.other_context) {
+        this.serializeItemStructure(ctx.other_context, lines, 1);
+      }
+      lines.push("");
+      return;
+    }
+
     const parts: string[] = [];
 
     if (ctx.start_time) {
@@ -304,6 +334,15 @@ export class AsciidocSerializer {
     lines.push('');
 
     this.emitEntryMetadataWhenDiffers(entry, lines);
+    if (this.config.style === "structural") {
+      emitStructuralEntryExtrasAsciidoc(entry, (line) => lines.push(line));
+      if (entry.archetype_details) {
+        const ad = entry.archetype_details as Record<string, unknown>;
+        lines.push(
+          `* _archetype_details:_ ${renderRmValue(ad, this.rmRenderOptions(), 0)}${formatOeRmAnnotationAsciidoc(ad)}`,
+        );
+      }
+    }
 
     // Type-specific content
     switch (typeName) {
@@ -635,6 +674,21 @@ export class AsciidocSerializer {
 
   private serializeCluster(cluster: any, lines: string[], nestLevel: number): void {
     const name = this.extractName(cluster);
+    if (this.config.style === "structural") {
+      const indent = this.getListPrefix(nestLevel);
+      const { items: _i, ...clusterHead } = cluster as Record<string, unknown>;
+      const head: Record<string, unknown> = { _type: "CLUSTER", ...clusterHead };
+      delete head.items;
+      const tail = hasExtraRmFields(head)
+        ? formatOeRmAnnotationAsciidoc(head)
+        : "";
+      const nodeId = this.formatNodeIdInline(cluster);
+      lines.push(`${indent} *${name}*${tail}${nodeId}`);
+      if (cluster.items && Array.isArray(cluster.items)) {
+        this.serializeItems(cluster.items, lines, nestLevel + 1);
+      }
+      return;
+    }
     if (this.useDefinitionListBody()) {
       ensureBlankLineBeforeBlock(lines);
       lines.push(`.${name}`);
@@ -679,14 +733,17 @@ export class AsciidocSerializer {
 
     const valueStr = this.formatDataValue(element.value);
     const dvAnn = this.formatSparseValueAnnotation(element.value, valueStr);
+    const elRmAnn = this.config.style === "structural"
+      ? formatOeRmAnnotationAsciidoc(element as Record<string, unknown>)
+      : "";
 
     if (this.useDefinitionListBody()) {
       ensureBlankLineBeforeBlock(lines);
       lines.push(asciidocDlistTermLine(nestLevel, name, `${valueStr}${nodeId}${dvAnn}`));
     } else if (this.config.style === 'compact' || this.config.dataValueRendering === 'inline') {
-      lines.push(`${indent} ${name}: ${valueStr}${nodeId}${dvAnn}`);
+      lines.push(`${indent} ${name}: ${valueStr}${nodeId}${dvAnn}${elRmAnn}`);
     } else {
-      lines.push(`${indent} *${name}:* ${valueStr}${nodeId}${dvAnn}`);
+      lines.push(`${indent} *${name}:* ${valueStr}${nodeId}${dvAnn}${elRmAnn}`);
     }
   }
 
