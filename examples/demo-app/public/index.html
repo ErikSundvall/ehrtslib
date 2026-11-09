@@ -122,7 +122,7 @@
                 <option value="structured">STRUCTURED (simplified)</option>
                 <option value="zipehr">ZipEHR (JSON/YAML/XHTML)</option>
                 <option value="markdown">Markdown (structural)</option>
-                <option value="asciidoc">AsciiDoc (lossless)</option>
+                <option value="asciidoc">AsciiDoc (structural)</option>
               </select>
             </div>
           </div>
@@ -1135,7 +1135,6 @@
                         <option value="structural">
                           Structural (roundtrip, template-valid)
                         </option>
-                        <option value="clinical">Clinical (lossy one-way)</option>
                         <option value="compact">Compact (lossy one-way)</option>
                         <option value="embedding">Embedding (lossy one-way)</option>
                         <option value="wikilink">Wikilink URN (lossy one-way)</option>
@@ -1150,8 +1149,8 @@
                         disabled
                       >
                         <option value="structural">Structural</option>
-                        <option value="clinical">Clinical</option>
                         <option value="compact">Compact</option>
+                        <option value="embedding">Embedding</option>
                       </select>
                     </div>
                     <div class="form-group">
@@ -1304,11 +1303,12 @@
                         id="asciidoc-config-preset"
                         class="config-dropdown"
                       >
-                        <option value="lossless">
-                          Lossless (roundtrip, template-valid)
+                        <option value="structural">
+                          Structural (roundtrip, template-valid)
                         </option>
                         <option value="compact">Compact (lossy one-way)</option>
                         <option value="embedding">Embedding (lossy one-way)</option>
+                        <option value="wikilink">Wikilink URN (lossy one-way)</option>
                         <option value="custom">Custom...</option>
                       </select>
                     </div>
@@ -1319,8 +1319,9 @@
                         class="config-dropdown"
                         disabled
                       >
-                        <option value="lossless">Lossless</option>
+                        <option value="structural">Structural</option>
                         <option value="compact">Compact</option>
+                        <option value="embedding">Embedding</option>
                       </select>
                     </div>
                     <div class="form-group">

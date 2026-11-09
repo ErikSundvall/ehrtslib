@@ -9,10 +9,10 @@ import {
   AsciidocSerializer,
   COMPACT_ASCIIDOC_CONFIG,
   EMBEDDING_ASCIIDOC_CONFIG,
-  LOSSLESS_ASCIIDOC_CONFIG,
+  STRUCTURAL_ASCIIDOC_CONFIG,
+  WIKILINK_ASCIIDOC_CONFIG,
 } from "../../../serialization/asciidoc/mod.ts";
 import {
-  CLINICAL_MARKDOWN_CONFIG,
   COMPACT_MARKDOWN_CONFIG,
   EMBEDDING_MARKDOWN_CONFIG,
   MarkdownDeserializer,
@@ -145,16 +145,16 @@ const asciidocEventTitlePattern = /^\*[^*\s]|^\./;
 
 const markdownConfigs = [
   ["structural", STRUCTURAL_MARKDOWN_CONFIG],
-  ["clinical", CLINICAL_MARKDOWN_CONFIG],
   ["compact", COMPACT_MARKDOWN_CONFIG],
   ["embedding", EMBEDDING_MARKDOWN_CONFIG],
   ["wikilink", WIKILINK_MARKDOWN_CONFIG],
 ] as const;
 
 const asciidocConfigs = [
-  ["lossless", LOSSLESS_ASCIIDOC_CONFIG],
+  ["structural", STRUCTURAL_ASCIIDOC_CONFIG],
   ["compact", COMPACT_ASCIIDOC_CONFIG],
   ["embedding", EMBEDDING_ASCIIDOC_CONFIG],
+  ["wikilink", WIKILINK_ASCIIDOC_CONFIG],
 ] as const;
 
 const composition = vitalSignsComposition();
@@ -165,14 +165,14 @@ for (const [name, config] of markdownConfigs) {
       .serialize(composition);
     assertNoTripleNewlines(md);
     assertBlankBeforePattern(md, markdownHeadingPattern, `markdown-${name}-heading`);
-    if (name === "clinical" || name === "wikilink") {
+    if (name === "compact" || name === "wikilink") {
       assertBlankBeforePattern(md, markdownTablePattern, `markdown-${name}-table`);
     }
     const html = new MarkdownIt("default", { html: false, linkify: true }).render(md);
     assertMatch(html, /<h2[\s>]/);
     const h2Count = (html.match(/<h2[\s>]/g) ?? []).length;
     assert(h2Count >= 2, `expected multiple h2 headings, got ${h2Count}`);
-    if (name === "clinical" || name === "wikilink" || name === "compact") {
+    if (name === "compact" || name === "wikilink") {
       assertStringIncludes(html, "<table");
     }
   });
@@ -213,7 +213,7 @@ Deno.test("lossless codecs: vital signs round-trip after spacing fix", () => {
   const fromMd = new MarkdownDeserializer().deserialize(md);
   assert(rmTreesSemanticallyEqual(composition, fromMd));
 
-  const ad = new AsciidocSerializer(LOSSLESS_ASCIIDOC_CONFIG).serialize(composition);
+  const ad = new AsciidocSerializer(STRUCTURAL_ASCIIDOC_CONFIG).serialize(composition);
   const fromAd = new AsciidocDeserializer().deserialize(ad);
   assert(rmTreesSemanticallyEqual(composition, fromAd));
 });

@@ -16,7 +16,7 @@ import {
   ASCIIDOC_CODEC_MATRIX,
   AsciidocDeserializer,
   AsciidocSerializer,
-  LOSSLESS_ASCIIDOC_CONFIG,
+  STRUCTURAL_ASCIIDOC_CONFIG,
   EMBEDDING_ASCIIDOC_CONFIG,
 } from "../../../serialization/asciidoc/mod.ts";
 import {
@@ -170,7 +170,7 @@ function roundTripMarkdown(original: Record<string, unknown>): void {
 }
 
 function roundTripAsciidoc(original: Record<string, unknown>): void {
-  const adSer = new AsciidocSerializer(LOSSLESS_ASCIIDOC_CONFIG);
+  const adSer = new AsciidocSerializer(STRUCTURAL_ASCIIDOC_CONFIG);
   const ad = adSer.serialize(original);
   const once = new AsciidocDeserializer().deserialize(ad);
   assert(rmTreesSemanticallyEqual(original, once), "asciidoc object round-trip");
@@ -185,7 +185,9 @@ Deno.test("codec matrix documents supported RM roots (no AOM/template reversibil
   assert(MARKDOWN_CODEC_MATRIX.rmInstances.includes("COMPOSITION"));
   assert(MARKDOWN_CODEC_MATRIX.rmInstances.includes("ADMIN_ENTRY"));
   assert(MARKDOWN_CODEC_MATRIX.losslessDialects.includes("structural"));
-  assert(MARKDOWN_CODEC_MATRIX.outputOnlyPresets.includes("embedding"));
+  assertEquals(MARKDOWN_CODEC_MATRIX.outputOnlyPresets, ["compact", "embedding", "wikilink"]);
+  assertEquals(ASCIIDOC_CODEC_MATRIX.losslessDialects, ["structural"]);
+  assertEquals(ASCIIDOC_CODEC_MATRIX.outputOnlyPresets, ["compact", "embedding", "wikilink"]);
 });
 
 Deno.test("Markdown lossless: nested COMPOSITION matrix round-trip", () => {

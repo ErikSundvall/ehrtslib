@@ -2292,14 +2292,14 @@ function gatherConversionOptions(): ConversionOptions {
 
   const asciidocConfigPreset =
     (document.getElementById("asciidoc-config-preset") as HTMLSelectElement)
-      ?.value || "lossless";
+      ?.value || "structural";
   const asciidocConfig: AsciidocSerializationConfig = getAsciidocConfigPreset(
     asciidocConfigPreset,
   );
   if (asciidocConfigPreset === "custom") {
     asciidocConfig.style =
       ((document.getElementById("asciidoc-style") as HTMLSelectElement)
-        ?.value || "lossless") as AsciidocSerializationConfig["style"];
+        ?.value || "structural") as AsciidocSerializationConfig["style"];
     asciidocConfig.nodeIdRendering = ((document.getElementById(
       "asciidoc-node-id-rendering",
     ) as HTMLSelectElement)?.value ||

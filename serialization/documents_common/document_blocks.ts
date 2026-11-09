@@ -55,7 +55,7 @@ const STRUCTURAL_MARKERS = new RegExp(
 
 /**
  * Detect whether text looks like a structural / lossless openEHR document dialect.
- * Embedding, clinical, and compact outputs intentionally lack round-trip markers.
+ * Embedding, compact, and wikilink outputs intentionally lack round-trip markers.
  */
 export function detectDocumentDialect(text: string): DocumentDialect {
   if (STRUCTURAL_MARKERS.test(text)) {

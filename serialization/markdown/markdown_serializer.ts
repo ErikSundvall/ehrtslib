@@ -53,9 +53,9 @@ import { formatOeMetaMarkdown } from '../documents_common/oe_structure_meta.ts';
  * @example
  * ```typescript
  * import { MarkdownSerializer } from './serialization/markdown/mod.ts';
- * import { CLINICAL_MARKDOWN_CONFIG } from './serialization/markdown/mod.ts';
- * 
- * const serializer = new MarkdownSerializer(CLINICAL_MARKDOWN_CONFIG);
+ * import { COMPACT_MARKDOWN_CONFIG } from './serialization/markdown/mod.ts';
+ *
+ * const serializer = new MarkdownSerializer(COMPACT_MARKDOWN_CONFIG);
  * const markdown = serializer.serialize(composition);
  * ```
  */
@@ -1095,7 +1095,7 @@ export class MarkdownSerializer {
 
   private formatTypeAnnotation(typeName: string | undefined): string {
     if (!this.config.includeTypeAnnotations || !typeName) return '';
-    if (this.config.style === 'embedding' || this.config.style === 'compact' || this.config.style === 'clinical') {
+    if (this.config.style === 'embedding' || this.config.style === 'compact') {
       return '';
     }
     if (this.config.style === 'structural') {

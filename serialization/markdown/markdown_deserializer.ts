@@ -32,7 +32,7 @@ export class MarkdownDeserializer {
     ) {
       throw new InvalidFormatError(
         "Input does not look like structural Markdown (missing frontmatter, type annotations, or archetype node-id markers). " +
-          "Embedding, clinical, and compact Markdown are output-only and cannot be parsed losslessly.",
+          "Embedding, compact, and wikilink Markdown are output-only and cannot be parsed losslessly.",
         markdown,
       );
     }

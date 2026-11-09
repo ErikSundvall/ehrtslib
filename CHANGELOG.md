@@ -8,6 +8,7 @@ Add an entry under **Unreleased** in every PR that changes user-visible behaviou
 
 ## [Unreleased]
 
+- **Breaking (Markdown/AsciiDoc).** Shared preset ids are `structural`, `compact`, `embedding`, `wikilink`. Removed `CLINICAL_MARKDOWN_CONFIG`, `LOSSLESS_ASCIIDOC_CONFIG`, and AsciiDoc style `lossless` (no aliases). **Compact** is the merged human-readable preset (tables with Item/Value/Time, wikilink codes, optional front matter). AsciiDoc round-trip uses `STRUCTURAL_ASCIIDOC_CONFIG` / dialect `structural`. Added `WIKILINK_ASCIIDOC_CONFIG`.
 - **Demo.** Document view strips YAML/AsciiDoc header metadata into a compact panel; shows AsciiDoc/Markdown document titles (`showtitle`); wikilink headings no longer duplicate labels in rendered HTML.
 - **Serialization (Markdown/AsciiDoc).** Embedding presets use compact `key: value` / definition-list lines (lower `o200k_base` token count); AsciiDoc context omits a trailing hard line break on the last context line.
 - **Serialization (Markdown/AsciiDoc).** Wikilink/URN heading output puts the link in the title (no repeated label); AsciiDoc URN links apply outside lossless round-trip.

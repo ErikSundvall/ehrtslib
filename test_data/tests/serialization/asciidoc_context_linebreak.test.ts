@@ -1,5 +1,5 @@
 import { assertEquals, assertStringIncludes } from "@std/assert";
-import { AsciidocSerializer, LOSSLESS_ASCIIDOC_CONFIG } from "../../../serialization/asciidoc/mod.ts";
+import { AsciidocSerializer, STRUCTURAL_ASCIIDOC_CONFIG } from "../../../serialization/asciidoc/mod.ts";
 
 Deno.test("AsciiDoc context: last context line has no trailing hard line break", () => {
   const comp = {
@@ -13,7 +13,7 @@ Deno.test("AsciiDoc context: last context line has no trailing hard line break",
     content: [],
   };
   const ad = new AsciidocSerializer({
-    ...LOSSLESS_ASCIIDOC_CONFIG,
+    ...STRUCTURAL_ASCIIDOC_CONFIG,
     includeHeader: false,
   }).serialize(comp);
   assertStringIncludes(ad, "*Setting:* secondary medical care");

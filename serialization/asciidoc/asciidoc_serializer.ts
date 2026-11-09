@@ -425,7 +425,7 @@ export class AsciidocSerializer {
   // ─── HISTORY ─────────────────────────────────────────────────────────
 
   private emitItemStructureMeta(itemStruct: any, lines: string[]): void {
-    if (this.config.style !== "lossless" || !itemStruct) return;
+    if (this.config.style !== "structural" || !itemStruct) return;
     if (itemStruct.archetype_node_id) {
       this.pushBlockCommentLine(lines, formatOeMetaAsciidoc("item_node_id", itemStruct.archetype_node_id));
     }
@@ -543,7 +543,7 @@ export class AsciidocSerializer {
       this.serializeItemStructure(itemStruct, lines, depth);
       return;
     }
-    if (this.config.style === 'lossless') {
+    if (this.config.style === 'structural') {
       const field = label.toLowerCase().replace(/\s+/g, "_");
       ensureBlankLineBeforeBlock(lines);
       lines.push(`* _${field}:_`);
@@ -564,7 +564,7 @@ export class AsciidocSerializer {
 
     if (typeName === 'ITEM_TREE' || typeName === 'ITEM_LIST' || typeName === 'ITEM_TABLE') {
       this.emitItemStructureMeta(itemStruct, lines);
-      if (this.config.style === 'lossless' && typeName !== 'ITEM_TREE') {
+      if (this.config.style === 'structural' && typeName !== 'ITEM_TREE') {
         this.pushBlockCommentLine(lines, formatOeMetaAsciidoc("structure", typeName));
       }
       if (itemStruct.items && Array.isArray(itemStruct.items)) {
@@ -610,7 +610,7 @@ export class AsciidocSerializer {
     const indent = this.getListPrefix(nestLevel);
     const title = this.formatLocatableHeadingTitle(cluster, name);
     if (
-      this.config.style !== "lossless" &&
+      this.config.style !== "structural" &&
       this.config.useOpenehrUrnLinks &&
       this.isArchetypeId(cluster?.archetype_node_id)
     ) {
@@ -653,7 +653,7 @@ export class AsciidocSerializer {
   }
 
   private formatSparseValueAnnotation(dv: unknown, display: string): string {
-    if (this.config.style !== 'lossless' || !dv || typeof dv !== 'object') return '';
+    if (this.config.style !== 'structural' || !dv || typeof dv !== 'object') return '';
     if (!needsOeValueAnnotation(dv as Record<string, unknown>, display)) return '';
     return formatOeValueAnnotationAsciidoc(dv as Record<string, unknown>);
   }
@@ -1064,7 +1064,7 @@ export class AsciidocSerializer {
     const nodeId = obj?.archetype_node_id;
     const name = fallbackName || this.extractName(obj);
     if (
-      this.config.style !== "lossless" &&
+      this.config.style !== "structural" &&
       this.config.useOpenehrUrnLinks &&
       nodeId &&
       this.isArchetypeId(nodeId)
@@ -1078,7 +1078,7 @@ export class AsciidocSerializer {
   private formatBlockNodeIdComment(obj: any): string {
     const nodeId = obj?.archetype_node_id;
     if (
-      this.config.style !== "lossless" &&
+      this.config.style !== "structural" &&
       this.config.useOpenehrUrnLinks &&
       nodeId &&
       this.isArchetypeId(nodeId)
@@ -1124,7 +1124,7 @@ export class AsciidocSerializer {
       case 'inline_comment':
         return ` // ${nodeId}`;
       case 'comment':
-        // For inline context in lossless mode, use a trailing comment marker
+        // For inline context in structural mode, use a trailing comment marker
         if (this.config.useOpenehrUrnLinks && this.isArchetypeId(nodeId)) {
           return ` // ${this.toOpenehrUrn(nodeId)}`;
         }

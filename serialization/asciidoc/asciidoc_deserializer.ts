@@ -1,5 +1,5 @@
 /**
- * AsciiDoc deserializer for the lossless openEHR document dialect.
+ * AsciiDoc deserializer for the structural (round-trip) openEHR document dialect.
  */
 
 import {
@@ -13,7 +13,7 @@ import { lexAsciidocLossless } from "./asciidoc_lexer.ts";
 import {
   type AsciidocDeserializationConfig,
   DEFAULT_ASCIIDOC_DESERIALIZATION_CONFIG,
-  LOSSLESS_ASCIIDOC_DIALECT,
+  STRUCTURAL_ASCIIDOC_DIALECT,
 } from "./asciidoc_deserialize_config.ts";
 
 export class AsciidocDeserializer {
@@ -26,12 +26,12 @@ export class AsciidocDeserializer {
   deserialize<T = Record<string, unknown>>(adoc: string): T {
     const dialect = detectDocumentDialect(adoc);
     if (
-      this.config.dialect === LOSSLESS_ASCIIDOC_DIALECT &&
+      this.config.dialect === STRUCTURAL_ASCIIDOC_DIALECT &&
       dialect !== "structural_lossless"
     ) {
       throw new InvalidFormatError(
-        "Input does not look like lossless AsciiDoc (missing attribute header, type annotations, or archetype node-id comments). " +
-          "Compact and embedding AsciiDoc are output-only.",
+        "Input does not look like structural AsciiDoc (missing attribute header, type annotations, or archetype node-id comments). " +
+          "Compact, embedding, and wikilink AsciiDoc are output-only.",
         adoc,
       );
     }
