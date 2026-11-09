@@ -16,7 +16,7 @@ export type { ArchetypeNodeIdLocation };
 /**
  * Markdown serialization style variants
  */
-export type MarkdownStyle = 'clinical' | 'structural' | 'compact';
+export type MarkdownStyle = 'clinical' | 'structural' | 'compact' | 'embedding';
 
 /**
  * How to render data values in markdown
@@ -207,7 +207,7 @@ export const STRUCTURAL_MARKDOWN_CONFIG: MarkdownSerializationConfig = {
   useTerseFormat: true,
   includeNullFlavour: true,
   includeCompositionMetadata: true,
-  includeRedundantEntryMetadata: false,
+  includeRedundantEntryMetadata: true,
   maxHeadingDepth: 4,
   includeEmptyFields: false,
   useTypeInference: true,
@@ -223,6 +223,33 @@ export const STRUCTURAL_MARKDOWN_CONFIG: MarkdownSerializationConfig = {
  * 
  * Typically retains only ~20-30% of canonical JSON token count.
  */
+/**
+ * Preset: Embedding Markdown (output-only, non-roundtrip)
+ *
+ * Optimized for AI embedding and RAG: readable clinical prose without archetype
+ * node ids, frontmatter, type annotations, terse codes, or URN cross-links.
+ * Retains hierarchy, units, display text, and clinically relevant negation/null
+ * flavour where present.
+ */
+export const EMBEDDING_MARKDOWN_CONFIG: MarkdownSerializationConfig = {
+  style: 'embedding',
+  includeFrontmatter: false,
+  includeArchetypeNodeIds: false,
+  includeTypeAnnotations: false,
+  codeRendering: 'hidden',
+  dataValueRendering: 'inline',
+  useTerseFormat: false,
+  includeNullFlavour: true,
+  includeCompositionMetadata: false,
+  includeRedundantEntryMetadata: false,
+  maxHeadingDepth: 3,
+  includeEmptyFields: false,
+  useTypeInference: true,
+  indent: 2,
+  useOpenehrUrnWikilinks: false,
+  hideTypeAnnotationsForDisplay: true,
+};
+
 export const COMPACT_MARKDOWN_CONFIG: MarkdownSerializationConfig = {
   style: 'compact',
   includeFrontmatter: false,

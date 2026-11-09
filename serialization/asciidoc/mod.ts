@@ -22,6 +22,7 @@
  */
 
 export { AsciidocSerializer } from './asciidoc_serializer.ts';
+export { AsciidocDeserializer } from './asciidoc_deserializer.ts';
 
 export {
   type AsciidocSerializationConfig,
@@ -31,5 +32,19 @@ export {
   type AsciidocNodeIdRendering,
   DEFAULT_ASCIIDOC_SERIALIZATION_CONFIG,
   COMPACT_ASCIIDOC_CONFIG,
+  EMBEDDING_ASCIIDOC_CONFIG,
   LOSSLESS_ASCIIDOC_CONFIG,
 } from './asciidoc_config.ts';
+
+export {
+  type AsciidocDeserializationConfig,
+  DEFAULT_ASCIIDOC_DESERIALIZATION_CONFIG,
+  LOSSLESS_ASCIIDOC_DIALECT,
+} from './asciidoc_deserialize_config.ts';
+
+export const ASCIIDOC_CODEC_MATRIX = {
+  rmInstances: ["COMPOSITION", "SECTION", "OBSERVATION", "EVALUATION", "ADMIN_ENTRY"] as const,
+  requiresTemplateForLossless: true,
+  losslessDialects: ["lossless"] as const,
+  outputOnlyPresets: ["compact", "embedding"] as const,
+} as const;

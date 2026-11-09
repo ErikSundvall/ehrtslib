@@ -55,6 +55,7 @@ import {
 } from "../../shared/recommended_version.ts";
 import type { MarkdownSerializationConfig } from "../../../serialization/markdown/mod.ts";
 import type { AsciidocSerializationConfig } from "../../../serialization/asciidoc/mod.ts";
+import { countDemoTokens } from "./token_stats.ts";
 
 import { strFromU8, unzipSync } from "fflate";
 import { installInfoTips } from "./info-tip.ts";
@@ -1792,6 +1793,15 @@ function handleInputChange(tab: InputMode = currentInputTab) {
     lineCount.textContent = text.split("\n").length.toString();
   }
 
+  const tokenCount = document.getElementById(
+    tab === "template" ? "template-token-count" : "token-count",
+  );
+  if (tokenCount) {
+    void countDemoTokens(text).then((n) => {
+      tokenCount.textContent = String(n);
+    });
+  }
+
   if (
     tab === "instance" &&
     (currentInputFormat === "auto" || currentInputFormat === "zipehr")
@@ -3026,6 +3036,12 @@ function updateOutputInfo() {
   const text = editor.value;
   outputChar.textContent = String(text.length);
   outputLine.textContent = String(text.split("\n").length);
+  const outputToken = countsRoot?.querySelector(".output-token-count");
+  if (outputToken) {
+    void countDemoTokens(text).then((n) => {
+      outputToken.textContent = String(n);
+    });
+  }
 }
 
 /**

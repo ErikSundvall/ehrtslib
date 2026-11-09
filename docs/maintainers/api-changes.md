@@ -19,6 +19,8 @@ Check these consumers when the public API changes:
 
 ## Unreleased
 
+- **Removed from default barrel.** `MarkdownSerializer`, `AsciidocSerializer`, and related config presets are no longer re-exported from `serialization/mod.ts`. Import `serialization/markdown/mod.ts` via `ehrtslib/serialization-markdown` or `serialization/asciidoc/mod.ts` via `ehrtslib/serialization-asciidoc` ([#284](https://github.com/ErikSundvall/ehrtslib/issues/284)).
+- **Added.** `MarkdownDeserializer`, `AsciidocDeserializer`, `EMBEDDING_MARKDOWN_CONFIG`, `EMBEDDING_ASCIIDOC_CONFIG`. Archetype cross-reference URNs use `urn:openehr:aom:org.openehr::` (not `urn:openehr:am:`).
 - **Contribution Builder.** `record-commit` carries `provisionalObjectUuid` together with `storedObjectUuid` when a server replaces the client-sent versioned-object uuid. `VersionDraftInfo.committed` exposes the same pair. A log that has only `storedObjectUuid` still replays. Inner node uids are left as sent ([#176](https://github.com/ErikSundvall/ehrtslib/issues/176)).
 - **Contribution Builder.** `ContributionBuild.continueCommitted(template, draftId)` opens a modify draft whose `baseVersionUid` is the stored version uid from `record-commit`. The committed draft accepts no further operations ([#177](https://github.com/ErikSundvall/ehrtslib/issues/177)).
 - **Behaviour.** `webTemplateToOpt` records a node's term on the nearest archetype id in its path, and does not let a `name/value` sibling replace that at-code. ACTION `ism_transition` and its children get attribute existence from the Web Template min/max. Node ids and those mins survive OPT → Web Template → OPT → Web Template ([#271](https://github.com/ErikSundvall/ehrtslib/issues/271)).

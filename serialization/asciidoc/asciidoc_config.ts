@@ -12,7 +12,7 @@
 /**
  * AsciiDoc serialization style variants
  */
-export type AsciidocStyle = 'compact' | 'lossless';
+export type AsciidocStyle = 'compact' | 'lossless' | 'embedding';
 
 /**
  * How to render data values in AsciiDoc
@@ -160,6 +160,27 @@ export const DEFAULT_ASCIIDOC_SERIALIZATION_CONFIG: Required<AsciidocSerializati
  * Terminology codes are hidden or minimally shown.
  * Not suitable for round-tripping without the original data.
  */
+/**
+ * Preset: Embedding AsciiDoc (output-only, non-roundtrip).
+ * See {@link EMBEDDING_MARKDOWN_CONFIG} for the shared intent (token-efficient clinical text).
+ */
+export const EMBEDDING_ASCIIDOC_CONFIG: AsciidocSerializationConfig = {
+  style: 'embedding',
+  includeHeader: false,
+  includeArchetypeNodeIds: false,
+  nodeIdRendering: 'hidden',
+  includeTypeAnnotations: false,
+  codeRendering: 'hidden',
+  dataValueRendering: 'inline',
+  useTerseFormat: false,
+  includeNullFlavour: true,
+  includeCompositionMetadata: false,
+  includeRedundantEntryMetadata: false,
+  maxHeadingDepth: 4,
+  includeEmptyFields: false,
+  useOpenehrUrnLinks: false,
+};
+
 export const COMPACT_ASCIIDOC_CONFIG: AsciidocSerializationConfig = {
   style: 'compact',
   includeHeader: true,
@@ -202,7 +223,7 @@ export const LOSSLESS_ASCIIDOC_CONFIG: AsciidocSerializationConfig = {
   useTerseFormat: true,
   includeNullFlavour: true,
   includeCompositionMetadata: true,
-  includeRedundantEntryMetadata: false,
+  includeRedundantEntryMetadata: true,
   maxHeadingDepth: 5,
   includeEmptyFields: false,
   useOpenehrUrnLinks: true,

@@ -29,6 +29,11 @@ import {
   MarkdownSerializationConfig,
   DEFAULT_MARKDOWN_SERIALIZATION_CONFIG,
 } from './markdown_config.ts';
+import { toOpenehrAomArchetypeUrn } from '../documents_common/openehr_aom_urn.ts';
+import {
+  formatOeValueAnnotationMarkdown,
+  needsOeValueAnnotation,
+} from '../documents_common/oe_value_annotation.ts';
 
 /**
  * Markdown Serializer for openEHR RM objects
@@ -96,7 +101,7 @@ export class MarkdownSerializer {
 
   private serializeComposition(comp: any, lines: string[]): void {
     // YAML Frontmatter
-    if (this.config.includeFrontmatter) {
+    if (this.config.includeFrontmatter && this.config.style !== 'embedding') {
       this.writeFrontmatter(comp, lines);
     }
 
@@ -252,6 +257,10 @@ export class MarkdownSerializer {
       if (entry.encoding) {
         lines.push(`- _encoding:_ ${this.formatCodePhrase(entry.encoding)}`);
       }
+      if (entry.subject) {
+        const st = this.getTypeName(entry.subject);
+        if (st) lines.push(`- _subject:_ ${st}`);
+      }
     }
 
     // Type-specific content
@@ -380,7 +389,17 @@ export class MarkdownSerializer {
 
   // ─── HISTORY ─────────────────────────────────────────────────────────
 
+  private emitItemStructureMeta(itemStruct: any, lines: string[]): void {
+    if (this.config.style !== "structural" || !itemStruct) return;
+    if (itemStruct.archetype_node_id) {
+      lines.push(`- _item_node_id:_ ${itemStruct.archetype_node_id}`);
+    }
+    const n = this.extractName(itemStruct);
+    if (n) lines.push(`- _item_name:_ ${n}`);
+  }
+
   private serializeHistory(history: any, label: string, lines: string[], depth: number): void {
+    this.emitItemStructureMeta(history, lines);
     // History origin
     if (history.origin && this.config.style !== 'compact') {
       lines.push(`- _origin:_ ${this.formatDateTime(history.origin)}`);
@@ -438,13 +457,19 @@ export class MarkdownSerializer {
 
   private serializeNamedItemStructure(itemStruct: any, label: string, lines: string[], depth: number): void {
     if (this.config.style === 'compact') {
-      // Skip labels in compact mode
       this.serializeItemStructure(itemStruct, lines, depth);
-    } else {
-      lines.push(`**${label}:**`);
-      lines.push('');
-      this.serializeItemStructure(itemStruct, lines, depth);
+      return;
     }
+    if (this.config.style === 'structural') {
+      const field = label.toLowerCase().replace(/\s+/g, "_");
+      lines.push(`- _${field}:_`);
+      lines.push("");
+      this.serializeItemStructure(itemStruct, lines, depth);
+      return;
+    }
+    lines.push(`**${label}:**`);
+    lines.push("");
+    this.serializeItemStructure(itemStruct, lines, depth);
   }
 
   private serializeItemStructure(itemStruct: any, lines: string[], _depth: number): void {
@@ -453,6 +478,10 @@ export class MarkdownSerializer {
     const typeName = this.getTypeName(itemStruct);
 
     if (typeName === 'ITEM_TREE' || typeName === 'ITEM_LIST' || typeName === 'ITEM_TABLE') {
+      this.emitItemStructureMeta(itemStruct, lines);
+      if (this.config.style === 'structural' && typeName !== 'ITEM_TREE') {
+        lines.push(`- _structure:_ ${typeName}`);
+      }
       if (itemStruct.items && Array.isArray(itemStruct.items)) {
         // In clinical mode with table rendering, try to render as table
         if (this.config.dataValueRendering === 'table' && this.canRenderAsTable(itemStruct.items)) {
@@ -523,12 +552,20 @@ export class MarkdownSerializer {
     }
 
     const valueStr = this.formatDataValue(element.value);
+    const dvAnn = this.formatSparseValueAnnotation(element.value, valueStr);
 
-    if (this.config.style === 'compact' || this.config.dataValueRendering === 'inline') {
-      lines.push(`${indent}- ${name}: ${valueStr}${nodeId}`);
+    if (this.config.style === 'compact' || this.config.style === 'embedding' || this.config.dataValueRendering === 'inline') {
+      lines.push(`${indent}- ${name}: ${valueStr}${nodeId}${dvAnn}`);
     } else {
-      lines.push(`${indent}- **${name}:** ${valueStr}${nodeId}`);
+      lines.push(`${indent}- **${name}:** ${valueStr}${nodeId}${dvAnn}`);
     }
+  }
+
+  /** Hidden `oe:v1` comment only when display text cannot recover the RM value. */
+  private formatSparseValueAnnotation(dv: unknown, display: string): string {
+    if (this.config.style !== 'structural' || !dv || typeof dv !== 'object') return '';
+    if (!needsOeValueAnnotation(dv as Record<string, unknown>, display)) return '';
+    return formatOeValueAnnotationMarkdown(dv as Record<string, unknown>);
   }
 
   // ─── TABLE RENDERING ─────────────────────────────────────────────────
@@ -930,18 +967,24 @@ export class MarkdownSerializer {
     // Use openEHR URN wikilinks when configured
     if (this.config.useOpenehrUrnWikilinks && this.isArchetypeId(nodeId)) {
       const name = this.extractName(obj);
-      return ` [[urn:openehr:am:org.openehr::${nodeId}|${name || nodeId}]]`;
+      return ` [[${toOpenehrAomArchetypeUrn(nodeId)}|${name || nodeId}]]`;
     }
 
     // Use HTML comment for structural, inline for others
     if (this.config.style === 'structural') {
       return ` <!-- ${nodeId} -->`;
     }
+  if (this.config.style === 'embedding' || this.config.style === 'compact' || this.config.style === 'clinical') {
+    return '';
+  }
     return '';
   }
 
   private formatTypeAnnotation(typeName: string | undefined): string {
     if (!this.config.includeTypeAnnotations || !typeName) return '';
+    if (this.config.style === 'embedding' || this.config.style === 'compact' || this.config.style === 'clinical') {
+      return '';
+    }
     if (this.config.style === 'structural') {
       return ` _[${typeName}]_`;
     }

@@ -144,7 +144,7 @@ Deno.test("AsciidocSerializer: serialize COMPOSITION with lossless config", () =
   // Should have heading
   assertStringIncludes(adoc, "= Blood Pressure Recording");
   // Should have openEHR URN comment
-  assertStringIncludes(adoc, "urn:openehr:am:org.openehr::openEHR-EHR-COMPOSITION.encounter.v1");
+  assertStringIncludes(adoc, "urn:openehr:aom:org.openehr::openEHR-EHR-COMPOSITION.encounter.v1");
   // Should have composer
   assertStringIncludes(adoc, ":composer: Dr. Smith");
 
@@ -180,7 +180,7 @@ Deno.test("AsciidocSerializer: serialize OBSERVATION with blood pressure data", 
   assertStringIncludes(adocLossless, "145");
   assertStringIncludes(adocLossless, "mm[Hg]");
   // Should include node IDs as comments
-  assertStringIncludes(adocLossless, "// urn:openehr:am:org.openehr::openEHR-EHR-OBSERVATION.blood_pressure.v2");
+  assertStringIncludes(adocLossless, "// urn:openehr:aom:org.openehr::openEHR-EHR-OBSERVATION.blood_pressure.v2");
 
   console.log("OBSERVATION (lossless):\n", adocLossless);
 
@@ -361,11 +361,11 @@ Deno.test("AsciidocSerializer: openEHR URN links in lossless mode", () => {
 
   assertExists(adoc);
   // Should contain URN for composition archetype
-  assertStringIncludes(adoc, "urn:openehr:am:org.openehr::openEHR-EHR-COMPOSITION.encounter.v1");
+  assertStringIncludes(adoc, "urn:openehr:aom:org.openehr::openEHR-EHR-COMPOSITION.encounter.v1");
   // Should contain URN for observation archetype
-  assertStringIncludes(adoc, "urn:openehr:am:org.openehr::openEHR-EHR-OBSERVATION.blood_pressure.v2");
+  assertStringIncludes(adoc, "urn:openehr:aom:org.openehr::openEHR-EHR-OBSERVATION.blood_pressure.v2");
   // Should NOT contain URN for local at-codes
-  assertEquals(adoc.includes("urn:openehr:am:org.openehr::at0"), false);
+  assertEquals(adoc.includes("urn:openehr:aom:org.openehr::at0"), false);
 
   console.log("openEHR URN links:\n", adoc);
 });

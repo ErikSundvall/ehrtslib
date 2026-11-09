@@ -129,7 +129,19 @@ export function libraryAssetNames(version: string): LibraryAssetNames {
         id: "serialization",
         entry: "serialization/mod.ts",
         file: `${prefix}-serialization.min.js`,
-        label: "Serializers (`serialization/mod.ts`)",
+        label: "Serializers (`serialization/mod.ts`, canonical JSON/YAML)",
+      },
+      {
+        id: "serialization-markdown",
+        entry: "serialization/markdown/mod.ts",
+        file: `${prefix}-serialization-markdown.min.js`,
+        label: "Markdown codec (`serialization/markdown/mod.ts`)",
+      },
+      {
+        id: "serialization-asciidoc",
+        entry: "serialization/asciidoc/mod.ts",
+        file: `${prefix}-serialization-asciidoc.min.js`,
+        label: "AsciiDoc codec (`serialization/asciidoc/mod.ts`)",
       },
     ],
   };

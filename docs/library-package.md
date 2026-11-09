@@ -113,7 +113,11 @@ attachments; those are on GitHub Pages and the Release download.
 | `ehrtslib-<version>-contribution.min.js`  | `contribution_builder/mod.ts` | `https://cdn.jsdelivr.net/gh/ErikSundvall/ehrtslib@v0.3.1/contribution_builder/mod.ts` |
 | `ehrtslib-<version>-rm.min.js`            | `openehr_rm.ts`               | `https://cdn.jsdelivr.net/gh/ErikSundvall/ehrtslib@v0.3.1/openehr_rm.ts`        |
 | `ehrtslib-<version>-parser.min.js`        | `parser/mod.ts`        | `https://cdn.jsdelivr.net/gh/ErikSundvall/ehrtslib@v0.3.1/parser/mod.ts`        |
-| `ehrtslib-<version>-serialization.min.js` | `serialization/mod.ts` | `https://cdn.jsdelivr.net/gh/ErikSundvall/ehrtslib@v0.3.1/serialization/mod.ts` |
+| `ehrtslib-<version>-serialization.min.js` | `serialization/mod.ts` (JSON/YAML) | `https://cdn.jsdelivr.net/gh/ErikSundvall/ehrtslib@v0.3.1/serialization/mod.ts` |
+| `ehrtslib-<version>-serialization-markdown.min.js` | `serialization/markdown/mod.ts` | `https://cdn.jsdelivr.net/gh/ErikSundvall/ehrtslib@v0.3.1/serialization/markdown/mod.ts` |
+| `ehrtslib-<version>-serialization-asciidoc.min.js` | `serialization/asciidoc/mod.ts` | `https://cdn.jsdelivr.net/gh/ErikSundvall/ehrtslib@v0.3.1/serialization/asciidoc/mod.ts` |
+
+Optional Deno exports: `ehrtslib/serialization-markdown`, `ehrtslib/serialization-asciidoc` (see `serialization/documents-codecs.md`).
 
 The core and full barrels export `am`, `base`, `lang`, `term`, `generation`,
 `meta`, and `validation`. Only `mod_full.ts` / the full `.min.js` includes
