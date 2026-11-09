@@ -8,7 +8,7 @@ Add an entry under **Unreleased** in every PR that changes user-visible behaviou
 
 ## [Unreleased]
 
-- **Serialization (Markdown/AsciiDoc).** Structural lossless round-trip (#296): EVENT_CONTEXT participations/facility, feeder_audit, links, CLUSTER indent stack, `oe:rm:v1` annotations, composition tail snapshot; audit fails on any structural path drop across 40 fixtures.
+- **Serialization (Markdown/AsciiDoc).** Structural lossless (#296): sparse `oe:rm:v1` patches only (no composition tail or whole-subtree blobs); `document_serialization_audit` writes honest per-fixture pass/fail and output-size metrics; codec-matrix blood pressure gate stays green.
 - **Serialization (Markdown/AsciiDoc).** Shared [`document_rm_render`](serialization/documents_common/document_rm_render.ts) for PARTY, DV_IDENTIFIER, and generic RM values (no `(complex value)` / `[object Object]`). Lossy AsciiDoc nested CLUSTERs use block titles + definition lists (fixes mixed `*` / `::` output).
 - **Docs (Markdown/AsciiDoc).** [`serialization/documents-presets.md`](serialization/documents-presets.md) — preset anchors, RM simplification rule matrix, shared `DOCUMENT_PRESET_RM_POLICIES`; demo preset selectors link to GitHub doc sections.
 - **Serialization (Markdown/AsciiDoc).** Lossy presets omit HISTORY event titles when there is exactly one event, and omit `origin` when it matches the sole or earliest event time; structural output unchanged.

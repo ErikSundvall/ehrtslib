@@ -26,7 +26,7 @@ export type DocumentListItemBlock = {
   archetypeNodeId?: string;
   /** Inner payload `oe:v1:b64:…` when present (sparse value typing). */
   oeValuePayload?: string;
-  /** Inner payload `oe:rm:v1:b64:…` when present (full RM subtree). */
+  /** Inner payload `oe:rm:v1:b64:…` when present (sparse RM patch). */
   oeRmPayload?: string;
 };
 

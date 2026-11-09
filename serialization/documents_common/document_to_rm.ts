@@ -9,6 +9,7 @@ import {
   parseDvCodedTextDisplay,
 } from "./value_parse.ts";
 import { parseOeRmAnnotationPayload } from "./oe_rm_annotation.ts";
+import { mergeRmPatchPayload } from "./oe_rm_sparse.ts";
 import { resolveDataValueFromDisplayAndAnnotation } from "./oe_value_annotation.ts";
 import type {
   DocumentBlock,
@@ -143,24 +144,13 @@ function addElement(
   oeValuePayload?: string,
   oeRmPayload?: string,
 ): void {
-  if (oeRmPayload) {
-    const rm = parseOeRmAnnotationPayload(oeRmPayload);
-    if (rm._type === "ELEMENT") {
-      items.push(rm);
-      return;
-    }
-    if (rm._type === "CLUSTER") {
-      items.push(rm);
-      return;
-    }
-  }
-  const el: Record<string, unknown> = {
+  const base: Record<string, unknown> = {
     _type: "ELEMENT",
     name: dvText(name),
     value: resolveDataValueFromDisplayAndAnnotation(valueText, oeValuePayload),
   };
-  if (nodeId) el.archetype_node_id = nodeId;
-  items.push(el);
+  if (nodeId) base.archetype_node_id = nodeId;
+  items.push(mergeRmPatchPayload(base, oeRmPayload));
 }
 
 function popItemsForIndent(stack: StackFrame[], indent: number): void {
@@ -471,12 +461,24 @@ export function blocksToRmObject(
       const comp = compositionFromStack(stack);
       if (comp && parsed.field) {
         if (parsed.field === "context") continue;
-        if (parsed.field === "feeder_audit" && li.oeRmPayload) {
-          comp.feeder_audit = parseOeRmAnnotationPayload(li.oeRmPayload);
+        if (parsed.field === "composer") {
+          comp.composer = mergeRmPatchPayload(
+            { _type: "PARTY_IDENTIFIED" },
+            li.oeRmPayload,
+          );
           continue;
         }
-        if (parsed.field === "link" && li.oeRmPayload) {
-          ensureArray(comp, "links").push(parseOeRmAnnotationPayload(li.oeRmPayload));
+        if (parsed.field === "feeder_audit") {
+          comp.feeder_audit = mergeRmPatchPayload(
+            { _type: "FEEDER_AUDIT" },
+            li.oeRmPayload,
+          );
+          continue;
+        }
+        if (parsed.field === "link") {
+          ensureArray(comp, "links").push(
+            mergeRmPatchPayload({ _type: "LINK" }, li.oeRmPayload),
+          );
           continue;
         }
         if (parsed.field === "archetype_details" && li.oeRmPayload) {
@@ -500,14 +502,17 @@ export function blocksToRmObject(
         ]);
         if (ctxFields.has(parsed.field)) {
           const ctx = ensureEventContext(comp);
-          if (parsed.field === "participation" && li.oeRmPayload) {
+          if (parsed.field === "participation") {
             ensureArray(ctx, "participations").push(
-              parseOeRmAnnotationPayload(li.oeRmPayload),
+              mergeRmPatchPayload({ _type: "PARTICIPATION" }, li.oeRmPayload),
             );
             continue;
           }
-          if (parsed.field === "health_care_facility" && li.oeRmPayload) {
-            ctx.health_care_facility = parseOeRmAnnotationPayload(li.oeRmPayload);
+          if (parsed.field === "health_care_facility") {
+            ctx.health_care_facility = mergeRmPatchPayload(
+              { _type: "PARTY_IDENTIFIED" },
+              li.oeRmPayload,
+            );
             continue;
           }
           if (parsed.field === "other_context") {
@@ -649,15 +654,14 @@ export function blocksToRmObject(
       if (parsed.name && parsed.valueText === undefined && li.label && !parsed.field) {
         const items = currentItems();
         if (items) {
-          const cluster: Record<string, unknown> = li.oeRmPayload
-            ? parseOeRmAnnotationPayload(li.oeRmPayload)
-            : {
+          const cluster = mergeRmPatchPayload(
+            {
               _type: "CLUSTER",
               name: dvText(parsed.name),
-            };
-          if (!li.oeRmPayload && li.archetypeNodeId) {
-            cluster.archetype_node_id = li.archetypeNodeId;
-          }
+              ...(li.archetypeNodeId ? { archetype_node_id: li.archetypeNodeId } : {}),
+            },
+            li.oeRmPayload,
+          );
           items.push(cluster);
           stack.push({
             kind: "items",

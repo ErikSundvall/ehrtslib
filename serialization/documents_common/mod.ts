@@ -25,11 +25,6 @@ export {
   finalizeDocumentText,
 } from "./document_emit.ts";
 export {
-  formatStructuralCompositionRoundtripAsciidoc,
-  formatStructuralCompositionRoundtripMarkdown,
-} from "./document_structural_emit.ts";
-export { extractStructuralCompositionFromText } from "./document_structural_deserialize.ts";
-export {
   assertNoLeadingColonDlistLines,
   asciidocDlistTermLine,
 } from "./document_list_layout.ts";
@@ -52,6 +47,7 @@ export {
 } from "./document_audit_paths.ts";
 export {
   assertNoForbiddenDocumentMarkers,
+  assertNoForbiddenWholeTreeOeRmAnnotations,
   FORBIDDEN_DOCUMENT_OUTPUT_MARKERS,
   renderDataValue,
   renderRmValue,

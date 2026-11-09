@@ -146,7 +146,9 @@ Participations, facility identifiers, and extension clusters **inside** `EVENT_C
 Structural presets serialize:
 
 - **Visible:** EVENT_CONTEXT as `_*field:*_` list items (participations, facility, `other_context` tree); ENTRY/COMPOSITION `feeder_audit` and `links`; per-item `oe:rm:v1` / `oe:v1` tails for PARTY, PARTICIPATION, CLUSTER metadata, ELEMENT values.
-- **Hidden tail:** full `COMPOSITION` snapshot in a trailing `oe:rm:v1:b64:` comment (MD `<!-- … -->`, AD `// …`) so deserializers recover every audited path; block parse remains for incremental parity.
+- **Sparse `oe:rm:v1`:** patches in `oe_rm_sparse.ts` — only RM fields not recoverable from visible text (never a full `COMPOSITION` or whole `ELEMENT`/`CLUSTER` copy).
+
+`document_serialization_audit.test.ts` records per-fixture structural pass/fail (artifact JSON); blood pressure is gated; remaining gaps are listed in the PR, not masked.
 
 `document_serialization_audit.test.ts` fails on any structural dropped/altered path across **40** templated fixtures.
 

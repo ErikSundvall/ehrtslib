@@ -3,11 +3,7 @@
  */
 
 import { renderRmValue, type DocumentRmRenderOptions } from "./document_rm_render.ts";
-import {
-  encodeOeRmAnnotationPayload,
-  formatOeRmAnnotationAsciidoc,
-  formatOeRmAnnotationMarkdown,
-} from "./oe_rm_annotation.ts";
+import { formatSparseRmAsciidoc, formatSparseRmMarkdown } from "./oe_rm_sparse.ts";
 import { formatOeMetaAsciidoc, formatOeMetaMarkdown } from "./oe_structure_meta.ts";
 
 export type StructuralTextSink = (line: string) => void;
@@ -23,12 +19,12 @@ function rmDisplay(obj: unknown): string {
   return renderRmValue(obj, STRUCTURAL_RM_RENDER_OPTS, 0);
 }
 
-function mdAnn(obj: Record<string, unknown>): string {
-  return formatOeRmAnnotationMarkdown(obj);
+function mdAnn(target: Record<string, unknown>, display: string): string {
+  return formatSparseRmMarkdown(target, { _type: target._type, value: display });
 }
 
-function adAnn(obj: Record<string, unknown>): string {
-  return formatOeRmAnnotationAsciidoc(obj);
+function adAnn(target: Record<string, unknown>, display: string): string {
+  return formatSparseRmAsciidoc(target, { _type: target._type, value: display });
 }
 
 export function emitStructuralEventContextMarkdown(
@@ -43,14 +39,16 @@ export function emitStructuralEventContextMarkdown(
   if (ctx.health_care_facility) {
     const party = { ...(ctx.health_care_facility as Record<string, unknown>) };
     if (!party._type) party._type = "PARTY_IDENTIFIED";
-    push(`- _health_care_facility:_ ${rmDisplay(party)}${mdAnn(party)}`);
+    const hcfVis = rmDisplay(party);
+    push(`- _health_care_facility:_ ${hcfVis}${mdAnn(party, hcfVis)}`);
   }
   if (Array.isArray(ctx.participations)) {
     for (const p of ctx.participations) {
       if (!p || typeof p !== "object") continue;
       const part = { ...(p as Record<string, unknown>) };
       if (!part._type) part._type = "PARTICIPATION";
-      push(`- _participation:_ ${rmDisplay(part)}${mdAnn(part)}`);
+      const partVis = rmDisplay(part);
+      push(`- _participation:_ ${partVis}${mdAnn(part, partVis)}`);
     }
   }
   if (ctx.other_context) {
@@ -70,14 +68,16 @@ export function emitStructuralEventContextAsciidoc(
   if (ctx.health_care_facility) {
     const party = { ...(ctx.health_care_facility as Record<string, unknown>) };
     if (!party._type) party._type = "PARTY_IDENTIFIED";
-    push(`* _health_care_facility:_ ${rmDisplay(party)}${adAnn(party)}`);
+    const hcfVis = rmDisplay(party);
+    push(`* _health_care_facility:_ ${hcfVis}${adAnn(party, hcfVis)}`);
   }
   if (Array.isArray(ctx.participations)) {
     for (const p of ctx.participations) {
       if (!p || typeof p !== "object") continue;
       const part = { ...(p as Record<string, unknown>) };
       if (!part._type) part._type = "PARTICIPATION";
-      push(`* _participation:_ ${rmDisplay(part)}${adAnn(part)}`);
+      const partVis = rmDisplay(part);
+      push(`* _participation:_ ${partVis}${adAnn(part, partVis)}`);
     }
   }
   if (ctx.other_context) {
@@ -85,41 +85,29 @@ export function emitStructuralEventContextAsciidoc(
   }
 }
 
-export function formatStructuralCompositionRoundtripMarkdown(
-  comp: Record<string, unknown>,
-): string {
-  const payload = encodeOeRmAnnotationPayload({
-    ...comp,
-    _type: "COMPOSITION",
-  });
-  return `<!-- ${payload} -->`;
-}
-
-export function formatStructuralCompositionRoundtripAsciidoc(
-  comp: Record<string, unknown>,
-): string {
-  const payload = encodeOeRmAnnotationPayload({
-    ...comp,
-    _type: "COMPOSITION",
-  });
-  return `// ${payload}`;
-}
-
 export function emitStructuralCompositionExtrasMarkdown(
   comp: Record<string, unknown>,
   push: StructuralTextSink,
 ): void {
+  if (comp.composer && typeof comp.composer === "object") {
+    const party = { ...(comp.composer as Record<string, unknown>) };
+    if (!party._type) party._type = "PARTY_IDENTIFIED";
+    const vis = rmDisplay(party);
+    push(`- _composer:_ ${vis}${mdAnn(party, vis)}`);
+  }
   if (comp.feeder_audit) {
     const fa = { ...(comp.feeder_audit as Record<string, unknown>) };
     if (!fa._type) fa._type = "FEEDER_AUDIT";
-    push(`- _feeder_audit:_ ${rmDisplay(fa)}${mdAnn(fa)}`);
+    const vis = rmDisplay(fa);
+    push(`- _feeder_audit:_ ${vis}${mdAnn(fa, vis)}`);
   }
   if (Array.isArray(comp.links)) {
     for (const link of comp.links) {
       if (!link || typeof link !== "object") continue;
       const l = { ...(link as Record<string, unknown>) };
       if (!l._type) l._type = "LINK";
-      push(`- _link:_ ${rmDisplay(l)}${mdAnn(l)}`);
+      const vis = rmDisplay(l);
+      push(`- _link:_ ${vis}${mdAnn(l, vis)}`);
     }
   }
   if (comp.archetype_details?.rm_version) {
@@ -133,15 +121,25 @@ export function emitStructuralCompositionExtrasAsciidoc(
   comp: Record<string, unknown>,
   push: StructuralTextSink,
 ): void {
+  if (comp.composer && typeof comp.composer === "object") {
+    const party = { ...(comp.composer as Record<string, unknown>) };
+    if (!party._type) party._type = "PARTY_IDENTIFIED";
+    const vis = rmDisplay(party);
+    push(`* _composer:_ ${vis}${adAnn(party, vis)}`);
+  }
   if (comp.feeder_audit) {
-    const fa = comp.feeder_audit as Record<string, unknown>;
-    push(`* _feeder_audit:_ ${rmDisplay(fa)}${adAnn(fa)}`);
+    const fa = { ...(comp.feeder_audit as Record<string, unknown>) };
+    if (!fa._type) fa._type = "FEEDER_AUDIT";
+    const vis = rmDisplay(fa);
+    push(`* _feeder_audit:_ ${vis}${adAnn(fa, vis)}`);
   }
   if (Array.isArray(comp.links)) {
     for (const link of comp.links) {
       if (!link || typeof link !== "object") continue;
-      const l = link as Record<string, unknown>;
-      push(`* _link:_ ${rmDisplay(l)}${adAnn(l)}`);
+      const l = { ...(link as Record<string, unknown>) };
+      if (!l._type) l._type = "LINK";
+      const vis = rmDisplay(l);
+      push(`* _link:_ ${vis}${adAnn(l, vis)}`);
     }
   }
   if (comp.archetype_details?.rm_version) {
@@ -157,13 +155,15 @@ export function emitStructuralEntryExtrasMarkdown(
 ): void {
   if (entry.feeder_audit) {
     const fa = entry.feeder_audit as Record<string, unknown>;
-    push(`- _feeder_audit:_ ${rmDisplay(fa)}${mdAnn(fa)}`);
+    const vis = rmDisplay(fa);
+    push(`- _feeder_audit:_ ${vis}${mdAnn(fa, vis)}`);
   }
   if (Array.isArray(entry.links)) {
     for (const link of entry.links) {
       if (!link || typeof link !== "object") continue;
       const l = link as Record<string, unknown>;
-      push(`- _link:_ ${rmDisplay(l)}${mdAnn(l)}`);
+      const vis = rmDisplay(l);
+      push(`- _link:_ ${vis}${mdAnn(l, vis)}`);
     }
   }
 }
@@ -179,13 +179,15 @@ export function emitStructuralEntryExtrasAsciidoc(
 ): void {
   if (entry.feeder_audit) {
     const fa = entry.feeder_audit as Record<string, unknown>;
-    push(`* _feeder_audit:_ ${rmDisplay(fa)}${adAnn(fa)}`);
+    const vis = rmDisplay(fa);
+    push(`* _feeder_audit:_ ${vis}${adAnn(fa, vis)}`);
   }
   if (Array.isArray(entry.links)) {
     for (const link of entry.links) {
       if (!link || typeof link !== "object") continue;
       const l = link as Record<string, unknown>;
-      push(`* _link:_ ${rmDisplay(l)}${adAnn(l)}`);
+      const vis = rmDisplay(l);
+      push(`* _link:_ ${vis}${adAnn(l, vis)}`);
     }
   }
 }

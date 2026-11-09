@@ -5,6 +5,10 @@
 
 import { TypeRegistry } from "../common/type_registry.ts";
 import { toTerseCodePhrase } from "../terse_format.ts";
+import {
+  OE_RM_ANNOTATION_PREFIX,
+  parseOeRmAnnotationPayload,
+} from "./oe_rm_annotation.ts";
 
 export const FORBIDDEN_DOCUMENT_OUTPUT_MARKERS = [
   "(complex value)",
@@ -414,6 +418,46 @@ export function assertNoForbiddenDocumentMarkers(text: string): void {
   for (const bad of FORBIDDEN_DOCUMENT_OUTPUT_MARKERS) {
     if (text.includes(bad)) {
       throw new Error(`Forbidden document output marker: ${bad}`);
+    }
+  }
+}
+
+const FORBIDDEN_OE_RM_ROOT_TYPES = new Set([
+  "COMPOSITION",
+  "SECTION",
+  "OBSERVATION",
+  "EVALUATION",
+  "INSTRUCTION",
+  "ACTION",
+  "ADMIN_ENTRY",
+  "HISTORY",
+  "ITEM_TREE",
+]);
+
+/** Reject whole-subtree hidden snapshots (composition tail, full CLUSTER/ELEMENT copies). */
+export function assertNoForbiddenWholeTreeOeRmAnnotations(text: string): void {
+  for (const m of text.matchAll(/oe:rm:v1:b64:([A-Za-z0-9_-]+)/g)) {
+    const payload = `${OE_RM_ANNOTATION_PREFIX}${m[1]}`;
+    let obj: Record<string, unknown>;
+    try {
+      obj = parseOeRmAnnotationPayload(payload);
+    } catch {
+      continue;
+    }
+    const type = obj._type;
+    if (typeof type === "string" && FORBIDDEN_OE_RM_ROOT_TYPES.has(type)) {
+      throw new Error(
+        `Forbidden whole-tree oe:rm annotation (_type=${type}); use sparse patches only`,
+      );
+    }
+    if (type === "CLUSTER" && Array.isArray(obj.items)) {
+      throw new Error("Forbidden CLUSTER oe:rm annotation with nested items");
+    }
+    if (type === "ELEMENT" && (obj.archetype_node_id != null || obj.null_flavour != null)) {
+      const keys = Object.keys(obj).filter((k) => k !== "_type" && k !== "name" && k !== "value");
+      if (keys.length > 4) {
+        throw new Error("Forbidden bloated ELEMENT oe:rm annotation");
+      }
     }
   }
 }

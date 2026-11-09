@@ -11,7 +11,6 @@ import {
 } from "../documents_common/mod.ts";
 import { DeserializationError, InvalidFormatError } from "../common/errors.ts";
 import { validateDeserializedInstance } from "../common/post_deserialize_validation.ts";
-import { extractStructuralCompositionFromText } from "../documents_common/document_structural_deserialize.ts";
 import { lexMarkdownStructural, parseMarkdownFrontmatter } from "./markdown_lexer.ts";
 import {
   type MarkdownDeserializationConfig,
@@ -42,13 +41,10 @@ export class MarkdownDeserializer {
     try {
       const { body, frontmatter } = parseMarkdownFrontmatter(markdown);
       const meta: DocumentMetadata = { frontmatter };
-      const fromTail = this.config.dialect === STRUCTURAL_MARKDOWN_DIALECT
-        ? extractStructuralCompositionFromText(markdown)
-        : null;
-      let instance = fromTail ?? blocksToRmObject(lexMarkdownStructural(body), meta, {
+      let instance = blocksToRmObject(lexMarkdownStructural(body), meta, {
         validateAgainstTemplate: this.config.validateAgainstTemplate,
       });
-      if (fromTail) applyCompositionEntryDefaults(instance, meta);
+      applyCompositionEntryDefaults(instance, meta);
       this.maybeValidate(instance, markdown);
       return instance as T;
     } catch (error) {

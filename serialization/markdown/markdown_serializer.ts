@@ -50,14 +50,12 @@ import {
   emitStructuralCompositionExtrasMarkdown,
   emitStructuralEntryExtrasMarkdown,
   emitStructuralEventContextMarkdown,
-  formatStructuralCompositionRoundtripMarkdown,
-  hasExtraRmFields,
 } from "../documents_common/document_structural_emit.ts";
+import { formatSparseRmMarkdown } from "../documents_common/oe_rm_sparse.ts";
 import {
   shouldEmitHistoryOrigin,
   shouldSkipLossyEventTitles,
 } from '../documents_common/history_lossy_emit.ts';
-import { formatOeRmAnnotationMarkdown } from "../documents_common/oe_rm_annotation.ts";
 import {
   type DocumentRmRenderOptions,
   renderRmValue,
@@ -160,10 +158,6 @@ export class MarkdownSerializer {
       }
     }
 
-    if (this.config.style === "structural") {
-      lines.push("");
-      lines.push(formatStructuralCompositionRoundtripMarkdown(comp));
-    }
   }
 
   private writeFrontmatter(comp: any, lines: string[]): void {
@@ -317,8 +311,9 @@ export class MarkdownSerializer {
       emitStructuralEntryExtrasMarkdown(entry, (line) => lines.push(line));
       if (entry.archetype_details) {
         const ad = entry.archetype_details as Record<string, unknown>;
+        const adVis = renderRmValue(ad, this.rmRenderOptions(), 0);
         lines.push(
-          `- _archetype_details:_ ${renderRmValue(ad, this.rmRenderOptions(), 0)}${formatOeRmAnnotationMarkdown(ad)}`,
+          `- _archetype_details:_ ${adVis}${formatSparseRmMarkdown(ad, { _type: "ARCHETYPED", value: adVis })}`,
         );
       }
     }
@@ -660,9 +655,10 @@ export class MarkdownSerializer {
       const { items: _i, ...clusterHead } = cluster as Record<string, unknown>;
       const head: Record<string, unknown> = { _type: "CLUSTER", ...clusterHead };
       delete head.items;
-      const tail = hasExtraRmFields(head)
-        ? formatOeRmAnnotationMarkdown(head)
-        : "";
+      const tail = formatSparseRmMarkdown(head, {
+        _type: "CLUSTER",
+        name: typeof name === "string" ? { value: name } : name,
+      });
       const nodeId = this.formatInlineNodeIdAnnotation(cluster);
       lines.push(`${indent}- **${name}**${tail}${nodeId}`);
       if (cluster.items && Array.isArray(cluster.items)) {
@@ -715,7 +711,11 @@ export class MarkdownSerializer {
     const dvAnn = this.formatSparseValueAnnotation(element.value, valueStr);
     const lineBody = this.formatElementValueLine(name, valueStr);
     const elRmAnn = this.config.style === "structural"
-      ? formatOeRmAnnotationMarkdown(element as Record<string, unknown>)
+      ? formatSparseRmMarkdown(element as Record<string, unknown>, {
+        _type: "ELEMENT",
+        name: element.name,
+        value: element.value,
+      })
       : "";
 
     if (this.config.style === 'embedding') {

@@ -52,10 +52,8 @@ import {
   emitStructuralCompositionExtrasAsciidoc,
   emitStructuralEntryExtrasAsciidoc,
   emitStructuralEventContextAsciidoc,
-  formatStructuralCompositionRoundtripAsciidoc,
-  hasExtraRmFields,
 } from "../documents_common/document_structural_emit.ts";
-import { formatOeRmAnnotationAsciidoc } from "../documents_common/oe_rm_annotation.ts";
+import { formatSparseRmAsciidoc } from "../documents_common/oe_rm_sparse.ts";
 import {
   shouldEmitHistoryOrigin,
   shouldSkipLossyEventTitles,
@@ -168,10 +166,6 @@ export class AsciidocSerializer {
       }
     }
 
-    if (this.config.style === "structural") {
-      lines.push("");
-      lines.push(formatStructuralCompositionRoundtripAsciidoc(comp));
-    }
   }
 
   private writeHeader(comp: any, lines: string[]): void {
@@ -338,8 +332,9 @@ export class AsciidocSerializer {
       emitStructuralEntryExtrasAsciidoc(entry, (line) => lines.push(line));
       if (entry.archetype_details) {
         const ad = entry.archetype_details as Record<string, unknown>;
+        const adVis = renderRmValue(ad, this.rmRenderOptions(), 0);
         lines.push(
-          `* _archetype_details:_ ${renderRmValue(ad, this.rmRenderOptions(), 0)}${formatOeRmAnnotationAsciidoc(ad)}`,
+          `* _archetype_details:_ ${adVis}${formatSparseRmAsciidoc(ad, { _type: "ARCHETYPED", value: adVis })}`,
         );
       }
     }
@@ -679,9 +674,10 @@ export class AsciidocSerializer {
       const { items: _i, ...clusterHead } = cluster as Record<string, unknown>;
       const head: Record<string, unknown> = { _type: "CLUSTER", ...clusterHead };
       delete head.items;
-      const tail = hasExtraRmFields(head)
-        ? formatOeRmAnnotationAsciidoc(head)
-        : "";
+      const tail = formatSparseRmAsciidoc(head, {
+        _type: "CLUSTER",
+        name: typeof name === "string" ? { value: name } : name,
+      });
       const nodeId = this.formatNodeIdInline(cluster);
       lines.push(`${indent} *${name}*${tail}${nodeId}`);
       if (cluster.items && Array.isArray(cluster.items)) {
@@ -734,7 +730,11 @@ export class AsciidocSerializer {
     const valueStr = this.formatDataValue(element.value);
     const dvAnn = this.formatSparseValueAnnotation(element.value, valueStr);
     const elRmAnn = this.config.style === "structural"
-      ? formatOeRmAnnotationAsciidoc(element as Record<string, unknown>)
+      ? formatSparseRmAsciidoc(element as Record<string, unknown>, {
+        _type: "ELEMENT",
+        name: element.name,
+        value: element.value,
+      })
       : "";
 
     if (this.useDefinitionListBody()) {
