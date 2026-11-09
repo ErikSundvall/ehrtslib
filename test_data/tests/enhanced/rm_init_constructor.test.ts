@@ -108,7 +108,10 @@ Deno.test("parent calls setParent and is optional", () => {
     parent: cluster,
   });
   assertEquals(element.parent(), cluster);
-  assertEquals(new ELEMENT({ archetype_node_id: "at0001" }).parent(), undefined);
+  assertEquals(
+    new ELEMENT({ archetype_node_id: "at0001" }).parent(),
+    undefined,
+  );
 });
 
 Deno.test("parent without setParent throws", () => {
@@ -172,6 +175,65 @@ Deno.test("TypeScript constructor serializer round-trips ELEMENT coded text", ()
   assertEquals(value.value, "Sitting");
 });
 
+function evalSerializedTypeScript(code: string): unknown {
+  const withoutImports = code
+    .replace(
+      /import\s*\{([^}]+)\}\s*from\s*'\.\/openehr_rm\.ts';\n/g,
+      "const {$1} = rm;\n",
+    )
+    .replace(
+      /import\s*\{([^}]+)\}\s*from\s*'\.\/openehr_base\.ts';\n/g,
+      "const {$1} = base;\n",
+    );
+  const varName = withoutImports.match(/const\s+(\w+)\s*=/)?.[1];
+  if (!varName) throw new Error("serializer should bind a const");
+  return new Function(
+    "rm",
+    "base",
+    `${withoutImports}\nreturn ${varName};`,
+  )(rm, base);
+}
+
+Deno.test("TypeScript nested literals round-trip matches explicit nested constructors", () => {
+  const original = new rm.COMPOSITION({
+    archetype_node_id: "openEHR-EHR-COMPOSITION.encounter.v1",
+    name: "Visit",
+    language: "ISO_639-1::en",
+    territory: "ISO_3166-1::US",
+    category: "openehr::433|event|",
+    composer: new PARTY_SELF(),
+    archetype_details: {
+      archetype_id: "openEHR-EHR-COMPOSITION.encounter.v1",
+    },
+  });
+
+  const literalCode = new TypeScriptConstructorSerializer({
+    useNestedObjectLiterals: true,
+    useTerseFormat: false,
+    usePrimitiveConstructors: false,
+  }).serialize(original);
+  const explicitCode = new TypeScriptConstructorSerializer({
+    useNestedObjectLiterals: false,
+    useTerseFormat: false,
+    usePrimitiveConstructors: false,
+  }).serialize(original);
+
+  assert(literalCode.includes("new COMPOSITION"));
+  assert(
+    !literalCode.includes("new ARCHETYPED"),
+    "ARCHETYPED should be a nested literal",
+  );
+
+  const fromLiteral = evalSerializedTypeScript(literalCode);
+  const fromExplicit = evalSerializedTypeScript(explicitCode);
+  assertEquals(canonical(fromLiteral), canonical(fromExplicit));
+  assertEquals(
+    canonical(fromLiteral),
+    canonical(original),
+    "nested-literal eval should match source",
+  );
+});
+
 Deno.test("primitive wrappers still accept their own values", () => {
   assertEquals(new base.String("hi").value, "hi");
   assertEquals(new base.Integer(3).value, 3);
@@ -204,7 +266,10 @@ function sampleFor(
     return 1;
   }
   if (baseName === "Boolean") return true;
-  if (baseName === "DV_TEXT" || (isAbstractType(baseName) && baseName === "DATA_VALUE")) {
+  if (
+    baseName === "DV_TEXT" ||
+    (isAbstractType(baseName) && baseName === "DATA_VALUE")
+  ) {
     return "hello";
   }
   if (baseName === "CODE_PHRASE") return "local::at0001";
@@ -240,7 +305,10 @@ function readBack(got: unknown, sample: unknown): boolean {
       code_string?: unknown;
       defining_code?: { code_string?: unknown };
     };
-    if (sample.includes("|") && typeof record.defining_code?.code_string === "string") {
+    if (
+      sample.includes("|") &&
+      typeof record.defining_code?.code_string === "string"
+    ) {
       return true;
     }
     if (sample.includes("::") && typeof record.code_string === "string") {
@@ -257,7 +325,8 @@ function readBack(got: unknown, sample: unknown): boolean {
     return false;
   }
   if (Array.isArray(sample) && Array.isArray(got)) {
-    return got.length === sample.length && got.every((item, i) => readBack(item, sample[i]));
+    return got.length === sample.length &&
+      got.every((item, i) => readBack(item, sample[i]));
   }
   return got !== undefined;
 }
@@ -272,7 +341,9 @@ Deno.test("every concrete RM class with BMM attributes keeps a known init value"
     try {
       new (value as new () => object)();
     } catch (error) {
-      failures.push(`${name} empty ctor: ${error instanceof Error ? error.message : error}`);
+      failures.push(
+        `${name} empty ctor: ${error instanceof Error ? error.message : error}`,
+      );
       continue;
     }
     if (attrs.length === 0) continue;
@@ -294,22 +365,30 @@ Deno.test("every concrete RM class with BMM attributes keeps a known init value"
       continue;
     }
     try {
-      const inst = new (value as new (init?: object) => Record<string, unknown>)({
-        [chosen.name]: chosen.sample,
-      });
+      const inst =
+        new (value as new (init?: object) => Record<string, unknown>)({
+          [chosen.name]: chosen.sample,
+        });
       if (!readBack(inst[chosen.name], chosen.sample)) {
         failures.push(
-          `${name}.${chosen.name} dropped ${JSON.stringify(chosen.sample)} got ${String(inst[chosen.name])}`,
+          `${name}.${chosen.name} dropped ${
+            JSON.stringify(chosen.sample)
+          } got ${String(inst[chosen.name])}`,
         );
       }
     } catch (error) {
       failures.push(
-        `${name}.${chosen.name}: ${error instanceof Error ? error.message : error}`,
+        `${name}.${chosen.name}: ${
+          error instanceof Error ? error.message : error
+        }`,
       );
     }
   }
   if (uncovered.length > 0) {
-    console.log("RM classes with attributes but no safe init sample:", uncovered.join(", "));
+    console.log(
+      "RM classes with attributes but no safe init sample:",
+      uncovered.join(", "),
+    );
   }
   assertEquals(failures, []);
 });
@@ -339,7 +418,10 @@ Deno.test("Object.assign coerces terse strings the way the constructor does", ()
     defining_code: { terminology_id: "local", code_string: "at1001" },
   });
   const fromObjectJson = canonical(fromObject);
-  const fromObjectDefining = fromObjectJson.defining_code as Record<string, unknown>;
+  const fromObjectDefining = fromObjectJson.defining_code as Record<
+    string,
+    unknown
+  >;
   assertEquals(
     (fromObjectDefining.terminology_id as Record<string, unknown>).value,
     "local",
