@@ -31,6 +31,18 @@ async function importMarkdownPipeline() {
   return { md, purify };
 }
 
+/** Demo-only: turn `[[target|label]]` / `[[label]]` into GFM links for Document view. */
+export function preprocessMarkdownWikilinks(source: string): string {
+  return source.replace(
+    /\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g,
+    (_full, target: string, label?: string) => {
+      const text = label ?? target;
+      const href = target.startsWith("urn:") ? target : target;
+      return `[${text}](${href})`;
+    },
+  );
+}
+
 const PROSE_CSS = `
 body { margin: 0; padding: 1rem 1.25rem; font-family: system-ui, sans-serif; line-height: 1.55; color: #0f172a; }
 h1,h2,h3,h4 { margin-top: 1.25em; margin-bottom: 0.5em; font-weight: 600; }
@@ -47,7 +59,7 @@ export async function renderMarkdownDocumentHtml(source: string): Promise<string
     loadPromise = importMarkdownPipeline();
   }
   const { md, purify } = await loadPromise;
-  const cleaned = stripMarkdownDisplayComments(source);
+  const cleaned = preprocessMarkdownWikilinks(stripMarkdownDisplayComments(source));
   const rawHtml = md.render(cleaned);
   const safeBody = purify.sanitize(rawHtml, {
     ALLOWED_TAGS: [

@@ -32,5 +32,7 @@ Deno.test("CommonMark render hides structural HTML comments and oe annotations",
   const html = new MarkdownIt({ html: true }).render(md);
   assert(!html.includes("oe:v1:b64:"), "oe payload must not appear in rendered HTML");
   assert(!html.includes("at0001"), "archetype node id comments must not appear in HTML");
+  assert(!html.includes("item_node_id"), "hidden oe:meta must not appear in HTML");
+  assert(!html.includes("item_name"), "hidden item names must not appear in HTML");
   assert(html.includes("Type 2 diabetes") || html.includes("Problem"));
 });

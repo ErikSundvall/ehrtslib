@@ -1855,12 +1855,23 @@ body {
 
 .output-view-tab:hover {
     color: var(--text-primary);
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(255, 255, 255, 0.06);
 }
 
 .output-view-tab.active {
-    color: var(--text-primary);
+    color: var(--text-code);
     background: var(--bg-code);
+}
+
+.output-view-tab.active:hover {
+    color: #f8fafc;
+    background: #334155;
+}
+
+.output-view-tab:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: -2px;
+    z-index: 1;
 }
 
 .output-view-tab-icon {

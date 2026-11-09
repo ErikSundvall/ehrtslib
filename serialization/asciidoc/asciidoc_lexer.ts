@@ -4,6 +4,7 @@
 
 import type { DocumentBlock } from "../documents_common/document_blocks.ts";
 import { isArchetypeNodeIdMarker, stripNodeIdAndType } from "../documents_common/document_blocks.ts";
+import { isOeMetaInner, parseOeMetaInner } from "../documents_common/oe_structure_meta.ts";
 import { archetypeIdFromOpenehrUrn } from "../documents_common/openehr_aom_urn.ts";
 
 function normalizeNodeId(id: string | undefined): string | undefined {
@@ -45,6 +46,17 @@ export function lexAsciidocLossless(text: string): {
     const comment = line.match(COMMENT_NODE_RE);
     if (comment) {
       const candidate = comment[1].trim();
+      if (isOeMetaInner(candidate)) {
+        const parsed = parseOeMetaInner(candidate);
+        if (parsed) {
+          blocks.push({
+            kind: "structure_meta",
+            field: parsed.field,
+            value: parsed.value,
+          });
+        }
+        continue;
+      }
       if (isArchetypeNodeIdMarker(candidate)) {
         pendingNodeId = normalizeNodeId(candidate);
       }
