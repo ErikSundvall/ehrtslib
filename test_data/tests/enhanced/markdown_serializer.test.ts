@@ -5,9 +5,8 @@
 import { assertEquals, assertExists, assertStringIncludes } from "jsr:@std/assert";
 import { MarkdownSerializer } from "../../../serialization/markdown/mod.ts";
 import {
-  CLINICAL_MARKDOWN_CONFIG,
-  STRUCTURAL_MARKDOWN_CONFIG,
   COMPACT_MARKDOWN_CONFIG,
+  STRUCTURAL_MARKDOWN_CONFIG,
   WIKILINK_MARKDOWN_CONFIG,
 } from "../../../serialization/markdown/mod.ts";
 import * as rm from "../../../rm/openehr_rm.ts";
@@ -155,23 +154,6 @@ Deno.test("MarkdownSerializer: serialize COMPOSITION with structural config", ()
   console.log("COMPOSITION (structural):\n", md);
 });
 
-Deno.test("MarkdownSerializer: serialize COMPOSITION with clinical config", () => {
-  const comp = createSampleComposition();
-
-  const serializer = new MarkdownSerializer(CLINICAL_MARKDOWN_CONFIG);
-  const md = serializer.serialize(comp);
-
-  assertExists(md);
-  // Should have frontmatter
-  assertStringIncludes(md, "---");
-  // Should have H1
-  assertStringIncludes(md, "# Blood Pressure Recording");
-  // Should NOT have archetype_node_id in body (clinical mode hides them)
-  // (it may still be in frontmatter via archetype_id)
-
-  console.log("COMPOSITION (clinical):\n", md);
-});
-
 Deno.test("MarkdownSerializer: serialize COMPOSITION with compact config", () => {
   const comp = createSampleComposition();
 
@@ -179,9 +161,7 @@ Deno.test("MarkdownSerializer: serialize COMPOSITION with compact config", () =>
   const md = serializer.serialize(comp);
 
   assertExists(md);
-  // Should NOT have frontmatter
-  assertEquals(md.startsWith("---"), false);
-  // Should have H1
+  assertStringIncludes(md, "---");
   assertStringIncludes(md, "# Blood Pressure Recording");
 
   console.log("COMPOSITION (compact):\n", md);
@@ -201,23 +181,12 @@ Deno.test("MarkdownSerializer: serialize OBSERVATION with blood pressure data", 
 
   console.log("OBSERVATION (structural):\n", mdStructural);
 
-  // Clinical (table rendering)
-  const clinical = new MarkdownSerializer(CLINICAL_MARKDOWN_CONFIG);
-  const mdClinical = clinical.serialize(obs);
-  assertExists(mdClinical);
-  assertStringIncludes(mdClinical, "Systolic");
-  assertStringIncludes(mdClinical, "145");
-  // Should have table format
-  assertStringIncludes(mdClinical, "|");
-
-  console.log("OBSERVATION (clinical):\n", mdClinical);
-
-  // Compact
   const compact = new MarkdownSerializer(COMPACT_MARKDOWN_CONFIG);
   const mdCompact = compact.serialize(obs);
   assertExists(mdCompact);
   assertStringIncludes(mdCompact, "Systolic");
   assertStringIncludes(mdCompact, "145");
+  assertStringIncludes(mdCompact, "| Item | Value | Time |");
 
   console.log("OBSERVATION (compact):\n", mdCompact);
 });
@@ -241,12 +210,12 @@ Deno.test("MarkdownSerializer: serialize COMPOSITION with content", () => {
   console.log("Full COMPOSITION with content (structural):\n", md);
 });
 
-Deno.test("MarkdownSerializer: clinical mode renders coded text with wikilinks", () => {
+Deno.test("MarkdownSerializer: wikilink preset renders coded text with wikilinks", () => {
   const element = createCodedElement(
     "Diagnosis", "at0001", "SNOMED-CT", "73211009", "Diabetes mellitus"
   );
 
-  const serializer = new MarkdownSerializer(CLINICAL_MARKDOWN_CONFIG);
+  const serializer = new MarkdownSerializer(WIKILINK_MARKDOWN_CONFIG);
   const md = serializer.serialize({
     _type: 'ITEM_TREE',
     name: { value: "Items" },
@@ -257,7 +226,7 @@ Deno.test("MarkdownSerializer: clinical mode renders coded text with wikilinks",
   assertStringIncludes(md, "Diabetes mellitus");
   assertStringIncludes(md, "SNOMED-CT");
 
-  console.log("Coded text (clinical):\n", md);
+  console.log("Coded text (wikilink):\n", md);
 });
 
 Deno.test("MarkdownSerializer: compact mode hides codes", () => {
@@ -321,7 +290,7 @@ Deno.test("MarkdownSerializer: token efficiency comparison", () => {
   const obs = createBloodPressureObservation();
 
   const structural = new MarkdownSerializer(STRUCTURAL_MARKDOWN_CONFIG);
-  const clinical = new MarkdownSerializer(CLINICAL_MARKDOWN_CONFIG);
+  const clinical = new MarkdownSerializer(COMPACT_MARKDOWN_CONFIG);
   const compact = new MarkdownSerializer(COMPACT_MARKDOWN_CONFIG);
 
   const mdStructural = structural.serialize(obs);

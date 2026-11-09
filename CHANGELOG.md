@@ -8,6 +8,13 @@ Add an entry under **Unreleased** in every PR that changes user-visible behaviou
 
 ## [Unreleased]
 
+- **Docs (Markdown/AsciiDoc).** [`serialization/documents-presets.md`](serialization/documents-presets.md) — preset anchors, RM simplification rule matrix, shared `DOCUMENT_PRESET_RM_POLICIES`; demo preset selectors link to GitHub doc sections.
+- **Serialization (Markdown/AsciiDoc).** Lossy presets omit HISTORY event titles when there is exactly one event, and omit `origin` when it matches the sole or earliest event time; structural output unchanged.
+- **Breaking (Markdown/AsciiDoc).** Shared preset ids are `structural`, `compact`, `embedding`, `wikilink`. Removed `CLINICAL_MARKDOWN_CONFIG`, `LOSSLESS_ASCIIDOC_CONFIG`, and AsciiDoc style `lossless` (no aliases). **Compact** is the merged human-readable preset (tables with Item/Value/Time, wikilink codes, optional front matter). AsciiDoc round-trip uses `STRUCTURAL_ASCIIDOC_CONFIG` / dialect `structural`. Added `WIKILINK_ASCIIDOC_CONFIG`.
+- **Demo.** Document view strips YAML/AsciiDoc header metadata into a compact panel; shows AsciiDoc/Markdown document titles (`showtitle`); wikilink headings no longer duplicate labels in rendered HTML.
+- **Serialization (Markdown/AsciiDoc).** Embedding presets use compact `key: value` / definition-list lines (lower `o200k_base` token count); AsciiDoc context omits a trailing hard line break on the last context line.
+- **Serialization (Markdown/AsciiDoc).** Wikilink/URN heading output puts the link in the title (no repeated label); AsciiDoc URN links apply outside lossless round-trip.
+- **Serialization (Markdown/AsciiDoc).** Compact preset tables use implicit-header `| Item | Value | Time` (no AsciiDoc `[cols=…]` line); event times appear per row.
 - **Demo.** Active Code/Document output tab uses light text on the dark code panel background (WCAG-friendly contrast).
 - **Serialization (Markdown/AsciiDoc).** ENTRY `language`/`encoding`/`subject` emit once per composition (front matter / header attrs); per-entry lines only when values differ; deserializers restore defaults on every ENTRY.
 - **Serialization (Markdown/AsciiDoc).** Round-trip `item_node_id`, `item_name`, and `_structure:` markers move to hidden `oe:meta:` comments (not visible in Document view).

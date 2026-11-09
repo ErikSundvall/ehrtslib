@@ -418,7 +418,7 @@ Deno.test("convert template input generates markdown and asciidoc outputs", asyn
     jsonConfig: getJsonConfigPreset("canonical"),
     yamlConfig: getYamlConfigPreset("default"),
     markdownConfig: getMarkdownConfigPreset("structural"),
-    asciidocConfig: getAsciidocConfigPreset("lossless"),
+    asciidocConfig: getAsciidocConfigPreset("structural"),
     xmlConfig: {
       prettyPrint: true,
       indent: 2,

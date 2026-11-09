@@ -3,7 +3,7 @@ import {
   AsciidocDeserializer,
   AsciidocSerializer,
   EMBEDDING_ASCIIDOC_CONFIG,
-  LOSSLESS_ASCIIDOC_CONFIG,
+  STRUCTURAL_ASCIIDOC_CONFIG,
 } from "../../../serialization/asciidoc/mod.ts";
 import { InvalidFormatError } from "../../../serialization/common/errors.ts";
 import { rmTreesSemanticallyEqual } from "../../../serialization/documents_common/semantic_compare.ts";
@@ -34,7 +34,7 @@ const observation = {
 };
 
 Deno.test("AsciiDoc lossless round-trip: OBSERVATION", () => {
-  const adoc = new AsciidocSerializer(LOSSLESS_ASCIIDOC_CONFIG).serialize(observation);
+  const adoc = new AsciidocSerializer(STRUCTURAL_ASCIIDOC_CONFIG).serialize(observation);
   const parsed = new AsciidocDeserializer().deserialize(adoc);
   assert(rmTreesSemanticallyEqual(observation, parsed));
 });

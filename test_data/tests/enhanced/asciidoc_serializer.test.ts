@@ -6,7 +6,7 @@ import { assertEquals, assertExists, assertStringIncludes } from "jsr:@std/asser
 import { AsciidocSerializer } from "../../../serialization/asciidoc/mod.ts";
 import {
   COMPACT_ASCIIDOC_CONFIG,
-  LOSSLESS_ASCIIDOC_CONFIG,
+  STRUCTURAL_ASCIIDOC_CONFIG,
 } from "../../../serialization/asciidoc/mod.ts";
 import * as rm from "../../../rm/openehr_rm.ts";
 import * as base from "../../../base/openehr_base.ts";
@@ -134,7 +134,7 @@ Deno.test("AsciidocSerializer: serialize simple DV_TEXT", () => {
 Deno.test("AsciidocSerializer: serialize COMPOSITION with lossless config", () => {
   const comp = createSampleComposition();
 
-  const serializer = new AsciidocSerializer(LOSSLESS_ASCIIDOC_CONFIG);
+  const serializer = new AsciidocSerializer(STRUCTURAL_ASCIIDOC_CONFIG);
   const adoc = serializer.serialize(comp);
 
   assertExists(adoc);
@@ -172,7 +172,7 @@ Deno.test("AsciidocSerializer: serialize OBSERVATION with blood pressure data", 
   const obs = createBloodPressureObservation();
 
   // Lossless
-  const lossless = new AsciidocSerializer(LOSSLESS_ASCIIDOC_CONFIG);
+  const lossless = new AsciidocSerializer(STRUCTURAL_ASCIIDOC_CONFIG);
   const adocLossless = lossless.serialize(obs);
   assertExists(adocLossless);
   assertStringIncludes(adocLossless, "Blood pressure");
@@ -201,7 +201,7 @@ Deno.test("AsciidocSerializer: serialize COMPOSITION with content", () => {
   const obs = createBloodPressureObservation();
   comp.content = [obs] as any;
 
-  const serializer = new AsciidocSerializer(LOSSLESS_ASCIIDOC_CONFIG);
+  const serializer = new AsciidocSerializer(STRUCTURAL_ASCIIDOC_CONFIG);
   const adoc = serializer.serialize(comp);
 
   assertExists(adoc);
@@ -216,7 +216,7 @@ Deno.test("AsciidocSerializer: serialize COMPOSITION with content", () => {
 Deno.test("AsciidocSerializer: lossless mode includes type annotations", () => {
   const obs = createBloodPressureObservation();
 
-  const serializer = new AsciidocSerializer(LOSSLESS_ASCIIDOC_CONFIG);
+  const serializer = new AsciidocSerializer(STRUCTURAL_ASCIIDOC_CONFIG);
   const adoc = serializer.serialize(obs);
 
   assertExists(adoc);
@@ -240,7 +240,7 @@ Deno.test("AsciidocSerializer: coded text with inline_bracket codes", () => {
     "Diagnosis", "at0001", "SNOMED-CT", "73211009", "Diabetes mellitus"
   );
 
-  const serializer = new AsciidocSerializer(LOSSLESS_ASCIIDOC_CONFIG);
+  const serializer = new AsciidocSerializer(STRUCTURAL_ASCIIDOC_CONFIG);
   const adoc = serializer.serialize({
     _type: 'ITEM_TREE',
     name: { value: "Items" },
@@ -281,7 +281,7 @@ Deno.test("AsciidocSerializer: SECTION with nested content", () => {
     items: [createBloodPressureObservation()]
   };
 
-  const serializer = new AsciidocSerializer(LOSSLESS_ASCIIDOC_CONFIG);
+  const serializer = new AsciidocSerializer(STRUCTURAL_ASCIIDOC_CONFIG);
   const adoc = serializer.serialize(section);
 
   assertExists(adoc);
@@ -306,7 +306,7 @@ Deno.test("AsciidocSerializer: CLUSTER nesting uses nested lists", () => {
     }]
   };
 
-  const serializer = new AsciidocSerializer(LOSSLESS_ASCIIDOC_CONFIG);
+  const serializer = new AsciidocSerializer(STRUCTURAL_ASCIIDOC_CONFIG);
   const adoc = serializer.serialize(cluster);
 
   assertExists(adoc);
@@ -340,7 +340,7 @@ Deno.test("AsciidocSerializer: EVALUATION with data", () => {
     }
   };
 
-  const serializer = new AsciidocSerializer(LOSSLESS_ASCIIDOC_CONFIG);
+  const serializer = new AsciidocSerializer(STRUCTURAL_ASCIIDOC_CONFIG);
   const adoc = serializer.serialize(evaluation);
 
   assertExists(adoc);
@@ -356,7 +356,7 @@ Deno.test("AsciidocSerializer: openEHR URN links in lossless mode", () => {
   const obs = createBloodPressureObservation();
   comp.content = [obs] as any;
 
-  const serializer = new AsciidocSerializer(LOSSLESS_ASCIIDOC_CONFIG);
+  const serializer = new AsciidocSerializer(STRUCTURAL_ASCIIDOC_CONFIG);
   const adoc = serializer.serialize(comp);
 
   assertExists(adoc);
@@ -373,7 +373,7 @@ Deno.test("AsciidocSerializer: openEHR URN links in lossless mode", () => {
 Deno.test("AsciidocSerializer: token efficiency comparison", () => {
   const obs = createBloodPressureObservation();
 
-  const lossless = new AsciidocSerializer(LOSSLESS_ASCIIDOC_CONFIG);
+  const lossless = new AsciidocSerializer(STRUCTURAL_ASCIIDOC_CONFIG);
   const compact = new AsciidocSerializer(COMPACT_ASCIIDOC_CONFIG);
 
   const adocLossless = lossless.serialize(obs);
@@ -406,7 +406,7 @@ Deno.test("AsciidocSerializer: DV_STATE formatting", () => {
     }
   };
 
-  const serializer = new AsciidocSerializer(LOSSLESS_ASCIIDOC_CONFIG);
+  const serializer = new AsciidocSerializer(STRUCTURAL_ASCIIDOC_CONFIG);
   const adoc = serializer.serialize({ _type: 'ITEM_TREE', items: [element] });
   assertStringIncludes(adoc, "active");
   console.log("DV_STATE:\n", adoc);
@@ -426,7 +426,7 @@ Deno.test("AsciidocSerializer: DV_INTERVAL formatting", () => {
     }
   };
 
-  const serializer = new AsciidocSerializer(LOSSLESS_ASCIIDOC_CONFIG);
+  const serializer = new AsciidocSerializer(STRUCTURAL_ASCIIDOC_CONFIG);
   const adoc = serializer.serialize({ _type: 'ITEM_TREE', items: [element] });
   assertStringIncludes(adoc, "60 mm[Hg]");
   assertStringIncludes(adoc, "90 mm[Hg]");
@@ -451,7 +451,7 @@ Deno.test("AsciidocSerializer: DV_SCALE formatting", () => {
     }
   };
 
-  const serializer = new AsciidocSerializer(LOSSLESS_ASCIIDOC_CONFIG);
+  const serializer = new AsciidocSerializer(STRUCTURAL_ASCIIDOC_CONFIG);
   const adoc = serializer.serialize({ _type: 'ITEM_TREE', items: [element] });
   assertStringIncludes(adoc, "3 - ");
   assertStringIncludes(adoc, "moderate");
@@ -476,7 +476,7 @@ Deno.test("AsciidocSerializer: DV_PROPORTION types", () => {
     ]
   };
 
-  const serializer = new AsciidocSerializer(LOSSLESS_ASCIIDOC_CONFIG);
+  const serializer = new AsciidocSerializer(STRUCTURAL_ASCIIDOC_CONFIG);
   const adoc = serializer.serialize(tree);
   assertStringIncludes(adoc, "3:4");      // ratio
   assertStringIncludes(adoc, "0.75");     // unitary
@@ -499,7 +499,7 @@ Deno.test("AsciidocSerializer: DV_IDENTIFIER with all fields", () => {
     }
   };
 
-  const serializer = new AsciidocSerializer(LOSSLESS_ASCIIDOC_CONFIG);
+  const serializer = new AsciidocSerializer(STRUCTURAL_ASCIIDOC_CONFIG);
   const adoc = serializer.serialize({ _type: 'ITEM_TREE', items: [element] });
   assertStringIncludes(adoc, "NHS");
   assertStringIncludes(adoc, "GP Practice");
@@ -522,7 +522,7 @@ Deno.test("AsciidocSerializer: DV_PARAGRAPH formatting", () => {
     }
   };
 
-  const serializer = new AsciidocSerializer(LOSSLESS_ASCIIDOC_CONFIG);
+  const serializer = new AsciidocSerializer(STRUCTURAL_ASCIIDOC_CONFIG);
   const adoc = serializer.serialize({ _type: 'ITEM_TREE', items: [element] });
   assertStringIncludes(adoc, "Patient presents with chest pain.");
   assertStringIncludes(adoc, "Pain started 2 hours ago.");
@@ -543,7 +543,7 @@ Deno.test("AsciidocSerializer: DV_MULTIMEDIA with all fields", () => {
     }
   };
 
-  const serializer = new AsciidocSerializer(LOSSLESS_ASCIIDOC_CONFIG);
+  const serializer = new AsciidocSerializer(STRUCTURAL_ASCIIDOC_CONFIG);
   const adoc = serializer.serialize({ _type: 'ITEM_TREE', items: [element] });
   assertStringIncludes(adoc, "image/png");
   assertStringIncludes(adoc, "1024 bytes");
@@ -577,7 +577,7 @@ Deno.test("AsciidocSerializer: DV_BOOLEAN and DV_URI types", () => {
     ]
   };
 
-  const serializer = new AsciidocSerializer(LOSSLESS_ASCIIDOC_CONFIG);
+  const serializer = new AsciidocSerializer(STRUCTURAL_ASCIIDOC_CONFIG);
   const adoc = serializer.serialize(tree);
   assertStringIncludes(adoc, "true");
   assertStringIncludes(adoc, "https://example.com/guideline");
@@ -610,7 +610,7 @@ Deno.test("AsciidocSerializer: DV_DATE, DV_TIME, DV_DURATION types", () => {
     ]
   };
 
-  const serializer = new AsciidocSerializer(LOSSLESS_ASCIIDOC_CONFIG);
+  const serializer = new AsciidocSerializer(STRUCTURAL_ASCIIDOC_CONFIG);
   const adoc = serializer.serialize(tree);
   assertStringIncludes(adoc, "1985-03-15");
   assertStringIncludes(adoc, "14:30:00");
@@ -630,7 +630,7 @@ Deno.test("AsciidocSerializer: DV_PARSABLE formatting", () => {
     }
   };
 
-  const serializer = new AsciidocSerializer(LOSSLESS_ASCIIDOC_CONFIG);
+  const serializer = new AsciidocSerializer(STRUCTURAL_ASCIIDOC_CONFIG);
   const adoc = serializer.serialize({ _type: 'ITEM_TREE', items: [element] });
   assertStringIncludes(adoc, "R5/2026-01-01T08:00:00Z/P1D");
   assertStringIncludes(adoc, "timing");
@@ -650,7 +650,7 @@ Deno.test("AsciidocSerializer: GENERIC_ENTRY handling", () => {
     }
   };
 
-  const serializer = new AsciidocSerializer(LOSSLESS_ASCIIDOC_CONFIG);
+  const serializer = new AsciidocSerializer(STRUCTURAL_ASCIIDOC_CONFIG);
   const adoc = serializer.serialize(entry);
   assertStringIncludes(adoc, "Legacy data");
   assertStringIncludes(adoc, "Imported from old system");

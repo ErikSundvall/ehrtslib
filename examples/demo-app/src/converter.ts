@@ -42,7 +42,6 @@ import {
 } from "../../../serialization/xml/mod.ts";
 
 import {
-  CLINICAL_MARKDOWN_CONFIG,
   COMPACT_MARKDOWN_CONFIG,
   DEFAULT_MARKDOWN_SERIALIZATION_CONFIG,
   EMBEDDING_MARKDOWN_CONFIG,
@@ -60,7 +59,8 @@ import {
   COMPACT_ASCIIDOC_CONFIG,
   DEFAULT_ASCIIDOC_SERIALIZATION_CONFIG,
   EMBEDDING_ASCIIDOC_CONFIG,
-  LOSSLESS_ASCIIDOC_CONFIG,
+  STRUCTURAL_ASCIIDOC_CONFIG,
+  WIKILINK_ASCIIDOC_CONFIG,
 } from "../../../serialization/asciidoc/mod.ts";
 
 import { detectDocumentDialect } from "../../../serialization/documents_common/document_blocks.ts";
@@ -1404,8 +1404,6 @@ export function getMarkdownConfigPreset(
   preset: string,
 ): MarkdownSerializationConfig {
   switch (preset) {
-    case "clinical":
-      return { ...CLINICAL_MARKDOWN_CONFIG };
     case "compact":
       return { ...COMPACT_MARKDOWN_CONFIG };
     case "wikilink":
@@ -1427,13 +1425,15 @@ export function getAsciidocConfigPreset(
   switch (preset) {
     case "compact":
       return { ...COMPACT_ASCIIDOC_CONFIG };
+    case "wikilink":
+      return { ...WIKILINK_ASCIIDOC_CONFIG };
     case "embedding":
       return { ...EMBEDDING_ASCIIDOC_CONFIG };
-    case "lossless":
+    case "structural":
     default:
       return {
         ...DEFAULT_ASCIIDOC_SERIALIZATION_CONFIG,
-        ...LOSSLESS_ASCIIDOC_CONFIG,
+        ...STRUCTURAL_ASCIIDOC_CONFIG,
       };
   }
 }

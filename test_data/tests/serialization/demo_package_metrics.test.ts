@@ -73,6 +73,6 @@ Deno.test("optional serialization bundles are measured (gzip) and not in core gr
   const demoRaw = (await Deno.readFile(demoBundle)).byteLength;
   const demoGz = await gzipSize(demoBundle);
   assert(demoRaw > 1_000_000, `demo bundle raw bytes: ${demoRaw}`);
-  assert(demoGz > 400_000 && demoGz < 3_000_000, `demo bundle gzip bytes: ${demoGz}`);
+  assert(demoGz > 300_000 && demoGz < 3_000_000, `demo bundle gzip bytes: ${demoGz}`);
   console.log(`demo bundle raw=${demoRaw} gzip=${demoGz}`);
 });

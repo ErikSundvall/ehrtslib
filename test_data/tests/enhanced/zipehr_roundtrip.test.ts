@@ -659,7 +659,7 @@ Deno.test("zipehr: demo convert with auto-detect input", async () => {
     jsonConfig: { prettyPrint: true, indent: 2 },
     yamlConfig: getYamlConfigPreset("flow"),
     markdownConfig: { style: "structural" },
-    asciidocConfig: { style: "lossless" },
+    asciidocConfig: { style: "structural" },
     xmlConfig: {
       prettyPrint: true,
       indent: 2,

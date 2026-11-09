@@ -12,7 +12,7 @@ import {
 import {
   AsciidocDeserializer,
   AsciidocSerializer,
-  LOSSLESS_ASCIIDOC_CONFIG,
+  STRUCTURAL_ASCIIDOC_CONFIG,
 } from "../../../serialization/asciidoc/mod.ts";
 import { validateDeserializedInstance } from "../../../serialization/common/post_deserialize_validation.ts";
 const OPT_FIXTURES = [
@@ -30,7 +30,7 @@ function roundTripAndValidate(
     validateAgainstTemplate: operationalTemplate,
   });
 
-  const ad = new AsciidocSerializer(LOSSLESS_ASCIIDOC_CONFIG).serialize(generated);
+  const ad = new AsciidocSerializer(STRUCTURAL_ASCIIDOC_CONFIG).serialize(generated);
   const parsedAd = new AsciidocDeserializer().deserialize(ad) as Record<string, unknown>;
   const va = validateDeserializedInstance(parsedAd, {
     validateAgainstTemplate: operationalTemplate,

@@ -6,7 +6,7 @@ import MarkdownIt from "markdown-it";
 import {
   AsciidocDeserializer,
   AsciidocSerializer,
-  LOSSLESS_ASCIIDOC_CONFIG,
+  STRUCTURAL_ASCIIDOC_CONFIG,
 } from "../../../serialization/asciidoc/mod.ts";
 import {
   MarkdownDeserializer,
@@ -115,7 +115,7 @@ Deno.test("structural Markdown: vital signs omit repeated entry language/encodin
 });
 
 Deno.test("lossless AsciiDoc: vital signs omit repeated entry language/encoding", () => {
-  const ad = new AsciidocSerializer(LOSSLESS_ASCIIDOC_CONFIG)
+  const ad = new AsciidocSerializer(STRUCTURAL_ASCIIDOC_CONFIG)
     .serialize(vitalSignsWithUniformEntryMeta());
   assertEquals(countOccurrences(ad, "_language:_"), 0);
   assertEquals(countOccurrences(ad, "_encoding:_"), 0);
@@ -130,7 +130,7 @@ Deno.test("round-trip restores composition defaults onto every ENTRY", () => {
   const parsed = new MarkdownDeserializer().deserialize<Record<string, unknown>>(md);
   assert(rmTreesSemanticallyEqual(original, parsed));
 
-  const ad = new AsciidocSerializer(LOSSLESS_ASCIIDOC_CONFIG).serialize(original);
+  const ad = new AsciidocSerializer(STRUCTURAL_ASCIIDOC_CONFIG).serialize(original);
   const parsedAd = new AsciidocDeserializer().deserialize<Record<string, unknown>>(ad);
   assert(rmTreesSemanticallyEqual(original, parsedAd));
 });

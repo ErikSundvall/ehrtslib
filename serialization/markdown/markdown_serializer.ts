@@ -46,6 +46,10 @@ import {
   type CompositionEntryDefaults,
 } from '../documents_common/document_entry_defaults.ts';
 import { formatOeMetaMarkdown } from '../documents_common/oe_structure_meta.ts';
+import {
+  shouldEmitHistoryOrigin,
+  shouldSkipLossyEventTitles,
+} from '../documents_common/history_lossy_emit.ts';
 
 /**
  * Markdown Serializer for openEHR RM objects
@@ -53,15 +57,16 @@ import { formatOeMetaMarkdown } from '../documents_common/oe_structure_meta.ts';
  * @example
  * ```typescript
  * import { MarkdownSerializer } from './serialization/markdown/mod.ts';
- * import { CLINICAL_MARKDOWN_CONFIG } from './serialization/markdown/mod.ts';
- * 
- * const serializer = new MarkdownSerializer(CLINICAL_MARKDOWN_CONFIG);
+ * import { COMPACT_MARKDOWN_CONFIG } from './serialization/markdown/mod.ts';
+ *
+ * const serializer = new MarkdownSerializer(COMPACT_MARKDOWN_CONFIG);
  * const markdown = serializer.serialize(composition);
  * ```
  */
 export class MarkdownSerializer {
   private config: Required<MarkdownSerializationConfig>;
   private activeEntryDefaults?: CompositionEntryDefaults;
+  private compactTableEventTime = "";
 
   constructor(config: MarkdownSerializationConfig = {}) {
     this.config = { ...DEFAULT_MARKDOWN_SERIALIZATION_CONFIG, ...config };
@@ -122,8 +127,8 @@ export class MarkdownSerializer {
 
     // H1: Composition name
     const name = this.extractName(comp);
-    const nodeIdAnnotation = this.formatNodeIdAnnotation(comp);
-    lines.push(`# ${name}${nodeIdAnnotation}`);
+    const headingTitle = this.formatLocatableHeadingTitle(comp, name);
+    lines.push(`# ${headingTitle}`);
     lines.push('');
 
     // Context (if present)
@@ -218,6 +223,11 @@ export class MarkdownSerializer {
     if (parts.length > 0) {
       if (this.config.style === 'compact') {
         lines.push(parts.join(' | '));
+      } else if (this.config.style === 'embedding') {
+        for (const part of parts) {
+          const plain = part.replace(/\*\*([^*]+)\*\*/, "$1");
+          lines.push(plain);
+        }
       } else {
         for (const part of parts) {
           lines.push(part + '  ');
@@ -249,9 +259,8 @@ export class MarkdownSerializer {
 
   private serializeSection(section: any, lines: string[], depth: number): void {
     const name = this.extractName(section);
-    const nodeId = this.formatNodeIdAnnotation(section);
-
-    this.writeHeading(name + nodeId, depth, lines);
+    const headingTitle = this.formatLocatableHeadingTitle(section, name);
+    this.writeHeading(headingTitle, depth, lines);
     lines.push('');
 
     if (section.items && Array.isArray(section.items)) {
@@ -263,10 +272,10 @@ export class MarkdownSerializer {
 
   private serializeEntry(entry: any, typeName: string | undefined, lines: string[], depth: number): void {
     const name = this.extractName(entry);
-    const nodeId = this.formatNodeIdAnnotation(entry);
     const typeAnnotation = this.formatTypeAnnotation(typeName);
+    const headingTitle = this.formatLocatableHeadingTitle(entry, name);
 
-    this.writeHeading(name + typeAnnotation + nodeId, depth, lines);
+    this.writeHeading(headingTitle + typeAnnotation, depth, lines);
     lines.push('');
 
     this.emitEntryMetadataWhenDiffers(entry, lines);
@@ -437,16 +446,20 @@ export class MarkdownSerializer {
 
   private serializeHistory(history: any, label: string, lines: string[], depth: number): void {
     this.emitItemStructureMeta(history, lines);
-    // History origin
-    if (history.origin && this.config.style !== 'compact') {
-      lines.push(`- _origin:_ ${this.formatDateTime(history.origin)}`);
+    const events = history.events && Array.isArray(history.events) ? history.events : [];
+    const skipEventTitles = shouldSkipLossyEventTitles(this.config.style, events.length);
+
+    if (history.origin && shouldEmitHistoryOrigin(history, this.config.style)) {
+      if (this.config.style === 'embedding' || this.config.style === 'compact') {
+        ensureBlankLineBeforeBlock(lines);
+        lines.push(`origin: ${this.formatDateTime(history.origin)}`);
+      } else {
+        lines.push(`- _origin:_ ${this.formatDateTime(history.origin)}`);
+      }
     }
 
-    // Events
-    if (history.events && Array.isArray(history.events)) {
-      for (const event of history.events) {
-        this.serializeEvent(event, lines, depth);
-      }
+    for (const event of events) {
+      this.serializeEvent(event, lines, depth, skipEventTitles);
     }
 
     // Summary
@@ -455,40 +468,57 @@ export class MarkdownSerializer {
     }
   }
 
-  private serializeEvent(event: any, lines: string[], depth: number): void {
+  private serializeEvent(
+    event: any,
+    lines: string[],
+    depth: number,
+    skipTitle = false,
+  ): void {
     const name = this.extractName(event);
-    const nodeId = this.formatNodeIdAnnotation(event);
     const typeName = this.getTypeName(event);
 
-    // For single "Any event" we skip the heading in compact mode
-    if (this.config.style !== 'compact' || name !== 'Any event') {
-      if (name) {
-        const typeAnn = (typeName === 'INTERVAL_EVENT') ? ' _(interval)_' : '';
-        ensureBlankLineBeforeBlock(lines);
-        lines.push(`**${name}**${typeAnn}${nodeId}`);
-        lines.push('');
-      }
+    if (!skipTitle && name) {
+      const typeAnn = (typeName === 'INTERVAL_EVENT') ? ' _(interval)_' : '';
+      const title = this.formatLocatableHeadingTitle(event, name);
+      ensureBlankLineBeforeBlock(lines);
+      lines.push(`**${title}**${typeAnn}`);
+      lines.push('');
     }
 
     // Time
     if (event.time && this.config.style !== 'compact') {
-      lines.push(`- _time:_ ${this.formatDateTime(event.time)}`);
+      if (this.config.style === 'embedding') {
+        lines.push(`time: ${this.formatDateTime(event.time)}`);
+      } else {
+        lines.push(`- _time:_ ${this.formatDateTime(event.time)}`);
+      }
     }
 
     // Width (for INTERVAL_EVENT)
-    if (event.width) {
-      lines.push(`- _width:_ ${this.formatDuration(event.width)}`);
+    if (event.width && this.config.style !== 'compact') {
+      if (this.config.style === 'embedding') {
+        lines.push(`width: ${this.formatDuration(event.width)}`);
+      } else {
+        lines.push(`- _width:_ ${this.formatDuration(event.width)}`);
+      }
     }
 
-    // Data
+    const prevCompactTime = this.compactTableEventTime;
+    if (this.config.style === 'compact') {
+      this.compactTableEventTime = this.formatEventTimeForCompactTable(event);
+    }
     if (event.data) {
       this.serializeItemStructure(event.data, lines, depth);
     }
 
-    // State
     if (event.state) {
-      this.serializeNamedItemStructure(event.state, 'State', lines, depth);
+      if (this.config.style === 'compact') {
+        this.serializeItemStructure(event.state, lines, depth);
+      } else {
+        this.serializeNamedItemStructure(event.state, 'State', lines, depth);
+      }
     }
+    this.compactTableEventTime = prevCompactTime;
   }
 
   // ─── ITEM STRUCTURES ─────────────────────────────────────────────────
@@ -566,10 +596,14 @@ export class MarkdownSerializer {
 
   private serializeCluster(cluster: any, lines: string[], nestLevel: number): void {
     const name = this.extractName(cluster);
-    const nodeId = this.formatNodeIdAnnotation(cluster);
     const indent = this.getIndent(nestLevel);
-
-    lines.push(`${indent}- **${name}**${nodeId}`);
+    const label = this.formatLocatableHeadingTitle(cluster, name);
+    if (this.config.useOpenehrUrnWikilinks && this.isArchetypeId(cluster?.archetype_node_id)) {
+      lines.push(`${indent}- ${label}`);
+    } else {
+      const tail = this.formatInlineNodeIdAnnotation(cluster);
+      lines.push(`${indent}- **${name}**${tail}`);
+    }
 
     if (cluster.items && Array.isArray(cluster.items)) {
       this.serializeItems(cluster.items, lines, nestLevel + 1);
@@ -578,8 +612,8 @@ export class MarkdownSerializer {
 
   private serializeElement(element: any, lines: string[], nestLevel: number): void {
     const name = this.extractName(element);
-    const nodeId = this.formatNodeIdAnnotation(element);
     const indent = this.getIndent(nestLevel);
+    const nodeId = this.formatInlineNodeIdAnnotation(element);
 
     if (element.value === undefined || element.value === null) {
       // Null element
@@ -594,9 +628,14 @@ export class MarkdownSerializer {
 
     const valueStr = this.formatDataValue(element.value);
     const dvAnn = this.formatSparseValueAnnotation(element.value, valueStr);
+    const lineBody = this.formatElementValueLine(name, valueStr);
 
-    if (this.config.style === 'compact' || this.config.style === 'embedding' || this.config.dataValueRendering === 'inline') {
-      lines.push(`${indent}- ${name}: ${valueStr}${nodeId}${dvAnn}`);
+    if (this.config.style === 'embedding') {
+      lines.push(`${indent}${lineBody}${nodeId}${dvAnn}`);
+    } else if (this.config.style === 'compact' || this.config.dataValueRendering === 'inline') {
+      lines.push(`${indent}- ${lineBody}${nodeId}${dvAnn}`);
+    } else if (lineBody === valueStr) {
+      lines.push(`${indent}- ${valueStr}${nodeId}${dvAnn}`);
     } else {
       lines.push(`${indent}- **${name}:** ${valueStr}${nodeId}${dvAnn}`);
     }
@@ -619,15 +658,31 @@ export class MarkdownSerializer {
     });
   }
 
+  private formatEventTimeForCompactTable(event: any): string {
+    if (!event) return "";
+    const time = event.time ? this.formatDateTime(event.time) : "";
+    if (!time) return "";
+    const typeName = this.getTypeName(event);
+    if (typeName === "INTERVAL_EVENT" && event.width) {
+      const width = this.formatDuration(event.width);
+      const math = event.math_function
+        ? `; ${this.formatDvCodedText(event.math_function)}`
+        : "";
+      return `${time} (+ ${width}${math})`;
+    }
+    return time;
+  }
+
   private renderItemsAsTable(items: any[], lines: string[]): void {
     ensureBlankLineBeforeBlock(lines);
-    // Determine if we need a code column
-    const hasCode = this.config.codeRendering !== 'hidden' && items.some(item => {
-      return item.value && this.getDataValueCode(item.value);
-    });
+    const compactWithTime = this.config.style === "compact";
+    const hasCode = !compactWithTime && this.config.codeRendering !== 'hidden' &&
+      items.some(item => item.value && this.getDataValueCode(item.value));
 
-    // Header
-    if (hasCode) {
+    if (compactWithTime) {
+      lines.push('| Item | Value | Time |');
+      lines.push('| --- | --- | --- |');
+    } else if (hasCode) {
       lines.push('| Item | Value | Code |');
       lines.push('| :--- | :--- | :--- |');
     } else {
@@ -635,13 +690,14 @@ export class MarkdownSerializer {
       lines.push('| :--- | :--- |');
     }
 
-    // Rows
+    const timeCol = this.compactTableEventTime || "—";
     for (const item of items) {
       const name = this.extractName(item);
       const valueStr = item.value ? this.formatDataValueForTable(item.value) : '—';
-      const code = hasCode ? this.getDataValueCode(item.value) || '' : '';
-
-      if (hasCode) {
+      if (compactWithTime) {
+        lines.push(`| ${name} | ${valueStr} | ${timeCol} |`);
+      } else if (hasCode) {
+        const code = this.getDataValueCode(item.value) || '';
         lines.push(`| ${name} | ${valueStr} | ${code} |`);
       } else {
         lines.push(`| ${name} | ${valueStr} |`);
@@ -1001,30 +1057,50 @@ export class MarkdownSerializer {
     return '';
   }
 
-  private formatNodeIdAnnotation(obj: any): string {
+  /** Avoid `Label: [[urn|Label]]` when the wikilink already carries the label text. */
+  private formatElementValueLine(name: string, valueStr: string): string {
+    const wikilinkOnly = valueStr.match(/^\[\[[^\]|]+(?:\|([^\]]+))?\]\]$/);
+    if (wikilinkOnly) {
+      const linkLabel = wikilinkOnly[1] ?? "";
+      if (linkLabel && linkLabel === name) {
+        return valueStr;
+      }
+    }
+    return `${name}: ${valueStr}`;
+  }
+
+  private formatLocatableHeadingTitle(obj: any, fallbackName: string): string {
+    const nodeId = obj?.archetype_node_id;
+    const name = fallbackName || this.extractName(obj);
+    if (
+      this.config.useOpenehrUrnWikilinks && nodeId && this.isArchetypeId(nodeId)
+    ) {
+      return `[[${toOpenehrAomArchetypeUrn(nodeId)}|${name}]]`;
+    }
+    if (this.config.style === 'structural' && nodeId && this.config.includeArchetypeNodeIds) {
+      return `${name} <!-- ${nodeId} -->`;
+    }
+    return name;
+  }
+
+  /** Inline node-id markers for list items (not headings). */
+  private formatInlineNodeIdAnnotation(obj: any): string {
     if (!this.config.includeArchetypeNodeIds) return '';
     const nodeId = obj?.archetype_node_id;
     if (!nodeId) return '';
-
-    // Use openEHR URN wikilinks when configured
-    if (this.config.useOpenehrUrnWikilinks && this.isArchetypeId(nodeId)) {
-      const name = this.extractName(obj);
-      return ` [[${toOpenehrAomArchetypeUrn(nodeId)}|${name || nodeId}]]`;
-    }
-
-    // Use HTML comment for structural, inline for others
     if (this.config.style === 'structural') {
       return ` <!-- ${nodeId} -->`;
     }
-  if (this.config.style === 'embedding' || this.config.style === 'compact' || this.config.style === 'clinical') {
     return '';
   }
-    return '';
+
+  private formatNodeIdAnnotation(obj: any): string {
+    return this.formatInlineNodeIdAnnotation(obj);
   }
 
   private formatTypeAnnotation(typeName: string | undefined): string {
     if (!this.config.includeTypeAnnotations || !typeName) return '';
-    if (this.config.style === 'embedding' || this.config.style === 'compact' || this.config.style === 'clinical') {
+    if (this.config.style === 'embedding' || this.config.style === 'compact') {
       return '';
     }
     if (this.config.style === 'structural') {

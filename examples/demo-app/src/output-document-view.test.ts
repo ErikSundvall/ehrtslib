@@ -79,6 +79,47 @@ Deno.test("wikilink markdown renders as anchor in document HTML", async () => {
   assertEquals(html.includes("[["), false);
 });
 
+Deno.test("document view: front matter in metadata panel not setext heading", async () => {
+  const source = `---
+uid: x1
+---
+
+# Title
+
+Paragraph.
+`;
+  const html = await renderMarkdownDocumentHtml(source);
+  assertStringIncludes(html, "doc-metadata-panel");
+  assertStringIncludes(html, "x1");
+  assertEquals(html.includes("<h1>uid:"), false);
+  assertStringIncludes(html, "Title");
+});
+
+Deno.test("document view: asciidoc title and header attrs", async () => {
+  const source = `:uid: y2
+
+= Accident report including vital signs
+
+*Date:* 2026-08-02T10:15:00Z +
+
+== Problem/Diagnosis
+`;
+  const { renderAsciidocDocumentHtml } = await import(
+    "./output-document-view-asciidoc.ts"
+  );
+  const html = await renderAsciidocDocumentHtml(source);
+  assertStringIncludes(html, "doc-metadata-panel");
+  assertStringIncludes(html, "y2");
+  assertStringIncludes(html, "Accident report including vital signs");
+});
+
+Deno.test("wikilink heading label appears once in rendered HTML", async () => {
+  const md = "## [[urn:openehr:aom:org.openehr::openEHR-EHR-OBSERVATION.blood_pressure.v2|Blood pressure]]\n";
+  const html = await renderMarkdownDocumentHtml(md);
+  const count = (html.match(/Blood pressure/g) ?? []).length;
+  assertEquals(count, 1, "heading label must not duplicate in HTML");
+});
+
 Deno.test("active output view tab uses light text on dark code background", async () => {
   const cssUrl = new URL("../public/styles.css", import.meta.url);
   const css = await Deno.readTextFile(cssUrl);

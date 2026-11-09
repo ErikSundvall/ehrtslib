@@ -19,6 +19,7 @@ Check these consumers when the public API changes:
 
 ## Unreleased
 
+- **Removed.** `CLINICAL_MARKDOWN_CONFIG`, `LOSSLESS_ASCIIDOC_CONFIG`. AsciiDoc serialization style `lossless` and demo preset id `clinical`. Use `COMPACT_MARKDOWN_CONFIG` / `COMPACT_ASCIIDOC_CONFIG` for human-readable output and `STRUCTURAL_ASCIIDOC_CONFIG` with `style: 'structural'` for round-trip. Added `WIKILINK_ASCIIDOC_CONFIG`.
 - **Added.** `ARCHETYPE_ID`, `GENERIC_ID`, `TERMINOLOGY_ID`, `TEMPLATE_ID`, `UID_BASED_ID`, and subclasses accept optional init bags and terse strings in their constructors (same coercion as `applyRmInit`).
 - **Changed.** `TypeScriptConstructorSerializer` defaults to nested init-object literals (`useNestedObjectLiterals`); undefined-attribute TODO comments include BMM multiplicity when `includeComments` is on.
 - **Removed from default barrel.** `MarkdownSerializer`, `AsciidocSerializer`, and related config presets are no longer re-exported from `serialization/mod.ts`. Import `serialization/markdown/mod.ts` via `ehrtslib/serialization-markdown` or `serialization/asciidoc/mod.ts` via `ehrtslib/serialization-asciidoc` ([#284](https://github.com/ErikSundvall/ehrtslib/issues/284)).
