@@ -522,7 +522,7 @@
                 <input type="checkbox" id="output-json" checked>
                 <span>JSON</span>
               </label>
-              <label class="checkbox-label" title="Structural/lossless Markdown (round-trip or embedding presets)">
+              <label class="checkbox-label" title="Structural Markdown (roundtrip, template-valid) or output-only presets">
                 <input type="checkbox" id="output-markdown">
                 <span>Markdown</span>
               </label>
@@ -592,8 +592,8 @@
               <button class="tab" data-tab="typescript">TypeScript</button>
               <button class="tab" data-tab="xml">XML</button>
               <button class="tab" data-tab="simplified">Simplified</button>
-              <button class="tab" data-tab="opt-html5">OPT HTML5</button>
-              <button class="tab" data-tab="opt-xml">OPT XML</button>
+              <button class="tab hidden" data-tab="opt-html5">OPT HTML5</button>
+              <button class="tab hidden" data-tab="opt-xml">OPT XML</button>
               <button class="tab hidden" data-tab="webtemplate">Web Template</button>
               <button class="tab" data-tab="zipehr">ZipEHR</button>
             </div>
@@ -913,13 +913,18 @@
                     <div class="form-group">
                       <label for="zipehr-variant">ZipEHR variant:</label>
                       <select id="zipehr-variant" class="config-dropdown">
-                        <option value="zipehr.json">zipehr.json (JSON, canonical _type path)</option>
-                        <option value="zipehr.yaml" selected>zipehr.yaml (YAML, terse + type inference)</option>
-                        <option value="zipehr.xhtml">zipehr.xhtml (XHTML, FHIR narrative)</option>
-                        <option value="zipehr.html5.short">zipehr.html5/short (o- letter tags)</option>
-                        <option value="zipehr.html5.full">zipehr.html5/full (o- RM kebab tags)</option>
-                        <option value="zipehr.html5.emoji">zipehr.html5/emoji (o- emoji tags)</option>
+                        <option value="zipehr.json">zipehr.json (lossless roundtrip)</option>
+                        <option value="zipehr.yaml" selected>zipehr.yaml (lossless roundtrip)</option>
+                        <option value="zipehr.xhtml">zipehr.xhtml (lossless roundtrip)</option>
+                        <option value="zipehr.html5.short">zipehr.html5/short (lossless roundtrip)</option>
+                        <option value="zipehr.html5.full">zipehr.html5/full (lossless roundtrip)</option>
+                        <option value="zipehr.html5.emoji">zipehr.html5/emoji (lossless roundtrip)</option>
                       </select>
+                      <p class="form-hint">
+                        All variants round-trip to canonical JSON through
+                        ehrtslib’s ZipEHR deserializers (JSON/YAML, XHTML, and
+                        HTML5 dialects).
+                      </p>
                     </div>
                   <div class="form-group">
                     <label>Symbols:</label>
@@ -1114,68 +1119,6 @@
                 <div class="demo-editor-host output-content" id="output-zipehr.html5.emoji-content"></div>
               </div>
 
-              <!-- Browser preview for (x)HTML ZipEHR dialects -->
-              <div class="zipehr-html-preview hidden" id="zipehr-html-preview">
-                <div class="zipehr-html-preview-header">
-                  <h3 class="zipehr-html-preview-title">Browser preview</h3>
-                  <div class="zipehr-html-preview-controls">
-                    <label class="zipehr-css-label" for="zipehr-css-select">
-                      CSS stylesheet:
-                    </label>
-                    <select id="zipehr-css-select" class="config-dropdown zipehr-css-select">
-                      <option value="default">Default for dialect</option>
-                      <option value="zipehr-xhtml.css">zipehr-xhtml.css</option>
-                      <option value="zipehr-html5-short.css">zipehr-html5-short.css</option>
-                      <option value="zipehr-html5-full.css">zipehr-html5-full.css</option>
-                      <option value="zipehr-html5-emoji.css">zipehr-html5-emoji.css</option>
-                      <option value="none">None (browser default)</option>
-                      <option value="custom" disabled>Custom (uploaded)</option>
-                    </select>
-                    <button
-                      class="btn btn-secondary btn-sm"
-                      id="zipehr-css-upload-btn"
-                      type="button"
-                      title="Upload a CSS file"
-                    >
-                      <span class="material-icons btn-icon" aria-hidden="true">upload_file</span>
-                      Upload CSS
-                    </button>
-                    <input
-                      type="file"
-                      id="zipehr-css-file-input"
-                      accept=".css,text/css"
-                      hidden
-                    >
-                    <button
-                      class="btn btn-secondary btn-sm"
-                      id="zipehr-preview-popup-btn"
-                      type="button"
-                      title="Open preview in a separate window (stays in sync)"
-                    >
-                      <span class="material-icons btn-icon" aria-hidden="true">open_in_new</span>
-                      Open window
-                    </button>
-                  </div>
-                </div>
-                <div class="zipehr-html-preview-body">
-                  <div class="zipehr-css-editor-col">
-                    <div class="zipehr-css-editor-label">Stylesheet source</div>
-                    <div
-                      class="demo-editor-host zipehr-css-editor-host"
-                      id="zipehr-css-editor"
-                    ></div>
-                  </div>
-                  <div class="zipehr-render-col">
-                    <div class="zipehr-css-editor-label">Rendered view</div>
-                    <iframe
-                      id="zipehr-preview-frame"
-                      class="zipehr-preview-frame"
-                      title="ZipEHR HTML browser preview"
-                      sandbox="allow-same-origin"
-                    ></iframe>
-                  </div>
-                </div>
-              </div>
             </div>
 
             <div class="tab-pane" id="tab-markdown">
@@ -1190,12 +1133,12 @@
                         class="config-dropdown"
                       >
                         <option value="structural">
-                          Structural (Lossless)
+                          Structural (roundtrip, template-valid)
                         </option>
-                        <option value="clinical">Clinical</option>
-                        <option value="compact">Compact</option>
-                        <option value="embedding">Embedding (output-only)</option>
-                        <option value="wikilink">Wikilink URN</option>
+                        <option value="clinical">Clinical (lossy one-way)</option>
+                        <option value="compact">Compact (lossy one-way)</option>
+                        <option value="embedding">Embedding (lossy one-way)</option>
+                        <option value="wikilink">Wikilink URN (lossy one-way)</option>
                         <option value="custom">Custom...</option>
                       </select>
                     </div>
@@ -1361,9 +1304,11 @@
                         id="asciidoc-config-preset"
                         class="config-dropdown"
                       >
-                        <option value="lossless">Lossless</option>
-                        <option value="compact">Compact</option>
-                        <option value="embedding">Embedding (output-only)</option>
+                        <option value="lossless">
+                          Lossless (roundtrip, template-valid)
+                        </option>
+                        <option value="compact">Compact (lossy one-way)</option>
+                        <option value="embedding">Embedding (lossy one-way)</option>
                         <option value="custom">Custom...</option>
                       </select>
                     </div>
@@ -1923,37 +1868,6 @@
                     </span>
                   </div>
                   <div class="demo-editor-host output-content" id="output-opt.html5.emoji-content"></div>
-                </div>
-              </div>
-
-              <div id="opt-html5-preview" class="zipehr-html-preview">
-                <div class="zipehr-html-preview-header">
-                  <h3 class="zipehr-html-preview-title">OPT browser preview</h3>
-                  <div class="zipehr-html-preview-controls">
-                    <label class="zipehr-css-label" for="opt-html5-css-select">Stylesheet:</label>
-                    <select id="opt-html5-css-select" class="config-dropdown zipehr-css-select">
-                      <option value="default">Default for dialect</option>
-                      <option value="opt-html5-short.css">opt-html5-short.css</option>
-                      <option value="opt-html5-full.css">opt-html5-full.css</option>
-                      <option value="opt-html5-emoji.css">opt-html5-emoji.css</option>
-                      <option value="none">None</option>
-                      <option value="custom" disabled>Custom</option>
-                    </select>
-                    <button class="btn btn-secondary btn-sm" id="opt-html5-preview-popup-btn" type="button">
-                      <span class="material-icons btn-icon" aria-hidden="true">open_in_new</span>
-                      Popup
-                    </button>
-                  </div>
-                </div>
-                <div class="zipehr-html-preview-body">
-                  <div class="zipehr-css-editor-col">
-                    <div class="zipehr-css-editor-label">Stylesheet source</div>
-                    <div class="demo-editor-host zipehr-css-editor-host" id="opt-html5-css-editor"></div>
-                  </div>
-                  <div class="zipehr-render-col">
-                    <div class="zipehr-css-editor-label">Rendered OPT (hydrateable)</div>
-                    <iframe id="opt-html5-preview-frame" class="zipehr-preview-frame" title="OPT HTML5 preview" sandbox="allow-scripts allow-same-origin"></iframe>
-                  </div>
                 </div>
               </div>
 

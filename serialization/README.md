@@ -10,8 +10,8 @@ import from that module’s `mod.ts`.
 | **YAML** | [`yaml/`](yaml/README.md) | Human-readable; shares type inference with JSON |
 | **ZipEHR** | [`zipehr/`](zipehr/README.md) | Experimental compact JSON/YAML/XHTML/HTML5 |
 | **FLAT / STRUCTURED** | see [docs/SIMPLIFIED_FORMATS.md](../../docs/SIMPLIFIED_FORMATS.md) | Web Template–based simplified formats |
-| **Markdown** | [`markdown/`](markdown/README.md) | Experimental clinical / LLM-oriented |
-| **AsciiDoc** | [`asciidoc/`](asciidoc/README.md) | Experimental |
+| **Markdown** | [`markdown/`](markdown/README.md) | Optional codec; structural round-trip + output-only presets (see [`documents-codecs.md`](documents-codecs.md)) |
+| **AsciiDoc** | [`asciidoc/`](asciidoc/README.md) | Optional codec; lossless round-trip + output-only presets |
 | **TypeScript emit** | [`typescript/`](typescript/README.md) | Constructor source generation |
 
 Shared infrastructure (`TypeRegistry`, `TypeInferenceEngine`) lives in

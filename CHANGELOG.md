@@ -8,6 +8,8 @@ Add an entry under **Unreleased** in every PR that changes user-visible behaviou
 
 ## [Unreleased]
 
+- **Demo.** Output tab row scrolls horizontally so ZipEHR/OPT HTML5 tabs are reachable; OPT HTML5/OPT XML tab buttons start `hidden` until their checkboxes are enabled.
+- **Demo.** Code / Document tab switcher on renderable outputs (Markdown, AsciiDoc, ZipEHR HTML/XHTML, OPT HTML5): lazy-loaded `markdown-it` + `DOMPurify` and `@asciidoctor/core`, sandboxed iframe previews, session view per format. Preset labels reflect `MARKDOWN_CODEC_MATRIX` / `ASCIIDOC_CODEC_MATRIX` (roundtrip vs output-only).
 - **Demo.** Contribution Builder shows compact initials badges for other users’ focus, active edits and recent edits on each field; tooltips summarise the ephemeral presence channel ([#288](https://github.com/ErikSundvall/ehrtslib/issues/288)).
 - **Demo.** Contribution Builder assigns each suggested clinical username from the roster once before numbered suffixes (`nurse.andersson 2`, …), and reuses a name when its clone leaves ([#288](https://github.com/ErikSundvall/ehrtslib/issues/288)).
 - **Demo.** Markdown and AsciiDoc output format checkboxes and tabs are exposed (structural/lossless and embedding presets, with token counts).
