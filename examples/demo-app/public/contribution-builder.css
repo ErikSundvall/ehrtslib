@@ -408,6 +408,7 @@ details[open] > summary {
   pointer-events: none;
 }
 .narrative-remote-caret__stem {
+  position: relative;
   width: 2px;
   height: 1.15em;
   background: var(--caret-accent, #12618f);
@@ -416,9 +417,8 @@ details[open] > summary {
 }
 .narrative-remote-caret__tag {
   position: absolute;
-  top: 0;
   left: 0;
-  transform: translateY(calc(-100% - 2px));
+  bottom: calc(100% + 2px);
   font: 700 .62rem/1 system-ui, sans-serif;
   padding: .08rem .22rem;
   border-radius: .12rem;

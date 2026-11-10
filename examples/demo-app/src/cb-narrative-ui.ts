@@ -178,6 +178,7 @@ function layoutMirror(
   mirror.style.wordWrap = "break-word";
   mirror.style.overflowWrap = "break-word";
   mirror.style.overflow = "visible";
+  mirror.style.width = `${textarea.clientWidth}px`;
   mirror.style.height = "auto";
   mirror.style.minHeight = "100%";
   mirror.scrollTop = 0;
