@@ -1,4 +1,5 @@
 import {
+  historyStepCaption,
   isCloneReadOnly,
   showReturnToLive,
   showTimelinePanel,
@@ -8,19 +9,33 @@ import {
 export interface TimeTravelChrome {
   panelOpen: boolean;
   returnToLiveVisible: boolean;
+  toggleLabel: string;
   bannerVisible: boolean;
   statusText: string;
+  timelineCaption: string;
+  playing: boolean;
 }
 
-export function deriveTimeTravelChrome(state: TimeTravelState): TimeTravelChrome {
+export function deriveTimeTravelChrome(
+  state: TimeTravelState,
+  liveBytes?: Uint8Array,
+): TimeTravelChrome {
   const historical = isCloneReadOnly(state);
   const panelOpen = showTimelinePanel(state);
+  const timelineCaption = liveBytes
+    ? historyStepCaption(liveBytes, state.step, state.maxStep)
+    : `Step ${state.step} of ${state.maxStep}`;
   return {
     panelOpen,
     returnToLiveVisible: showReturnToLive(state),
+    toggleLabel: panelOpen ? "Return to live" : "Time travel",
     bannerVisible: historical,
+    playing: state.playing,
+    timelineCaption,
     statusText: historical
-      ? `Viewing history step ${state.step} of ${state.maxStep} (read-only)`
+      ? state.step < state.maxStep
+        ? `Viewing history step ${state.step} of ${state.maxStep} (read-only)`
+        : "Viewing latest snapshot (read-only) — use Return to live to edit"
       : panelOpen
       ? "Live editing — scrub the slider to explore history"
       : "",

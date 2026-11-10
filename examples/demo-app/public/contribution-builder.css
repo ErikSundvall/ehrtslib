@@ -270,16 +270,19 @@ details[open] > summary {
 .clone-tools {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: stretch;
   gap: .6rem;
   margin-bottom: .8rem;
+  width: 100%;
 }
 .time-travel-panel {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: .6rem;
-  flex: 1 1 12rem;
+  flex: 1 1 100%;
+  width: 100%;
+  min-width: 0;
   padding: .55rem .7rem;
   border: 1px dashed #90a9ba;
   border-radius: .35rem;
@@ -305,16 +308,32 @@ details[open] > summary {
   box-shadow: inset 0 0 0 2px #e6b86a;
 }
 .time-travel-scrub-label {
-  flex: 1 1 10rem;
+  flex: 1 1 100%;
+  width: 100%;
+  min-width: 0;
   font-weight: 600;
   font-size: .85rem;
   margin: 0;
+  display: block;
 }
 .time-travel-scrub {
+  display: block;
   width: 100%;
   margin-top: .25rem;
+  box-sizing: border-box;
+}
+.time-travel-moment {
+  display: block;
+  margin-top: .35rem;
+  font-weight: 500;
+  font-size: .8rem;
+  color: #2d4a5c;
+}
+.time-travel-play {
+  flex: 0 0 auto;
 }
 .time-travel-status {
+  flex: 1 1 100%;
   font-size: .82rem;
   color: #4d687b;
 }
@@ -357,6 +376,10 @@ details[open] > summary {
   overflow-wrap: break-word;
   box-sizing: border-box;
   overflow: auto;
+}
+.narrative-caret-measure {
+  visibility: hidden;
+  z-index: -1;
 }
 .narrative-input {
   position: relative;

@@ -1,15 +1,12 @@
 /// <reference lib="dom" />
 import type { NarrativeCollabView } from "./cb-narrative-collab.ts";
 import {
-  clampCaretOffset,
-  escapeMirrorText,
+  caretOffsetToCoords,
   resolveHighlightRange,
 } from "./cb-narrative-layout.ts";
+import type { TextCaretView } from "./cb-narrative-collab.ts";
 
-const mirrorByTextarea = new WeakMap<
-  HTMLTextAreaElement,
-  HTMLDivElement
->();
+const mirrorByTextarea = new WeakMap<HTMLTextAreaElement, HTMLDivElement>();
 
 export function ensureNarrativeShell(textarea: HTMLTextAreaElement): {
   shell: HTMLElement;
@@ -38,19 +35,65 @@ export function ensureNarrativeShell(textarea: HTMLTextAreaElement): {
   return { shell, backdrop, caretLayer };
 }
 
+export type NarrativeHighlightPaint = {
+  start: number;
+  end: number;
+  snippet: string;
+  accent: string;
+  opacity: number;
+};
+
+export type NarrativeCaretOffsetResolver = (
+  caret: TextCaretView,
+) => number | null;
+
+export function paintNarrativeHighlights(
+  textarea: HTMLTextAreaElement,
+  text: string,
+  highlights: NarrativeHighlightPaint[],
+  carets: ReturnType<NarrativeCollabView["carets"]> = [],
+  resolveCaretOffset: NarrativeCaretOffsetResolver = () => null,
+): void {
+  const { backdrop, caretLayer } = ensureNarrativeShell(textarea);
+  syncMirrorGeometry(textarea, backdrop);
+  const views = highlights.map((hl, i) => ({
+    ...hl,
+    id: `paint-${i}`,
+    userId: "",
+    displayName: "",
+    atMs: 0,
+    initials: "",
+    expired: false,
+  }));
+  backdrop.replaceChildren(renderHighlightLayer(text, views));
+  syncCaretLayerScroll(textarea, caretLayer);
+  const caretViews = carets.map((c) =>
+    caretMarker(c, textarea, resolveCaretOffset)
+  ).filter(Boolean);
+  caretLayer.replaceChildren(...caretViews);
+}
+
+function syncCaretLayerScroll(
+  textarea: HTMLTextAreaElement,
+  caretLayer: HTMLElement,
+): void {
+  caretLayer.scrollTop = textarea.scrollTop;
+  caretLayer.scrollLeft = textarea.scrollLeft;
+}
+
 export function paintNarrativeCollab(
   textarea: HTMLTextAreaElement,
   view: NarrativeCollabView,
   atMs: number,
+  resolveCaretOffset: NarrativeCaretOffsetResolver,
 ): void {
-  const { backdrop, caretLayer } = ensureNarrativeShell(textarea);
-  syncMirrorGeometry(textarea, backdrop);
   const text = textarea.value;
-  const highlights = view.highlights(atMs);
-  backdrop.replaceChildren(renderHighlightLayer(text, highlights));
-  const carets = view.carets(atMs);
-  caretLayer.replaceChildren(
-    ...carets.map((c) => caretMarker(c, textarea)),
+  paintNarrativeHighlights(
+    textarea,
+    text,
+    view.highlights(atMs),
+    view.carets(atMs),
+    resolveCaretOffset,
   );
 }
 
@@ -75,7 +118,7 @@ function renderHighlightLayer(
 ): DocumentFragment {
   const frag = document.createDocumentFragment();
   const resolved = highlights.map((hl) => {
-    const range = resolveHighlightRange(text, hl.start, hl.snippet);
+    const range = resolveHighlightRange(text, hl.start, hl.snippet, hl.end);
     return range ? { ...hl, start: range.start, end: range.end } : null;
   }).filter(Boolean) as Array<
     ReturnType<NarrativeCollabView["highlights"]>[number]
@@ -110,12 +153,13 @@ function renderHighlightLayer(
 
 function layoutMirror(textarea: HTMLTextAreaElement): HTMLDivElement {
   let mirror = mirrorByTextarea.get(textarea);
+  const shell = textarea.closest(".narrative-shell") ?? textarea.parentElement;
   if (!mirror) {
     mirror = document.createElement("div");
     mirror.className = "narrative-layout-mirror";
     mirror.setAttribute("aria-hidden", "true");
     mirrorByTextarea.set(textarea, mirror);
-    textarea.parentElement?.append(mirror);
+    shell?.append(mirror);
   }
   const style = getComputedStyle(textarea);
   mirror.style.boxSizing = style.boxSizing;
@@ -137,27 +181,35 @@ export function mirrorCaretCoords(
   textarea: HTMLTextAreaElement,
   offset: number,
 ): { left: number; top: number } {
-  const mirror = layoutMirror(textarea);
   const text = textarea.value;
-  const at = clampCaretOffset(text, offset);
-  const before = escapeMirrorText(text.slice(0, at));
-  const after = escapeMirrorText(text.slice(at));
-  mirror.innerHTML =
-    `${before}<span class="narrative-caret-probe">\u200b</span>${after}`;
-  const probe = mirror.querySelector(".narrative-caret-probe")!;
-  const mirrorRect = mirror.getBoundingClientRect();
-  const probeRect = probe.getBoundingClientRect();
-  return {
-    left: probeRect.left - mirrorRect.left,
-    top: probeRect.top - mirrorRect.top,
-  };
+  const mirror = layoutMirror(textarea);
+  const at = Math.max(0, Math.min(offset, text.length));
+  const probe = document.createElement("span");
+  probe.className = "narrative-caret-probe";
+  probe.append(document.createTextNode("\u200b"));
+  mirror.replaceChildren(
+    document.createTextNode(text.slice(0, at)),
+    probe,
+    document.createTextNode(text.slice(at)),
+  );
+  if (probe) {
+    const mirrorRect = mirror.getBoundingClientRect();
+    const probeRect = probe.getBoundingClientRect();
+    return {
+      left: probeRect.left - mirrorRect.left,
+      top: probeRect.top - mirrorRect.top,
+    };
+  }
+  return caretOffsetToCoords(textarea, text, at);
 }
 
 function caretMarker(
-  caret: ReturnType<NarrativeCollabView["carets"]>[number],
+  caret: TextCaretView,
   textarea: HTMLTextAreaElement,
-): HTMLElement {
-  const at = clampCaretOffset(textarea.value, caret.offset);
+  resolveCaretOffset: NarrativeCaretOffsetResolver,
+): HTMLElement | null {
+  const at = resolveCaretOffset(caret);
+  if (at === null) return null;
   const { left, top } = mirrorCaretCoords(textarea, at);
   const el = document.createElement("span");
   el.className = "narrative-remote-caret";
@@ -166,5 +218,6 @@ function caretMarker(
   el.style.left = `${left}px`;
   el.style.top = `${top}px`;
   el.title = `${caret.displayName} is editing here`;
+  el.dataset.resolvedCaret = String(at);
   return el;
 }

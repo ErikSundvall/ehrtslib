@@ -138,6 +138,32 @@ export class AutomergeOperationLogAdapter implements OperationLogAdapter {
     const text = this.doc.text[textFieldKey(draft, target, path)];
     return text === undefined ? undefined : String(text);
   }
+
+  /** Stable Automerge cursor at a UTF-16 index in a native text leaf. */
+  encodeTextCursorAt(
+    textKey: string,
+    utf16Index: number,
+  ): Automerge.Cursor | null {
+    if (this.doc.text[textKey] === undefined) return null;
+    try {
+      return Automerge.getCursor(this.doc, ["text", textKey], utf16Index);
+    } catch {
+      return null;
+    }
+  }
+
+  /** Resolve a wire cursor against this replica's merged text, or null if not yet merged. */
+  resolveTextCursorAt(
+    textKey: string,
+    cursor: Automerge.Cursor,
+  ): number | null {
+    if (this.doc.text[textKey] === undefined) return null;
+    try {
+      return Automerge.getCursorPosition(this.doc, ["text", textKey], cursor);
+    } catch {
+      return null;
+    }
+  }
 }
 
 export interface MultiCaller {

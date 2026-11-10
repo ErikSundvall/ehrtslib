@@ -178,16 +178,27 @@ Object.defineProperty(w.document, "activeElement", {
   get: () => w.document.body,
 });
 const banner = panels[0].querySelector(".time-travel-readonly-banner");
-const liveBtn = panels[0].querySelector(".time-travel-live");
+const toggle = panels[0].querySelector(".time-travel-toggle");
+const moment = panels[0].querySelector(".time-travel-moment");
+const play = panels[0].querySelector(".time-travel-play");
 const status = panels[0].querySelector(".time-travel-status");
 assert.equal(banner?.hasAttribute("hidden"), false, "banner must show when rewound");
-assert.equal(liveBtn?.hasAttribute("hidden"), false, "return to live must show");
+assert.equal(toggle?.textContent, "Return to live");
+assert.ok((moment?.textContent ?? "").length > 0, "timeline moment must show");
+assert.equal(play?.hasAttribute("hidden"), false, "play control visible in time travel");
 assert.match(
   status?.textContent ?? "",
   /read-only/i,
   "status must mention read-only when rewound",
 );
-liveBtn.click();
+scrub.value = String(scrub.max);
+scrub.dispatchEvent(new w.Event("input", { bubbles: true }));
+assert.equal(
+  panels[0].querySelector(".time-travel-readonly-banner")?.hasAttribute("hidden"),
+  false,
+  "timeline at max must stay in time travel",
+);
+toggle.click();
 await waitFor(() =>
   panels[0].querySelector(".time-travel-readonly-banner")?.hasAttribute("hidden")
 );
