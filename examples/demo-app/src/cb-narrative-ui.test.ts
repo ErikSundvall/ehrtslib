@@ -1,15 +1,18 @@
-import { assertEquals } from "@std/assert";
+import { assert, assertEquals } from "@std/assert";
 import { Window } from "npm:happy-dom@21.0.4";
 import { NarrativeCollabView } from "./cb-narrative-collab.ts";
-import {
-  caretLineIndex,
-  caretOffsetToCoords,
-} from "./cb-narrative-layout.ts";
+import { caretLineIndex } from "./cb-narrative-layout.ts";
 
 const TEXT =
   "Oral measurement. The room was warm.\nSynthetic example only..sdsd";
 
-Deno.test("narrative UI: marker position matches resolved line 2 offset", async () => {
+async function paintCaret(
+  resolved: number,
+): Promise<{
+  textarea: HTMLTextAreaElement;
+  marker: HTMLElement;
+  verticalLineBand: typeof import("./cb-narrative-ui.ts").verticalLineBand;
+}> {
   const happyDomWindow = new Window();
   (globalThis as unknown as { window: Window }).window = happyDomWindow;
   (globalThis as unknown as { document: Document }).document =
@@ -21,17 +24,16 @@ Deno.test("narrative UI: marker position matches resolved line 2 offset", async 
   const style = document.createElement("style");
   style.textContent = await Deno.readTextFile(cssPath);
   document.head.append(style);
-  const { ensureNarrativeShell, mirrorCaretCoords, paintNarrativeCollab } =
+  const { ensureNarrativeShell, paintNarrativeCollab, verticalLineBand } =
     await import("./cb-narrative-ui.ts");
 
-  const resolved = TEXT.length;
   const view = new NarrativeCollabView("peer-clone");
   view.apply({
     t: "caret",
     userId: "remote",
     name: "nurse.andersson",
     field: "temperatureComment",
-    cursor: "wire-cursor-token",
+    cursor: "wire",
     atMs: Date.now(),
   });
 
@@ -40,30 +42,87 @@ Deno.test("narrative UI: marker position matches resolved line 2 offset", async 
   textarea.style.width = "420px";
   textarea.style.font = "16px system-ui";
   textarea.style.padding = "6px 8px";
+  textarea.style.border = "1px solid #ccc";
   textarea.value = TEXT;
   document.body.append(textarea);
-  ensureNarrativeShell(textarea);
+  const { caretLayer } = ensureNarrativeShell(textarea);
   paintNarrativeCollab(textarea, view, Date.now(), () => resolved);
 
-  const stale = TEXT.indexOf("was") + 2;
-  assertEquals(caretLineIndex(TEXT, resolved), 1);
-  assertEquals(
-    caretOffsetToCoords(textarea, TEXT, resolved).top >
-      caretOffsetToCoords(textarea, TEXT, stale).top,
-    true,
-  );
-
-  const markers = textarea.parentElement!.querySelectorAll(
+  const marker = textarea.parentElement!.querySelector(
     ".narrative-remote-caret",
+  ) as HTMLElement;
+  assert(marker);
+  return {
+    textarea,
+    marker,
+    verticalLineBand: (t, x, at, layer) =>
+      verticalLineBand(t, x, at, layer),
+    caretLayer,
+  } as {
+    textarea: HTMLTextAreaElement;
+    marker: HTMLElement;
+    verticalLineBand: typeof verticalLineBand;
+    caretLayer: HTMLElement;
+  };
+}
+
+Deno.test("narrative UI: line 2 caret stem within line band", async () => {
+  let happyDomWindow: Window | undefined;
+  const { textarea, marker, verticalLineBand, caretLayer } = await paintCaret(
+    TEXT.length,
   );
-  assertEquals(markers.length, 1);
-  assertEquals((markers[0] as HTMLElement).dataset.resolvedCaret, String(resolved));
-  const markerTop = Number(
-    (markers[0] as HTMLElement).style.top.replace("px", ""),
+  happyDomWindow = (globalThis as { window?: Window }).window;
+  const resolved = TEXT.length;
+  assertEquals(caretLineIndex(TEXT, resolved), 1);
+  const band = verticalLineBand(textarea, TEXT, resolved, caretLayer);
+  const stemTop = Number(marker.style.top.replace("px", ""));
+  const stem = marker.querySelector(".narrative-remote-caret__stem")!;
+  assert(stem);
+  assert(
+    stemTop >= band.lineTop - 1,
+    `stem ${stemTop}px above line band [${band.lineTop}, ${band.lineBottom}]`,
   );
-  const endCoords = mirrorCaretCoords(textarea, resolved);
-  assertEquals(markerTop, endCoords.top);
-  happyDomWindow.close();
+  assert(
+    stemTop <= band.lineBottom - 4,
+    `stem ${stemTop}px below line band [${band.lineTop}, ${band.lineBottom}]`,
+  );
+  const line1Band = verticalLineBand(textarea, TEXT, TEXT.indexOf("was"), caretLayer);
+  if (band.lineTop > line1Band.lineTop + 4) {
+    assert(
+      stemTop > line1Band.lineBottom - 4,
+      "line 2 stem must sit below line 1 band",
+    );
+  }
+  happyDomWindow?.close?.();
+});
+
+Deno.test("narrative UI: line 1 mid-text stem within line band", async () => {
+  let happyDomWindow: Window | undefined;
+  const mid = TEXT.indexOf("Oral") + "Oral".length;
+  const { textarea, marker, verticalLineBand, caretLayer } = await paintCaret(
+    mid,
+  );
+  happyDomWindow = (globalThis as { window?: Window }).window;
+  assertEquals(caretLineIndex(TEXT, mid), 0);
+  const band = verticalLineBand(textarea, TEXT, mid, caretLayer);
+  const stemTop = Number(marker.style.top.replace("px", ""));
+  assert(
+    stemTop >= band.lineTop - 1 && stemTop <= band.lineBottom - 4,
+    `stem ${stemTop}px outside line 1 band [${band.lineTop}, ${band.lineBottom}]`,
+  );
+  const line2Band = verticalLineBand(
+    textarea,
+    TEXT,
+    TEXT.indexOf("\n") + 1,
+    caretLayer,
+  );
+  if (line2Band.lineTop > band.lineBottom + 4) {
+    assert(
+      stemTop < line2Band.lineTop - 2,
+      "line 1 stem must sit above line 2 band",
+    );
+  }
+  happyDomWindow?.close?.();
 });
 
 Deno.test("narrative UI: marker hides when resolver returns null", async () => {
