@@ -44,14 +44,27 @@ import {
   computeCompositionEntryDefaults,
   entryMetadataDiffersFromDefaults,
   formatSubjectMeta,
+  formatSubjectStructural,
   writeEntryDefaultsToAsciidocAttrs,
   type CompositionEntryDefaults,
 } from '../documents_common/document_entry_defaults.ts';
 import { formatOeMetaAsciidoc } from '../documents_common/oe_structure_meta.ts';
 import {
+  emitStructuralCompositionExtrasAsciidoc,
+  emitStructuralEntryExtrasAsciidoc,
+  emitStructuralEventContextAsciidoc,
+} from "../documents_common/document_structural_emit.ts";
+import { formatSparseRmAsciidoc } from "../documents_common/oe_rm_sparse.ts";
+import { parseDataValueDisplay } from "../documents_common/value_parse.ts";
+import {
   shouldEmitHistoryOrigin,
   shouldSkipLossyEventTitles,
 } from '../documents_common/history_lossy_emit.ts';
+import { asciidocDlistTermLine } from '../documents_common/document_list_layout.ts';
+import {
+  type DocumentRmRenderOptions,
+  renderRmValue,
+} from '../documents_common/document_rm_render.ts';
 
 /**
  * AsciiDoc Serializer for openEHR RM objects
@@ -138,6 +151,11 @@ export class AsciidocSerializer {
     lines.push(`= ${title}`);
     lines.push('');
 
+    if (this.config.style === "structural") {
+      emitStructuralCompositionExtrasAsciidoc(comp, (line) => lines.push(line));
+      lines.push("");
+    }
+
     // Context (if present)
     if (comp.context) {
       this.serializeEventContext(comp.context, lines);
@@ -149,6 +167,7 @@ export class AsciidocSerializer {
         this.serializeContentItem(item, lines, 2);
       }
     }
+
   }
 
   private writeHeader(comp: any, lines: string[]): void {
@@ -175,6 +194,9 @@ export class AsciidocSerializer {
         ? comp.archetype_details.archetype_id.value
         : comp.archetype_details.archetype_id;
       if (archValue) lines.push(`:archetype-id: ${archValue}`);
+    }
+    if (comp.archetype_details?.rm_version) {
+      lines.push(`:rm-version: ${comp.archetype_details.rm_version}`);
     }
 
     // Composer
@@ -205,6 +227,15 @@ export class AsciidocSerializer {
   // ─── EVENT CONTEXT ───────────────────────────────────────────────────
 
   private serializeEventContext(ctx: any, lines: string[]): void {
+    if (this.config.style === "structural") {
+      emitStructuralEventContextAsciidoc(ctx, (line) => lines.push(line));
+      if (ctx.other_context) {
+        this.serializeItemStructure(ctx.other_context, lines, 1);
+      }
+      lines.push("");
+      return;
+    }
+
     const parts: string[] = [];
 
     if (ctx.start_time) {
@@ -299,6 +330,16 @@ export class AsciidocSerializer {
     lines.push('');
 
     this.emitEntryMetadataWhenDiffers(entry, lines);
+    if (this.config.style === "structural") {
+      emitStructuralEntryExtrasAsciidoc(entry, (line) => lines.push(line));
+      if (entry.archetype_details) {
+        const ad = entry.archetype_details as Record<string, unknown>;
+        const adVis = renderRmValue(ad, this.rmRenderOptions(), 0);
+        lines.push(
+          `* _archetype_details:_ ${adVis}${formatSparseRmAsciidoc(ad, { _type: "ARCHETYPED", value: adVis })}`,
+        );
+      }
+    }
 
     // Type-specific content
     switch (typeName) {
@@ -430,8 +471,11 @@ export class AsciidocSerializer {
 
   private emitItemStructureMeta(itemStruct: any, lines: string[]): void {
     if (this.config.style !== "structural" || !itemStruct) return;
-    if (itemStruct.archetype_node_id) {
-      this.pushBlockCommentLine(lines, formatOeMetaAsciidoc("item_node_id", itemStruct.archetype_node_id));
+    if (Object.prototype.hasOwnProperty.call(itemStruct, "archetype_node_id")) {
+      this.pushBlockCommentLine(lines, formatOeMetaAsciidoc(
+        "item_node_id",
+        String(itemStruct.archetype_node_id),
+      ));
     }
     const n = this.extractName(itemStruct);
     if (n) {
@@ -446,7 +490,7 @@ export class AsciidocSerializer {
       if (entry.language) lines.push(`* _language:_ ${this.formatCodePhrase(entry.language)}`);
       if (entry.encoding) lines.push(`* _encoding:_ ${this.formatCodePhrase(entry.encoding)}`);
       if (entry.subject) {
-        lines.push(`* _subject:_ ${formatSubjectMeta(entry.subject)}`);
+        lines.push(`* _subject:_ ${formatSubjectStructural(entry.subject, "asciidoc")}`);
       }
       return;
     }
@@ -458,7 +502,7 @@ export class AsciidocSerializer {
       lines.push(`* _encoding:_ ${this.formatCodePhrase(entry.encoding)}`);
     }
     if (diff.subject && entry.subject) {
-      lines.push(`* _subject:_ ${formatSubjectMeta(entry.subject)}`);
+      lines.push(`* _subject:_ ${formatSubjectStructural(entry.subject, "asciidoc")}`);
     }
   }
 
@@ -555,7 +599,7 @@ export class AsciidocSerializer {
       ensureBlankLineBeforeBlock(lines);
       lines.push(`* _${field}:_`);
       lines.push("");
-      this.serializeItemStructure(itemStruct, lines, depth);
+      this.serializeItemStructure(itemStruct, lines, depth + 1);
       return;
     }
     ensureBlankLineBeforeBlock(lines);
@@ -578,16 +622,16 @@ export class AsciidocSerializer {
         if (this.config.dataValueRendering === 'table' && this.canRenderAsTable(itemStruct.items)) {
           this.renderItemsAsTable(itemStruct.items, lines);
         } else {
-          this.serializeItems(itemStruct.items, lines, 0);
+          this.serializeItems(itemStruct.items, lines, _depth);
         }
       }
     } else if (typeName === 'ITEM_SINGLE') {
       if (itemStruct.item) {
-        this.serializeItem(itemStruct.item, lines, 0);
+        this.serializeItem(itemStruct.item, lines, _depth);
       }
     } else {
       if (itemStruct.items && Array.isArray(itemStruct.items)) {
-        this.serializeItems(itemStruct.items, lines, 0);
+        this.serializeItems(itemStruct.items, lines, _depth);
       }
     }
   }
@@ -612,8 +656,56 @@ export class AsciidocSerializer {
     }
   }
 
+  private useDefinitionListBody(): boolean {
+    return this.config.style === "embedding" ||
+      (this.config.style === "compact" &&
+        this.config.dataValueRendering !== "table");
+  }
+
+  private rmRenderOptions(): DocumentRmRenderOptions {
+    const code = this.config.codeRendering ?? "hidden";
+    return {
+      lossy: this.config.style !== "structural",
+      useTerseFormat: this.config.useTerseFormat,
+      codeRendering: code === "macro" ? "inline_bracket" : code,
+      includeTypeAnnotations: !!this.config.includeTypeAnnotations,
+    };
+  }
+
   private serializeCluster(cluster: any, lines: string[], nestLevel: number): void {
     const name = this.extractName(cluster);
+    if (this.config.style === "structural") {
+      const indent = this.getListPrefix(nestLevel);
+      const recovered: Record<string, unknown> = {
+        _type: "CLUSTER",
+        name: typeof name === "string" ? { _type: "DV_TEXT", value: name } : name,
+      };
+      const { items, ...clusterHead } = cluster as Record<string, unknown>;
+      const patchTarget: Record<string, unknown> = { _type: "CLUSTER", ...clusterHead };
+      if (Array.isArray(items)) {
+        if (items.length === 0) {
+          patchTarget.items = [];
+        } else if (items.some((child) => !this.extractName(child))) {
+          patchTarget.items = items;
+        }
+      }
+      const tail = formatSparseRmAsciidoc(patchTarget, recovered);
+      const nodeId = tail ? "" : this.formatNodeIdInline(cluster);
+      lines.push(`${indent} *${name}*${tail}${nodeId}`);
+      if (cluster.items && Array.isArray(cluster.items)) {
+        this.serializeItems(cluster.items, lines, nestLevel + 1);
+      }
+      return;
+    }
+    if (this.useDefinitionListBody()) {
+      ensureBlankLineBeforeBlock(lines);
+      lines.push(`.${name}`);
+      lines.push("");
+      if (cluster.items && Array.isArray(cluster.items)) {
+        this.serializeItems(cluster.items, lines, 0);
+      }
+      return;
+    }
     const indent = this.getListPrefix(nestLevel);
     const title = this.formatLocatableHeadingTitle(cluster, name);
     if (
@@ -649,13 +741,23 @@ export class AsciidocSerializer {
 
     const valueStr = this.formatDataValue(element.value);
     const dvAnn = this.formatSparseValueAnnotation(element.value, valueStr);
+    const elRmAnn = this.config.style === "structural"
+      ? formatSparseRmAsciidoc(element as Record<string, unknown>, {
+        _type: "ELEMENT",
+        name: { _type: "DV_TEXT", value: name },
+        value: typeof valueStr === "string"
+          ? parseDataValueDisplay(valueStr) ?? { _type: "DV_TEXT", value: valueStr }
+          : element.value,
+      })
+      : "";
 
-    if (this.config.style === 'embedding') {
-      lines.push(`${indent}${name}:: ${valueStr}${nodeId}${dvAnn}`);
+    if (this.useDefinitionListBody()) {
+      ensureBlankLineBeforeBlock(lines);
+      lines.push(asciidocDlistTermLine(nestLevel, name, `${valueStr}${nodeId}${dvAnn}`));
     } else if (this.config.style === 'compact' || this.config.dataValueRendering === 'inline') {
-      lines.push(`${indent} ${name}: ${valueStr}${nodeId}${dvAnn}`);
+      lines.push(`${indent} ${name}: ${valueStr}${nodeId}${dvAnn}${elRmAnn}`);
     } else {
-      lines.push(`${indent} *${name}:* ${valueStr}${nodeId}${dvAnn}`);
+      lines.push(`${indent} *${name}:* ${valueStr}${nodeId}${dvAnn}${elRmAnn}`);
     }
   }
 
@@ -735,68 +837,17 @@ export class AsciidocSerializer {
 
   private formatDataValue(dv: any): string {
     if (!dv) return '—';
-
     const typeName = this.getTypeName(dv);
-
-    switch (typeName) {
-      case 'DV_TEXT':
-        return this.formatDvText(dv);
-      case 'DV_CODED_TEXT':
-        return this.formatDvCodedTextWithCode(dv);
-      case 'DV_QUANTITY':
-        return this.formatDvQuantity(dv);
-      case 'DV_COUNT':
-        return this.formatDvCount(dv);
-      case 'DV_DATE_TIME':
-        return this.formatDateTime(dv);
-      case 'DV_DATE':
-        return this.formatDvDate(dv);
-      case 'DV_TIME':
-        return this.formatDvTime(dv);
-      case 'DV_DURATION':
-        return this.formatDuration(dv);
-      case 'DV_BOOLEAN':
-        return this.formatDvBoolean(dv);
-      case 'DV_PROPORTION':
-        return this.formatDvProportion(dv);
-      case 'DV_ORDINAL':
-        return this.formatDvOrdinal(dv);
-      case 'DV_SCALE':
-        return this.formatDvScale(dv);
-      case 'DV_IDENTIFIER':
-        return this.formatDvIdentifier(dv);
-      case 'DV_URI':
-      case 'DV_EHR_URI':
-        return this.formatDvUri(dv);
-      case 'DV_PARSABLE':
-        return this.formatDvParsable(dv);
-      case 'DV_MULTIMEDIA':
-        return this.formatDvMultimedia(dv);
-      case 'DV_STATE':
-        return this.formatDvState(dv);
-      case 'DV_PARAGRAPH':
-        return this.formatDvParagraph(dv);
-      case 'DV_INTERVAL':
-        return this.formatDvInterval(dv);
-      case 'DV_PERIODIC_TIME_SPECIFICATION':
-      case 'DV_GENERAL_TIME_SPECIFICATION':
-        return this.formatDvTimeSpecification(dv);
-      default:
-        // Use TypeRegistry to check if it's a known DATA_VALUE subtype
-        // and attempt generic formatting
-        if (dv.value !== undefined) {
-          return String(dv.value);
-        }
-        if (dv.magnitude !== undefined) {
-          // Likely a numeric DV_AMOUNT subtype
-          const units = dv.units ?? '';
-          return `${dv.magnitude}${units ? ' ' + units : ''}`;
-        }
-        if (typeName && this.config.includeTypeAnnotations) {
-          return `[${typeName}]`;
-        }
-        return '(complex value)';
+    if (typeName === "DV_CODED_TEXT") {
+      return this.formatDvCodedTextWithCode(dv);
     }
+    if (
+      typeName === "DV_DATE_TIME" || typeName === "DV_DATE" || typeName === "DV_TIME" ||
+      typeName === "DV_DURATION"
+    ) {
+      return this.formatDateTime(dv);
+    }
+    return renderRmValue(dv, this.rmRenderOptions(), 0);
   }
 
   private formatDataValueForTable(dv: any): string {

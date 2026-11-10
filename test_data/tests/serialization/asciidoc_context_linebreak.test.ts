@@ -1,7 +1,7 @@
-import { assertEquals, assertStringIncludes } from "@std/assert";
+import { assertStringIncludes } from "@std/assert";
 import { AsciidocSerializer, STRUCTURAL_ASCIIDOC_CONFIG } from "../../../serialization/asciidoc/mod.ts";
 
-Deno.test("AsciiDoc context: last context line has no trailing hard line break", () => {
+Deno.test("AsciiDoc structural context uses list meta lines", () => {
   const comp = {
     _type: "COMPOSITION",
     name: { _type: "DV_TEXT", value: "Report" },
@@ -16,10 +16,7 @@ Deno.test("AsciiDoc context: last context line has no trailing hard line break",
     ...STRUCTURAL_ASCIIDOC_CONFIG,
     includeHeader: false,
   }).serialize(comp);
-  assertStringIncludes(ad, "*Setting:* secondary medical care");
-  const lines = ad.split("\n");
-  const settingLine = lines.find((l) => l.includes("Setting"));
-  assertEquals(settingLine?.endsWith(" +"), false);
-  const dateLine = lines.find((l) => l.includes("Date"));
-  assertEquals(dateLine?.endsWith(" +"), true);
+  assertStringIncludes(ad, "_start_time:_ 2026-08-02T10:15:00Z");
+  assertStringIncludes(ad, "_setting:_ secondary medical care");
+  // setting is fully visible; sparse oe:rm is optional for this minimal fixture
 });

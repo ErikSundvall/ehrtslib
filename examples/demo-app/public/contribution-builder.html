@@ -50,26 +50,37 @@
           <label>Sync profile <select class="profile"><option value="office">Office LAN</option><option value="ward">Ward Wi-Fi</option><option value="rural">Rural phone</option></select></label>
         </div>
         <p class="sync-state" aria-live="polite"></p>
+        <div class="clone-tools">
+          <button type="button" class="time-travel-toggle">Time travel</button>
+          <div class="time-travel-panel" hidden>
+            <label class="time-travel-scrub-label">Document history
+              <input type="range" class="time-travel-scrub" min="0" max="0" value="0" step="1"
+                aria-valuemin="0" aria-valuemax="0" aria-valuetext="Live">
+            </label>
+            <button type="button" class="time-travel-live">Return to live</button>
+            <span class="time-travel-status" aria-live="polite"></span>
+          </div>
+        </div>
         <form>
           <fieldset>
             <legend>Vital signs</legend>
             <div class="vitals">
-              <label>Systolic (mmHg)<input data-field="systolic" type="number" min="0" max="999" step="1" required></label>
-              <label>Diastolic (mmHg)<input data-field="diastolic" type="number" min="0" max="999" step="1" required></label>
-              <label>Pulse (/min)<input data-field="pulse" type="number" min="0" max="999" step="1" required></label>
-              <label>Respiration (/min)<input data-field="respirationRate" type="number" min="0" max="200" step="1" required></label>
-              <label>Temperature (°C)<input data-field="temperature" type="number" min="30" max="45" step="0.1" required></label>
-              <label>SpO₂ (%)<input data-field="spo2" type="number" min="0" max="100" step="0.1" required></label>
+              <label class="field-shell"><span class="field-heading field-heading--systolic">Systolic (mmHg)</span><input data-field="systolic" type="number" min="0" max="999" step="1" required></label>
+              <label class="field-shell"><span class="field-heading field-heading--diastolic">Diastolic (mmHg)</span><input data-field="diastolic" type="number" min="0" max="999" step="1" required></label>
+              <label class="field-shell"><span class="field-heading field-heading--pulse">Pulse (/min)</span><input data-field="pulse" type="number" min="0" max="999" step="1" required></label>
+              <label class="field-shell"><span class="field-heading field-heading--respirationRate">Respiration (/min)</span><input data-field="respirationRate" type="number" min="0" max="200" step="1" required></label>
+              <label class="field-shell"><span class="field-heading field-heading--temperature">Temperature (°C)</span><input data-field="temperature" type="number" min="30" max="45" step="0.1" required></label>
+              <label class="field-shell"><span class="field-heading field-heading--spo2">SpO₂ (%)</span><input data-field="spo2" type="number" min="0" max="100" step="0.1" required></label>
             </div>
-            <label>Temperature comment <textarea data-field="temperatureComment" rows="3" spellcheck="false" required></textarea></label>
+            <label class="field-shell"><span class="field-heading field-heading--temperatureComment">Temperature comment</span><textarea data-field="temperatureComment" rows="3" spellcheck="false" required></textarea></label>
           </fieldset>
           <fieldset>
             <legend>Problem / diagnosis</legend>
-            <label>Name <input data-field="diagnosisName" required maxlength="120"></label>
+            <label class="field-shell"><span class="field-heading field-heading--diagnosisName">Name</span><input data-field="diagnosisName" required maxlength="120"></label>
             <p class="hint">Problem/Diagnosis name (at0002): a short label. Whole-value edits carry the revision seen on focus. A stale edit is rejected.</p>
-            <label>Clinical description <textarea data-field="clinicalDescription" rows="8" spellcheck="false" required></textarea></label>
+            <label class="field-shell"><span class="field-heading field-heading--clinicalDescription">Clinical description</span><textarea data-field="clinicalDescription" rows="8" spellcheck="false" required></textarea></label>
             <p class="hint">Clinical description (at0009): native Automerge text. Type in both clones during a rural-phone delay to see concurrent inserts merge.</p>
-            <label>Comment <textarea data-field="comment" rows="4" spellcheck="false" required></textarea></label>
+            <label class="field-shell"><span class="field-heading field-heading--comment">Comment</span><textarea data-field="comment" rows="4" spellcheck="false" required></textarea></label>
             <p class="hint">Comment (at0069): a separate narrative, not the diagnosis name.</p>
           </fieldset>
           <details>

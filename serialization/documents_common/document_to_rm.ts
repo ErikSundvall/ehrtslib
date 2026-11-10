@@ -3,7 +3,14 @@
  */
 
 import type { openehr_am } from "../../am/openehr_am.ts";
-import { parseCodePhraseDisplay, parseDvCodedTextDisplay } from "./value_parse.ts";
+import {
+  parseCodePhraseDisplay,
+  parseDataValueDisplay,
+  parseDvCodedTextDisplay,
+} from "./value_parse.ts";
+import { archetypeIdFromOpenehrUrn } from "./openehr_aom_urn.ts";
+import { parseOeRmAnnotationPayload } from "./oe_rm_annotation.ts";
+import { mergeRmPatchPayload } from "./oe_rm_sparse.ts";
 import { resolveDataValueFromDisplayAndAnnotation } from "./oe_value_annotation.ts";
 import type {
   DocumentBlock,
@@ -13,7 +20,11 @@ import type {
   DocumentStructureMetaBlock,
 } from "./document_blocks.ts";
 import { ENTRY_TYPES } from "./document_blocks.ts";
-import { applyCompositionEntryDefaults, parseSubjectMeta } from "./document_entry_defaults.ts";
+import {
+  applyCompositionEntryDefaults,
+  parseSubjectFromList,
+  parseSubjectMeta,
+} from "./document_entry_defaults.ts";
 
 export interface DocumentMetadata {
   frontmatter: Record<string, string>;
@@ -25,7 +36,7 @@ type StackFrame =
   | { kind: "entry"; obj: Record<string, unknown>; entryType: string }
   | { kind: "history"; obj: Record<string, unknown> }
   | { kind: "event"; obj: Record<string, unknown>; data: Record<string, unknown> }
-  | { kind: "items"; parent: Record<string, unknown>; itemsKey: string };
+  | { kind: "items"; parent: Record<string, unknown>; itemsKey: string; listIndent: number };
 
 function dvText(value: string): Record<string, unknown> {
   return { _type: "DV_TEXT", value };
@@ -49,13 +60,17 @@ function parseFrontmatterValue(key: string, raw: string): unknown {
     return cp ?? dvText(unquoted);
   }
   if (key === "uid") {
-    return { _type: "HIER_OBJECT_ID", value: unquoted };
+    const idType = unquoted.includes("::") ? "OBJECT_VERSION_ID" : "HIER_OBJECT_ID";
+    return { _type: idType, value: unquoted };
   }
   if (key === "template_id") {
     return { _type: "TEMPLATE_ID", value: unquoted };
   }
   if (key === "archetype_id") {
     return { _type: "ARCHETYPE_ID", value: unquoted };
+  }
+  if (key === "rm_version" || key === "rm-version") {
+    return unquoted;
   }
   return unquoted;
 }
@@ -68,8 +83,9 @@ function applyCompositionFrontmatter(
   let hasAd = false;
   for (const [key, raw] of Object.entries(meta.frontmatter)) {
     const val = parseFrontmatterValue(key, raw);
-    if (key === "template_id" || key === "archetype_id") {
-      ad[key] = val;
+    if (key === "template_id" || key === "archetype_id" || key === "rm_version" || key === "rm-version") {
+      const k = key === "rm-version" ? "rm_version" : key;
+      ad[k] = val;
       hasAd = true;
       continue;
     }
@@ -132,14 +148,69 @@ function addElement(
   valueText: string,
   nodeId?: string,
   oeValuePayload?: string,
+  oeRmPayload?: string,
 ): void {
-  const el: Record<string, unknown> = {
+  const base: Record<string, unknown> = {
     _type: "ELEMENT",
     name: dvText(name),
     value: resolveDataValueFromDisplayAndAnnotation(valueText, oeValuePayload),
   };
-  if (nodeId) el.archetype_node_id = nodeId;
-  items.push(el);
+  if (nodeId) base.archetype_node_id = nodeId;
+  items.push(mergeRmPatchPayload(base, oeRmPayload));
+}
+
+function popItemsForIndent(stack: StackFrame[], indent: number): void {
+  while (stack.length > 0) {
+    const top = stack[stack.length - 1];
+    if (top.kind === "items" && top.listIndent >= indent) {
+      stack.pop();
+      continue;
+    }
+    break;
+  }
+}
+
+function compositionFromStack(stack: StackFrame[]): Record<string, unknown> | null {
+  const f = stack.find((s) => s.kind === "composition");
+  return f?.kind === "composition" ? f.obj : null;
+}
+
+function entryFromStack(stack: StackFrame[]): StackFrame & { kind: "entry" } | null {
+  const f = [...stack].reverse().find((s) => s.kind === "entry");
+  return f?.kind === "entry" ? f : null;
+}
+
+function ensureEventContext(comp: Record<string, unknown>): Record<string, unknown> {
+  if (!comp.context) {
+    comp.context = { _type: "EVENT_CONTEXT" };
+  }
+  return comp.context as Record<string, unknown>;
+}
+
+function parseContextScalarField(
+  field: string,
+  text: string,
+  oeRm?: string,
+): unknown {
+  if (oeRm) {
+    const fromText = parseContextScalarField(field, text, undefined);
+    const base = (fromText && typeof fromText === "object")
+      ? { ...(fromText as Record<string, unknown>) }
+      : { _type: "DV_TEXT", value: text };
+    return mergeRmPatchPayload(base, oeRm);
+  }
+  const t = text.trim();
+  if (field === "start_time" || field === "end_time") {
+    return { _type: "DV_DATE_TIME", value: t };
+  }
+  if (field === "setting") {
+    return parseDvCodedTextDisplay(t) ?? { _type: "DV_CODED_TEXT", value: t };
+  }
+  if (field === "location") {
+    if (t === "—" || t === "") return "";
+    return parseDataValueDisplay(t) ?? { _type: "DV_TEXT", value: t };
+  }
+  return parseDataValueDisplay(t);
 }
 
 export function blocksToRmObject(
@@ -181,8 +252,8 @@ export function blocksToRmObject(
   } = {};
 
   const applyPendingStructureMeta = (target: Record<string, unknown>) => {
-    if (pendingStructureMeta.item_node_id) {
-      target.archetype_node_id = pendingStructureMeta.item_node_id;
+    if (Object.prototype.hasOwnProperty.call(pendingStructureMeta, "item_node_id")) {
+      target.archetype_node_id = pendingStructureMeta.item_node_id ?? "";
     }
     if (pendingStructureMeta.item_name) {
       target.name = dvText(pendingStructureMeta.item_name);
@@ -194,11 +265,13 @@ export function blocksToRmObject(
   };
 
   const flushPendingStructureMeta = () => {
-    if (
-      !pendingStructureMeta.item_node_id &&
-      !pendingStructureMeta.item_name &&
-      !pendingStructureMeta.structure
-    ) {
+    const hasPending = Object.prototype.hasOwnProperty.call(
+        pendingStructureMeta,
+        "item_node_id",
+      ) ||
+      pendingStructureMeta.item_name ||
+      pendingStructureMeta.structure;
+    if (!hasPending) {
       return;
     }
     const top = stack[stack.length - 1];
@@ -392,6 +465,7 @@ export function blocksToRmObject(
 
     if (block.kind === "list_item") {
       const li = block as DocumentListItemBlock;
+      popItemsForIndent(stack, li.indent);
       const top = stack[stack.length - 1];
       if (top?.kind === "event") applyPendingStructureMeta(top.data);
       if (top?.kind === "history") applyPendingStructureMeta(top.obj);
@@ -399,29 +473,154 @@ export function blocksToRmObject(
         applyPendingStructureMeta(top.obj.data as Record<string, unknown>);
       }
       const parsed = parseListMeta(li);
+      const comp = compositionFromStack(stack);
+      const entryOnStack = entryFromStack(stack);
+      const entryScopedMeta = new Set([
+        "link",
+        "feeder_audit",
+        "archetype_details",
+        "language",
+        "encoding",
+        "subject",
+        "other_participation",
+      ]);
+      const handleAtComposition = comp && parsed.field &&
+        !(entryOnStack && top?.kind === "entry" && entryScopedMeta.has(parsed.field));
+
       const entryForMeta = top?.kind === "entry"
         ? top
         : [...stack].reverse().find(
           (f): f is Extract<StackFrame, { kind: "entry" }> => f.kind === "entry",
         );
-      if (parsed.field === "language" && entryForMeta) {
+
+      if (entryForMeta && parsed.field === "language") {
         const cp = parseCodePhraseDisplay(parsed.valueText ?? "");
         if (cp) entryForMeta.obj.language = cp;
         continue;
       }
-      if (parsed.field === "encoding" && entryForMeta) {
+      if (entryForMeta && parsed.field === "encoding") {
         const cp = parseCodePhraseDisplay(parsed.valueText ?? "");
         if (cp) entryForMeta.obj.encoding = cp;
         continue;
       }
-      if (parsed.field === "subject" && entryForMeta) {
-        entryForMeta.obj.subject = parseSubjectMeta(parsed.valueText ?? "PARTY_SELF");
+      if (entryForMeta && parsed.field === "subject") {
+        entryForMeta.obj.subject = parseSubjectFromList(
+          parsed.valueText ?? "",
+          li.oeRmPayload,
+        );
         continue;
+      }
+      if (entryForMeta && parsed.field === "feeder_audit") {
+        entryForMeta.obj.feeder_audit = mergeRmPatchPayload(
+          { _type: "FEEDER_AUDIT" },
+          li.oeRmPayload,
+        );
+        continue;
+      }
+      if (entryForMeta && parsed.field === "link") {
+        ensureArray(entryForMeta.obj, "links").push(
+          mergeRmPatchPayload({ _type: "LINK" }, li.oeRmPayload),
+        );
+        continue;
+      }
+      if (entryForMeta && parsed.field === "other_participation") {
+        ensureArray(entryForMeta.obj, "other_participations").push(
+          mergeRmPatchPayload({ _type: "PARTICIPATION" }, li.oeRmPayload),
+        );
+        continue;
+      }
+      if (entryForMeta && parsed.field === "archetype_details" && li.oeRmPayload) {
+        entryForMeta.obj.archetype_details = mergeRmPatchPayload(
+          { _type: "ARCHETYPED" },
+          li.oeRmPayload,
+        );
+        continue;
+      }
+
+      if (handleAtComposition) {
+        if (parsed.field === "context") continue;
+        if (parsed.field === "composer") {
+          const vis = (parsed.valueText ?? li.value ?? "").trim();
+          const base: Record<string, unknown> = vis && vis !== "—"
+            ? { _type: "PARTY_IDENTIFIED", name: vis.split(" · ")[0].trim() }
+            : { _type: "PARTY_SELF" };
+          comp.composer = mergeRmPatchPayload(base, li.oeRmPayload);
+          continue;
+        }
+        if (parsed.field === "feeder_audit") {
+          comp.feeder_audit = mergeRmPatchPayload(
+            { _type: "FEEDER_AUDIT" },
+            li.oeRmPayload,
+          );
+          continue;
+        }
+        if (parsed.field === "links") {
+          comp.links = [];
+          continue;
+        }
+        if (parsed.field === "link") {
+          ensureArray(comp, "links").push(
+            mergeRmPatchPayload({ _type: "LINK" }, li.oeRmPayload),
+          );
+          continue;
+        }
+        if (parsed.field === "archetype_details" && li.oeRmPayload) {
+          comp.archetype_details = mergeRmPatchPayload(
+            { _type: "ARCHETYPED" },
+            li.oeRmPayload,
+          );
+          continue;
+        }
+        const ctxFields = new Set([
+          "start_time",
+          "end_time",
+          "location",
+          "setting",
+          "health_care_facility",
+          "participation",
+          "other_context",
+        ]);
+        if (ctxFields.has(parsed.field)) {
+          const ctx = ensureEventContext(comp);
+          if (parsed.field === "participation") {
+            ensureArray(ctx, "participations").push(
+              mergeRmPatchPayload({ _type: "PARTICIPATION" }, li.oeRmPayload),
+            );
+            continue;
+          }
+          if (parsed.field === "health_care_facility") {
+            ctx.health_care_facility = mergeRmPatchPayload(
+              { _type: "PARTY_IDENTIFIED" },
+              li.oeRmPayload,
+            );
+            continue;
+          }
+          if (parsed.field === "other_context") {
+            const tree = itemTree();
+            ctx.other_context = tree;
+            stack.push({
+              kind: "items",
+              parent: tree,
+              itemsKey: "items",
+              listIndent: Math.max(-1, li.indent - 1),
+            });
+            continue;
+          }
+          if (parsed.field !== "other_context" && parsed.field !== "participation") {
+            ctx[parsed.field] = parseContextScalarField(
+              parsed.field,
+              parsed.valueText ?? "",
+              li.oeRmPayload,
+            );
+          }
+          continue;
+        }
       }
       if (parsed.field === "item_node_id") {
         const target = listItemStructureTarget(stack, entryForMeta);
         if (target) {
-          target.archetype_node_id = parsed.valueText;
+          const raw = parsed.valueText ?? "";
+          target.archetype_node_id = archetypeIdFromOpenehrUrn(raw) ?? raw;
           continue;
         }
       }
@@ -442,6 +641,7 @@ export function blocksToRmObject(
             kind: "items",
             parent: entry.obj.protocol as Record<string, unknown>,
             itemsKey: "items",
+            listIndent: li.indent,
           });
           continue;
         }
@@ -457,6 +657,7 @@ export function blocksToRmObject(
             kind: "items",
             parent: eventFrame.obj.state as Record<string, unknown>,
             itemsKey: "items",
+            listIndent: li.indent,
           });
           continue;
         }
@@ -471,6 +672,7 @@ export function blocksToRmObject(
             kind: "items",
             parent: hist.summary as Record<string, unknown>,
             itemsKey: "items",
+            listIndent: li.indent,
           });
           continue;
         }
@@ -504,19 +706,35 @@ export function blocksToRmObject(
       if (parsed.name && parsed.valueText === undefined && li.label && !parsed.field) {
         const items = currentItems();
         if (items) {
-          const cluster: Record<string, unknown> = {
-            _type: "CLUSTER",
-            name: dvText(parsed.name),
-          };
-          if (li.archetypeNodeId) cluster.archetype_node_id = li.archetypeNodeId;
+          const cluster = mergeRmPatchPayload(
+            {
+              _type: "CLUSTER",
+              name: dvText(parsed.name),
+              ...(li.archetypeNodeId ? { archetype_node_id: li.archetypeNodeId } : {}),
+            },
+            li.oeRmPayload,
+          );
           items.push(cluster);
+          stack.push({
+            kind: "items",
+            parent: cluster,
+            itemsKey: "items",
+            listIndent: li.indent,
+          });
           continue;
         }
       }
       if (parsed.name && parsed.valueText !== undefined) {
         const items = currentItems();
         if (items) {
-          addElement(items, parsed.name, parsed.valueText ?? "", li.archetypeNodeId, li.oeValuePayload);
+          addElement(
+            items,
+            parsed.name,
+            parsed.valueText ?? "",
+            li.archetypeNodeId,
+            li.oeValuePayload,
+            li.oeRmPayload,
+          );
           continue;
         }
         if (top?.kind === "section") {

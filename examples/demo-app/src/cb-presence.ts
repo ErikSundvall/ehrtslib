@@ -6,8 +6,10 @@ export type LivePresenceState = "focused" | "editing";
 export interface PresenceConfig {
   /** Drop live focus/edit badges after this idle period (ms). */
   staleMs: number;
-  /** Fade and remove “recently edited” badges after this period (ms). */
+  /** Fade edit badges toward {@link recentEditMinOpacity} over this period (ms). */
   recentEditFadeMs: number;
+  /** Floor opacity for aged edit badges (never removed). */
+  recentEditMinOpacity: number;
   /** Badges shown before a “+N” overflow chip. */
   maxVisibleBadges: number;
 }
@@ -15,6 +17,7 @@ export interface PresenceConfig {
 export const DEFAULT_PRESENCE_CONFIG: PresenceConfig = {
   staleMs: 12_000,
   recentEditFadeMs: 120_000,
+  recentEditMinOpacity: 0.12,
   maxVisibleBadges: 3,
 };
 
@@ -44,7 +47,11 @@ export interface PresenceBadge {
   initials: string;
   accent: string;
   kind: LivePresenceState | "recent-edit";
+  /** When the badge’s activity happened (for sort order). */
+  activityAtMs: number;
   opacity: number;
+  /** True when faded to the minimum grey floor (still hoverable). */
+  heavilyFaded: boolean;
   relative: string;
   absolute: string;
   changeSummary?: string;
@@ -62,7 +69,10 @@ export class PresenceView {
   readonly #live = new Map<string, LiveRecord>();
   readonly #edits = new Map<string, FieldEditRecord>();
 
-  constructor(selfId: string, config: PresenceConfig = DEFAULT_PRESENCE_CONFIG) {
+  constructor(
+    selfId: string,
+    config: PresenceConfig = DEFAULT_PRESENCE_CONFIG,
+  ) {
     this.#selfId = selfId;
     this.#config = config;
   }
@@ -115,12 +125,9 @@ export class PresenceView {
   }
 
   expire(atMs: number): void {
-    const { staleMs, recentEditFadeMs } = this.#config;
+    const { staleMs } = this.#config;
     for (const [id, live] of this.#live) {
       if (atMs - live.atMs > staleMs) this.#live.delete(id);
-    }
-    for (const [key, edit] of this.#edits) {
-      if (atMs - edit.atMs > recentEditFadeMs) this.#edits.delete(key);
     }
   }
 
@@ -140,12 +147,13 @@ export class PresenceView {
       if (edit.field !== field) continue;
       if (liveOnField.has(edit.peer.userId)) continue;
       const age = atMs - edit.atMs;
-      if (age > recentEditFadeMs) continue;
       ranked.push(this.#recentBadge(edit, atMs, age));
     }
 
-    ranked.sort((a, b) => priority(b.kind) - priority(a.kind) ||
-      a.displayName.localeCompare(b.displayName));
+    ranked.sort((a, b) =>
+      b.activityAtMs - a.activityAtMs ||
+      a.displayName.localeCompare(b.displayName)
+    );
 
     const visible = ranked.slice(0, maxVisibleBadges);
     const overflow = Math.max(0, ranked.length - visible.length);
@@ -160,25 +168,35 @@ export class PresenceView {
       initials: userInitials(live.peer.displayName),
       accent: userAccentColor(live.peer.userId),
       kind: live.state,
+      activityAtMs: live.atMs,
       opacity: 1,
+      heavilyFaded: false,
       relative: formatRelative(live.atMs, atMs),
       absolute: formatAbsolute(live.atMs),
       changeSummary: edit ? summarizeChange(edit.from, edit.to) : undefined,
     };
   }
 
-  #recentBadge(edit: FieldEditRecord, atMs: number, age: number): PresenceBadge {
-    const fadeStart = this.#config.recentEditFadeMs * 0.75;
-    const opacity = age <= fadeStart
-      ? 1
-      : Math.max(0.35, 1 - (age - fadeStart) / (this.#config.recentEditFadeMs - fadeStart));
+  #recentBadge(
+    edit: FieldEditRecord,
+    atMs: number,
+    age: number,
+  ): PresenceBadge {
+    const { recentEditFadeMs, recentEditMinOpacity } = this.#config;
+    const fadeStart = recentEditFadeMs * 0.45;
+    const opacity = age <= fadeStart ? 1 : Math.max(
+      recentEditMinOpacity,
+      1 - (age - fadeStart) / (recentEditFadeMs * 3),
+    );
     return {
       userId: edit.peer.userId,
       displayName: edit.peer.displayName,
       initials: userInitials(edit.peer.displayName),
       accent: userAccentColor(edit.peer.userId),
       kind: "recent-edit",
+      activityAtMs: edit.atMs,
       opacity,
+      heavilyFaded: opacity <= recentEditMinOpacity + 0.02,
       relative: formatRelative(edit.atMs, atMs),
       absolute: formatAbsolute(edit.atMs),
       changeSummary: summarizeChange(edit.from, edit.to),
@@ -186,16 +204,11 @@ export class PresenceView {
   }
 }
 
-function priority(kind: PresenceBadge["kind"]): number {
-  if (kind === "editing") return 3;
-  if (kind === "focused") return 2;
-  return 1;
-}
-
 export function userInitials(name: string): string {
   const parts = name.split(/[.\s_@+-]+/).filter(Boolean);
   if (parts.length >= 2) {
-    return (parts[0]!.charAt(0) + parts[parts.length - 1]!.charAt(0)).toUpperCase();
+    return (parts[0]!.charAt(0) + parts[parts.length - 1]!.charAt(0))
+      .toUpperCase();
   }
   const compact = name.replace(/[^a-zA-Z0-9\u00C0-\u024F]/g, "");
   if (compact.length >= 2) return compact.slice(0, 2).toUpperCase();
@@ -221,7 +234,10 @@ export function formatRelative(atMs: number, nowMs: number): string {
 }
 
 export function formatAbsolute(atMs: number): string {
-  return new Date(atMs).toISOString().replace("T", " ").replace(/\.\d{3}Z$/, " UTC");
+  return new Date(atMs).toISOString().replace("T", " ").replace(
+    /\.\d{3}Z$/,
+    " UTC",
+  );
 }
 
 export function summarizeChange(from: string, to: string): string {
@@ -261,7 +277,10 @@ export type PresenceWireMessage =
     atMs: number;
   };
 
-export function applyWireMessage(view: PresenceView, msg: PresenceWireMessage): void {
+export function applyWireMessage(
+  view: PresenceView,
+  msg: PresenceWireMessage,
+): void {
   const peer = { userId: msg.userId, displayName: msg.name };
   switch (msg.t) {
     case "join":

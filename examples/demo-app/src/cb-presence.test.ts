@@ -72,22 +72,27 @@ Deno.test("presence: live presence expires after stale timeout", () => {
   assertEquals(view.badgesForField("pulse", t0 + 1500).badges.length, 0);
 });
 
-Deno.test("presence: recent-edit fades and is removed", () => {
+Deno.test("presence: recent-edit fades toward grey floor but remains", () => {
   const cfg = {
     ...DEFAULT_PRESENCE_CONFIG,
     staleMs: 500,
     recentEditFadeMs: 10_000,
+    recentEditMinOpacity: 0.12,
   };
   const view = new PresenceView("self", cfg);
   view.recordEdit(peer("u5", "physio.ek"), "spo2", "90", "95", t0);
   view.heartbeat(peer("u5", "physio.ek"), null, "focused", t0 + 1);
-  const mid = view.badgesForField("spo2", t0 + 5_000).badges[0]!;
+  const mid = view.badgesForField("spo2", t0 + 2_000).badges[0]!;
   assertEquals(mid.kind, "recent-edit");
   assertEquals(mid.opacity, 1);
   const late = view.badgesForField("spo2", t0 + 9_500).badges[0]!;
   assertEquals(late.opacity < 1, true);
-  assertEquals(late.opacity >= 0.35, true);
-  assertEquals(view.badgesForField("spo2", t0 + 11_000).badges.length, 0);
+  assertEquals(late.opacity >= cfg.recentEditMinOpacity, true);
+  assertEquals(view.badgesForField("spo2", t0 + 11_000).badges.length, 1);
+  assertEquals(
+    view.badgesForField("spo2", t0 + 200_000).badges[0]!.heavilyFaded,
+    true,
+  );
 });
 
 Deno.test("presence: never shows the local user", () => {

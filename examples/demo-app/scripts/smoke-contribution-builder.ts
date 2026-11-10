@@ -39,6 +39,7 @@ const openPopup = () => {
 };
 globalThis.open = openPopup;
 globalThis.confirm = () => true;
+globalThis.getComputedStyle = w.getComputedStyle.bind(w);
 const lifecycle = new EventTarget();
 globalThis.addEventListener = lifecycle.addEventListener.bind(lifecycle);
 globalThis.fetch = async (url) => {

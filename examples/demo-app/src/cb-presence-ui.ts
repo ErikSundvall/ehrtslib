@@ -7,6 +7,19 @@ import {
   type PresenceView,
 } from "./cb-presence.ts";
 
+const HEADING_SELECTORS: Partial<Record<Field, string>> = {
+  diagnosisName: ".field-heading--diagnosisName",
+  clinicalDescription: ".field-heading--clinicalDescription",
+  comment: ".field-heading--comment",
+  temperatureComment: ".field-heading--temperatureComment",
+  systolic: ".field-heading--systolic",
+  diastolic: ".field-heading--diastolic",
+  pulse: ".field-heading--pulse",
+  respirationRate: ".field-heading--respirationRate",
+  temperature: ".field-heading--temperature",
+  spo2: ".field-heading--spo2",
+};
+
 export function ensurePresenceHosts(
   panel: HTMLElement,
   fields: readonly Field[],
@@ -18,12 +31,22 @@ export function ensurePresenceHosts(
     const label = input.closest("label");
     if (!label) continue;
     label.classList.add("field-shell");
-    let host = label.querySelector<HTMLElement>(`.presence-badges[data-for="${field}"]`);
+    const headingSel = HEADING_SELECTORS[field];
+    const heading = headingSel
+      ? label.querySelector<HTMLElement>(headingSel)
+      : label.querySelector<HTMLElement>(".field-heading");
+    let host = label.querySelector<HTMLElement>(
+      `.presence-badges[data-for="${field}"]`,
+    );
     if (!host) {
       host = document.createElement("span");
       host.className = "presence-badges";
       host.dataset.for = field;
-      label.append(host);
+    }
+    if (heading && host.parentElement !== heading) {
+      heading.append(host);
+    } else if (!heading) {
+      label.prepend(host);
     }
     hosts.set(field, host);
   }
@@ -36,24 +59,32 @@ export function paintPresenceBadges(
   atMs: number,
 ): void {
   for (const [field, host] of hosts) {
-  const { badges, overflow } = view.badgesForField(field, atMs);
-    host.replaceChildren(...badges.map((b) => badgeEl(b)), ...(overflow > 0
-      ? [overflowEl(overflow)]
-      : []));
+    const { badges, overflow } = view.badgesForField(field, atMs);
+    host.replaceChildren(
+      ...badges.map((b) => badgeEl(b)),
+      ...(overflow > 0 ? [overflowEl(overflow)] : []),
+    );
   }
 }
 
 function badgeEl(badge: PresenceBadge): HTMLElement {
   const btn = document.createElement("button");
   btn.type = "button";
-  btn.className = `presence-badge presence-badge--${badge.kind}`;
+  const extra = badge.heavilyFaded ? " presence-badge--heavily-faded" : "";
+  btn.className = `presence-badge presence-badge--${badge.kind}${extra}`;
   btn.style.setProperty("--presence-accent", badge.accent);
   btn.style.opacity = String(badge.opacity);
   btn.textContent = badge.initials;
   btn.setAttribute("aria-label", tooltipText(badge));
+  btn.setAttribute(
+    "aria-description",
+    `${presenceStateLabel(badge.kind)} · ${badge.relative}`,
+  );
   const tip = document.createElement("span");
   tip.className = "presence-tooltip";
   tip.setAttribute("role", "tooltip");
+  tip.id = `presence-tip-${badge.userId}-${badge.kind}`;
+  btn.setAttribute("aria-describedby", tip.id);
   tip.textContent = tooltipText(badge);
   btn.append(tip);
   return btn;
