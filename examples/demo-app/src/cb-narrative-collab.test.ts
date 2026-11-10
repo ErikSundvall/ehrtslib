@@ -8,8 +8,7 @@ Deno.test("narrative collab: ignores stale caret wire after newer position", () 
     userId: "peer",
     name: "nurse.a",
     field: "temperatureComment",
-    offset: 55,
-    beforeCaret: "only..sdsd",
+    cursor: "cursor-new",
     atMs: 200,
   });
   view.apply({
@@ -17,11 +16,9 @@ Deno.test("narrative collab: ignores stale caret wire after newer position", () 
     userId: "peer",
     name: "nurse.a",
     field: "temperatureComment",
-    offset: 29,
-    beforeCaret: "room was",
+    cursor: "cursor-old",
     atMs: 100,
   });
   const [caret] = view.carets(500);
-  assertEquals(caret!.offset, 55);
-  assertEquals(caret!.beforeCaret, "only..sdsd");
+  assertEquals(caret!.cursor, "cursor-new");
 });

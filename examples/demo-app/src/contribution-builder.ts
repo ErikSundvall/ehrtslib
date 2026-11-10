@@ -48,6 +48,11 @@ import {
 } from "./cb-time-travel-narrative.ts";
 import { clampCaretOffset } from "./cb-narrative-layout.ts";
 import {
+  encodeNarrativeCaret,
+  resolveNarrativeCaret,
+} from "./cb-narrative-cursor.ts";
+import type { Cursor } from "@automerge/automerge";
+import {
   advancePlaybackStep,
   createHistoricalCaller,
   exitTimeTravel,
@@ -128,11 +133,6 @@ const presenceFocus = new Map<
 let presenceClock = 0;
 let presenceTicker: ReturnType<typeof globalThis.setInterval> | undefined;
 const narrativeViews = new Map<string, NarrativeCollabView>();
-const localNarrativeCaret = new Map<
-  string,
-  { offset: number; beforeCaret: string; atMs: number; textLen: number }
->();
-const narrativeCaretIntent = new Set<string>();
 
 function narrativeCollabKey(cloneId: string, field: LongTextField): string {
   return `${cloneId}:${field}`;
@@ -213,57 +213,42 @@ function feedback(clone: DemoClone, text: string, error = false): void {
 function nowMs(): number {
   return Date.now();
 }
-function narrativeCaretKey(cloneId: string, field: LongTextField): string {
-  return `${cloneId}:${field}`;
-}
-
-function snapshotLocalCaret(input: HTMLTextAreaElement): {
-  offset: number;
-  beforeCaret: string;
-} {
-  const text = input.value;
-  const raw = input.selectionEnd ?? input.selectionStart ?? text.length;
-  const offset = clampCaretOffset(text, raw);
-  return {
-    offset,
-    beforeCaret: text.slice(Math.max(0, offset - 32), offset),
-  };
-}
-
 function broadcastNarrativeCaret(
   clone: DemoClone,
   field: LongTextField,
   input: HTMLTextAreaElement,
 ): void {
-  const key = narrativeCaretKey(clone.id, field);
   const text = input.value;
-  const snap = snapshotLocalCaret(input);
-  const prev = localNarrativeCaret.get(key);
-  let offset = snap.offset;
-  if (
-    narrativeCaretIntent.has(key) && prev && text.length > prev.textLen &&
-    snap.offset >= prev.offset - 1
-  ) {
-    offset = text.length;
-  } else if (
-    document.activeElement === input && prev &&
-    snap.offset < prev.offset && !narrativeCaretIntent.has(key)
-  ) {
-    offset = prev.offset;
-  }
-  const beforeCaret = text.slice(Math.max(0, offset - 32), offset);
-  const atMs = nowMs();
-  localNarrativeCaret.set(key, { offset, beforeCaret, atMs, textLen: text.length });
-  narrativeCaretIntent.delete(key);
+  const raw = input.selectionEnd ?? input.selectionStart ?? text.length;
+  const offset = clampCaretOffset(text, raw);
+  const cursor = encodeNarrativeCaret(
+    clone.caller.adapter,
+    session,
+    field,
+    offset,
+  );
+  if (!cursor) return;
   broadcastCollab(clone, {
     t: "caret",
     userId: clone.id,
     name: clone.username,
     field,
-    offset,
-    beforeCaret,
-    atMs,
+    cursor,
+    atMs: nowMs(),
   });
+}
+
+function resolveRemoteCaretOffset(
+  clone: DemoClone,
+  field: LongTextField,
+  cursor: string,
+): number | null {
+  return resolveNarrativeCaret(
+    clone.caller.adapter,
+    session,
+    field,
+    cursor as Cursor,
+  );
 }
 
 function broadcastCollab(
@@ -367,7 +352,9 @@ function applyCollab(
     `[data-field="${message.field}"]`,
   );
   if (textarea) {
-    paintNarrativeCollab(textarea, view, nowMs());
+    paintNarrativeCollab(textarea, view, nowMs(), (caret) =>
+      resolveRemoteCaretOffset(clone, message.field, caret.cursor)
+    );
   }
 }
 function renderAllPresence(): void {
@@ -433,7 +420,12 @@ function renderNarrativeCollab(clone: DemoClone): void {
       paintNarrativeHighlights(textarea, afterText, highlights);
       continue;
     }
-    paintNarrativeCollab(textarea, narrativeView(clone.id, field), atMs);
+    paintNarrativeCollab(
+      textarea,
+      narrativeView(clone.id, field),
+      atMs,
+      (caret) => resolveRemoteCaretOffset(clone, field, caret.cursor),
+    );
   }
 }
 function cloneReadOnly(clone: DemoClone): boolean {
@@ -842,11 +834,8 @@ function createPanel(clone: DemoClone): void {
       }
     };
     if (isLongText(field)) {
-      const caretKey = narrativeCaretKey(clone.id, field);
-      const markCaretIntent = () => narrativeCaretIntent.add(caretKey);
       ensureNarrativeShell(input);
       input.addEventListener("input", () => {
-        markCaretIntent();
         emitPresence(clone, field, "editing");
         startPresenceBeat(clone);
         broadcastNarrativeCaret(clone, field, input);
@@ -857,17 +846,14 @@ function createPanel(clone: DemoClone): void {
       globalThis.addEventListener("resize", repaintsCollab);
       input.addEventListener("keyup", () => {
         if (cloneReadOnly(clone)) return;
-        markCaretIntent();
         broadcastNarrativeCaret(clone, field, input);
       });
       input.addEventListener("select", () => {
         if (cloneReadOnly(clone)) return;
-        markCaretIntent();
         broadcastNarrativeCaret(clone, field, input);
       });
       input.addEventListener("pointerup", () => {
         if (cloneReadOnly(clone)) return;
-        markCaretIntent();
         broadcastNarrativeCaret(clone, field, input);
       });
     } else {

@@ -15,9 +15,8 @@ export const DEFAULT_NARRATIVE_COLLAB_CONFIG: NarrativeCollabConfig = {
 export interface TextCaret {
   userId: string;
   displayName: string;
-  offset: number;
-  /** Sender context before the caret (wire). */
-  beforeCaret?: string;
+  /** Automerge stable cursor token (serializable string). */
+  cursor: string;
   atMs: number;
 }
 
@@ -49,8 +48,7 @@ export type NarrativeCollabWireMessage =
     userId: string;
     name: string;
     field: LongTextField;
-    offset: number;
-    beforeCaret?: string;
+    cursor: string;
     atMs: number;
   }
   | {
@@ -114,16 +112,14 @@ export class NarrativeCollabView {
   apply(msg: NarrativeCollabWireMessage): void {
     if (msg.userId === this.#selfId) return;
     if (msg.t === "caret") {
-      if (msg.beforeCaret === undefined) return;
-      if (msg.offset > 0 && !msg.beforeCaret.length) return;
+      if (!msg.cursor) return;
       const key = `${msg.userId}:${msg.field}`;
       const prev = this.#carets.get(key);
       if (prev && msg.atMs < prev.atMs) return;
       this.#carets.set(key, {
         userId: msg.userId,
         displayName: msg.name,
-        offset: Math.max(0, msg.offset),
-        beforeCaret: msg.beforeCaret,
+        cursor: msg.cursor,
         atMs: msg.atMs,
       });
       return;
