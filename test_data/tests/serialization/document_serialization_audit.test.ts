@@ -40,6 +40,10 @@ import {
   chemoContextComposition,
   loadTemplatedCompositionFixtures,
 } from "./document_audit_fixtures.ts";
+import {
+  assertRmInvalidFixtureRejected,
+  STRUCTURAL_AUDIT_RM_INVALID_FIXTURES,
+} from "./document_audit_rm_invalid_fixtures.ts";
 
 const FINDINGS_PATH = "/opt/cursor/artifacts/document_audit_findings.json";
 
@@ -142,14 +146,28 @@ Deno.test("AsciiDoc Chemo-like fixture: nested dlist under block titles", () => 
   assertEquals(html.includes("::Namn"), false);
 });
 
+Deno.test("document audit: RM-invalid fixtures are rejected by TemplateValidator", async () => {
+  const fixtures = await loadTemplatedCompositionFixtures();
+  for (const id of Object.keys(STRUCTURAL_AUDIT_RM_INVALID_FIXTURES)) {
+    const row = fixtures.find((f) => f.id === id);
+    assert(row, `missing RM-invalid fixture ${id} in loader`);
+    assertRmInvalidFixtureRejected(id, row.comp);
+  }
+});
+
 Deno.test("document audit: full fixture sweep (structural paths + lossy silent drops)", async () => {
   const fixtures = await loadTemplatedCompositionFixtures();
   assert(fixtures.length >= 10, `expected templated fixtures, got ${fixtures.length}`);
 
   const structuralRows: StructuralRow[] = [];
   const lossyRows: LossyRow[] = [];
+  const rmInvalidExcluded: string[] = [];
 
   for (const { id, comp } of fixtures) {
+    if (id in STRUCTURAL_AUDIT_RM_INVALID_FIXTURES) {
+      rmInvalidExcluded.push(id);
+      continue;
+    }
     for (const codec of ["markdown", "asciidoc"] as const) {
       const Ser = codec === "markdown" ? MarkdownSerializer : AsciidocSerializer;
       const Des = codec === "markdown" ? MarkdownDeserializer : AsciidocDeserializer;
@@ -268,6 +286,7 @@ Deno.test("document audit: full fixture sweep (structural paths + lossy silent d
   const findings = {
     generatedAt: new Date().toISOString(),
     fixtureCount: fixtures.length,
+    structuralAuditRmInvalidExcluded: rmInvalidExcluded,
     structural: summarizeStructural(structuralRows),
     structuralSize,
     structuralSizeBeforeSparseOnly,
@@ -283,6 +302,18 @@ Deno.test("document audit: full fixture sweep (structural paths + lossy silent d
 
   await Deno.mkdir("/opt/cursor/artifacts", { recursive: true });
   await Deno.writeTextFile(FINDINGS_PATH, JSON.stringify(findings, null, 2));
+
+  const expectedStructuralPairs = (fixtures.length -
+    Object.keys(STRUCTURAL_AUDIT_RM_INVALID_FIXTURES).length) * 2;
+  assertEquals(
+    structuralRows.length,
+    expectedStructuralPairs,
+    "every non–RM-invalid fixture must run markdown + asciidoc structural round-trip",
+  );
+  assertEquals(
+    rmInvalidExcluded.sort(),
+    Object.keys(STRUCTURAL_AUDIT_RM_INVALID_FIXTURES).sort(),
+  );
 
   const failures = structuralRows.filter((r) => !r.equal);
   if (failures.length > 0) {

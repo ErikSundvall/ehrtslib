@@ -573,7 +573,7 @@ export class MarkdownSerializer {
       ensureBlankLineBeforeBlock(lines);
       lines.push(`- _${field}:_`);
       lines.push("");
-      this.serializeItemStructure(itemStruct, lines, depth);
+      this.serializeItemStructure(itemStruct, lines, depth + 1);
       return;
     }
     ensureBlankLineBeforeBlock(lines);
@@ -598,17 +598,17 @@ export class MarkdownSerializer {
         if (this.config.dataValueRendering === 'table' && this.canRenderAsTable(itemStruct.items)) {
           this.renderItemsAsTable(itemStruct.items, lines);
         } else {
-          this.serializeItems(itemStruct.items, lines, 0);
+          this.serializeItems(itemStruct.items, lines, _depth);
         }
       }
     } else if (typeName === 'ITEM_SINGLE') {
       if (itemStruct.item) {
-        this.serializeItem(itemStruct.item, lines, 0);
+        this.serializeItem(itemStruct.item, lines, _depth);
       }
     } else {
       // Unknown structure - try items
       if (itemStruct.items && Array.isArray(itemStruct.items)) {
-        this.serializeItems(itemStruct.items, lines, 0);
+        this.serializeItems(itemStruct.items, lines, _depth);
       }
     }
   }
@@ -654,13 +654,20 @@ export class MarkdownSerializer {
     const indent = this.getIndent(nestLevel);
     const label = this.formatLocatableHeadingTitle(cluster, name);
     if (this.config.style === "structural") {
-      const { items: _i, ...clusterHead } = cluster as Record<string, unknown>;
-      const head: Record<string, unknown> = { _type: "CLUSTER", ...clusterHead };
-      delete head.items;
-      const tail = formatSparseRmMarkdown(head, {
+      const recovered: Record<string, unknown> = {
         _type: "CLUSTER",
-        name: typeof name === "string" ? { value: name } : name,
-      });
+        name: typeof name === "string" ? { _type: "DV_TEXT", value: name } : name,
+      };
+      const { items, ...clusterHead } = cluster as Record<string, unknown>;
+      const patchTarget: Record<string, unknown> = { _type: "CLUSTER", ...clusterHead };
+      if (Array.isArray(items)) {
+        if (items.length === 0) {
+          patchTarget.items = [];
+        } else if (items.some((child) => !this.extractName(child))) {
+          patchTarget.items = items;
+        }
+      }
+      const tail = formatSparseRmMarkdown(patchTarget, recovered);
       const nodeId = this.formatInlineNodeIdAnnotation(cluster);
       lines.push(`${indent}- **${name}**${tail}${nodeId}`);
       if (cluster.items && Array.isArray(cluster.items)) {

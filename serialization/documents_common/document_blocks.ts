@@ -98,15 +98,15 @@ export function stripNodeIdAndType(
   }
   rest = rest.replace(/<!--\s*[^>]+?\s*-->/g, "").trim();
 
-  const oeRmAdoc = rest.match(/\s+\/\/\s+(oe:rm:v1:b64:\S+)\s*$/);
-  if (oeRmAdoc) {
-    oeRmPayload = oeRmAdoc[1].trim();
-    rest = rest.replace(/\s+\/\/\s+oe:rm:v1:b64:\S+\s*$/, "").trim();
+  const oeRmAny = rest.match(/\s+\/\/\s+(oe:rm:v1:b64:\S+)/);
+  if (oeRmAny) {
+    oeRmPayload ??= oeRmAny[1].trim();
+    rest = rest.replace(/\s+\/\/\s+oe:rm:v1:b64:\S+/g, "").trim();
   }
-  const oeAdoc = rest.match(new RegExp(String.raw`\s+//\s+(${OE_VALUE_ANNOTATION_PREFIX}\S+)\s*$`));
-  if (oeAdoc) {
-    oeValuePayload = oeAdoc[1].trim();
-    rest = rest.replace(new RegExp(String.raw`\s+//\s+${OE_VALUE_ANNOTATION_PREFIX}\S+\s*$`), "").trim();
+  const oeValAny = rest.match(new RegExp(String.raw`\s+//\s+(${OE_VALUE_ANNOTATION_PREFIX}\S+)`));
+  if (oeValAny) {
+    oeValuePayload ??= oeValAny[1].trim();
+    rest = rest.replace(new RegExp(String.raw`\s+//\s+${OE_VALUE_ANNOTATION_PREFIX}\S+`, "g"), "").trim();
   }
 
   const inlineAdoc = rest.match(/\s+\/\/\s+([^\s]+)\s*$/);

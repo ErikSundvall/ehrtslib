@@ -121,15 +121,17 @@ export function parseSubjectFromList(
 ): Record<string, unknown> {
   const vis = visible.trim();
   if (vis && vis !== "—") {
-    if (vis.startsWith("PARTY_IDENTIFIED:")) {
+    if (vis.startsWith("PARTY_IDENTIFIED:") || vis.includes(SUBJECT_REF_PREFIX)) {
       return mergeRmPatchPayload(parseSubjectMeta(vis), oeRmPayload);
     }
-    const base: Record<string, unknown> = {};
-    if (typeof vis === "string" && vis.split(" · ")[0]) {
-      base.name = vis.split(" · ")[0].trim();
+    if (/^PARTY_[A-Z_]+$/.test(vis)) {
+      return mergeRmPatchPayload(parseSubjectMeta(vis), oeRmPayload);
     }
-    if (oeRmPayload) return mergeRmPatchPayload(base, oeRmPayload);
-    return parseSubjectMeta(vis);
+    const fromPlainName: Record<string, unknown> = {
+      _type: "PARTY_IDENTIFIED",
+      name: vis.split(" · ")[0].trim(),
+    };
+    return mergeRmPatchPayload(fromPlainName, oeRmPayload);
   }
   return mergeRmPatchPayload(parseSubjectMeta("PARTY_SELF"), oeRmPayload);
 }

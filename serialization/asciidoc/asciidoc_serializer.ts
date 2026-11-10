@@ -599,7 +599,7 @@ export class AsciidocSerializer {
       ensureBlankLineBeforeBlock(lines);
       lines.push(`* _${field}:_`);
       lines.push("");
-      this.serializeItemStructure(itemStruct, lines, depth);
+      this.serializeItemStructure(itemStruct, lines, depth + 1);
       return;
     }
     ensureBlankLineBeforeBlock(lines);
@@ -622,16 +622,16 @@ export class AsciidocSerializer {
         if (this.config.dataValueRendering === 'table' && this.canRenderAsTable(itemStruct.items)) {
           this.renderItemsAsTable(itemStruct.items, lines);
         } else {
-          this.serializeItems(itemStruct.items, lines, 0);
+          this.serializeItems(itemStruct.items, lines, _depth);
         }
       }
     } else if (typeName === 'ITEM_SINGLE') {
       if (itemStruct.item) {
-        this.serializeItem(itemStruct.item, lines, 0);
+        this.serializeItem(itemStruct.item, lines, _depth);
       }
     } else {
       if (itemStruct.items && Array.isArray(itemStruct.items)) {
-        this.serializeItems(itemStruct.items, lines, 0);
+        this.serializeItems(itemStruct.items, lines, _depth);
       }
     }
   }
@@ -676,14 +676,21 @@ export class AsciidocSerializer {
     const name = this.extractName(cluster);
     if (this.config.style === "structural") {
       const indent = this.getListPrefix(nestLevel);
-      const { items: _i, ...clusterHead } = cluster as Record<string, unknown>;
-      const head: Record<string, unknown> = { _type: "CLUSTER", ...clusterHead };
-      delete head.items;
-      const tail = formatSparseRmAsciidoc(head, {
+      const recovered: Record<string, unknown> = {
         _type: "CLUSTER",
-        name: typeof name === "string" ? { value: name } : name,
-      });
-      const nodeId = this.formatNodeIdInline(cluster);
+        name: typeof name === "string" ? { _type: "DV_TEXT", value: name } : name,
+      };
+      const { items, ...clusterHead } = cluster as Record<string, unknown>;
+      const patchTarget: Record<string, unknown> = { _type: "CLUSTER", ...clusterHead };
+      if (Array.isArray(items)) {
+        if (items.length === 0) {
+          patchTarget.items = [];
+        } else if (items.some((child) => !this.extractName(child))) {
+          patchTarget.items = items;
+        }
+      }
+      const tail = formatSparseRmAsciidoc(patchTarget, recovered);
+      const nodeId = tail ? "" : this.formatNodeIdInline(cluster);
       lines.push(`${indent} *${name}*${tail}${nodeId}`);
       if (cluster.items && Array.isArray(cluster.items)) {
         this.serializeItems(cluster.items, lines, nestLevel + 1);

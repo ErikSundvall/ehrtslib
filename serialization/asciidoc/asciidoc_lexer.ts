@@ -110,15 +110,19 @@ export function lexAsciidocLossless(text: string): {
           oeRmPayload: stripped.oeRmPayload,
         });
       } else {
-        const kv = itemText.match(/^\*\*(.+?)\*\*::\s*(.+)$/) ??
+        const adEltDbl = itemText.match(/^\*(.+)::\*\s*(.*)$/s);
+        const kv = adEltDbl ??
+          itemText.match(/^\*\*(.+?)\*\*::\s*(.+)$/) ??
           itemText.match(/^\*\*([^:]+):\*\*\s*(.+)$/) ??
           itemText.match(/^\*([^:]+):\*\s*(.*)$/s);
         if (kv) {
+          const label = adEltDbl ? `${adEltDbl[1].replace(/\*/g, "").trim()}:` : kv[1];
+          const value = adEltDbl ? adEltDbl[2] : kv[2];
           blocks.push({
             kind: "list_item",
             indent: listIndent,
-            label: kv[1],
-            value: kv[2],
+            label,
+            value,
             raw: itemText,
             archetypeNodeId: stripped.archetypeNodeId ?? pendingNodeId,
             oeValuePayload: stripped.oeValuePayload,
