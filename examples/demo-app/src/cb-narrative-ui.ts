@@ -1,15 +1,12 @@
 /// <reference lib="dom" />
 import type { NarrativeCollabView } from "./cb-narrative-collab.ts";
 import {
-  clampCaretOffset,
-  escapeMirrorText,
+  caretOffsetToCoords,
+  reconcileCaretWithHighlights,
   resolveHighlightRange,
 } from "./cb-narrative-layout.ts";
 
-const mirrorByTextarea = new WeakMap<
-  HTMLTextAreaElement,
-  HTMLDivElement
->();
+const mirrorByTextarea = new WeakMap<HTMLTextAreaElement, HTMLDivElement>();
 
 export function ensureNarrativeShell(textarea: HTMLTextAreaElement): {
   shell: HTMLElement;
@@ -64,9 +61,19 @@ export function paintNarrativeHighlights(
     expired: false,
   }));
   backdrop.replaceChildren(renderHighlightLayer(text, views));
-  caretLayer.replaceChildren(
-    ...carets.map((c) => caretMarker(c, textarea)),
-  );
+  syncCaretLayerScroll(textarea, caretLayer);
+  const caretViews = carets.map((c) =>
+    caretMarker(c, textarea, highlights)
+  ).filter(Boolean);
+  caretLayer.replaceChildren(...caretViews);
+}
+
+function syncCaretLayerScroll(
+  textarea: HTMLTextAreaElement,
+  caretLayer: HTMLElement,
+): void {
+  caretLayer.scrollTop = textarea.scrollTop;
+  caretLayer.scrollLeft = textarea.scrollLeft;
 }
 
 export function paintNarrativeCollab(
@@ -134,12 +141,13 @@ function renderHighlightLayer(
 
 function layoutMirror(textarea: HTMLTextAreaElement): HTMLDivElement {
   let mirror = mirrorByTextarea.get(textarea);
+  const shell = textarea.closest(".narrative-shell") ?? textarea.parentElement;
   if (!mirror) {
     mirror = document.createElement("div");
     mirror.className = "narrative-layout-mirror";
     mirror.setAttribute("aria-hidden", "true");
     mirrorByTextarea.set(textarea, mirror);
-    textarea.parentElement?.append(mirror);
+    shell?.append(mirror);
   }
   const style = getComputedStyle(textarea);
   mirror.style.boxSizing = style.boxSizing;
@@ -161,27 +169,44 @@ export function mirrorCaretCoords(
   textarea: HTMLTextAreaElement,
   offset: number,
 ): { left: number; top: number } {
-  const mirror = layoutMirror(textarea);
   const text = textarea.value;
-  const at = clampCaretOffset(text, offset);
-  const before = escapeMirrorText(text.slice(0, at));
-  const after = escapeMirrorText(text.slice(at));
-  mirror.innerHTML =
-    `${before}<span class="narrative-caret-probe">\u200b</span>${after}`;
-  const probe = mirror.querySelector(".narrative-caret-probe")!;
-  const mirrorRect = mirror.getBoundingClientRect();
-  const probeRect = probe.getBoundingClientRect();
-  return {
-    left: probeRect.left - mirrorRect.left,
-    top: probeRect.top - mirrorRect.top,
-  };
+  const mirror = layoutMirror(textarea);
+  const at = Math.max(0, Math.min(offset, text.length));
+  const probe = document.createElement("span");
+  probe.className = "narrative-caret-probe";
+  probe.append(document.createTextNode("\u200b"));
+  mirror.replaceChildren(
+    document.createTextNode(text.slice(0, at)),
+    probe,
+    document.createTextNode(text.slice(at)),
+  );
+  if (probe) {
+    const mirrorRect = mirror.getBoundingClientRect();
+    const probeRect = probe.getBoundingClientRect();
+    return {
+      left: probeRect.left - mirrorRect.left,
+      top: probeRect.top - mirrorRect.top,
+    };
+  }
+  return caretOffsetToCoords(textarea, text, at);
 }
 
 function caretMarker(
   caret: ReturnType<NarrativeCollabView["carets"]>[number],
   textarea: HTMLTextAreaElement,
-): HTMLElement {
-  const at = clampCaretOffset(textarea.value, caret.offset);
+  highlights: NarrativeHighlightPaint[] | ReturnType<NarrativeCollabView["highlights"]> = [],
+): HTMLElement | null {
+  const text = textarea.value;
+  const peerHl = highlights
+    .filter((h) => h.userId === caret.userId)
+    .sort((a, b) => b.atMs - a.atMs)[0] ?? null;
+  const at = reconcileCaretWithHighlights(
+    text,
+    caret.offset,
+    caret.beforeCaret ?? "",
+    peerHl ? { start: peerHl.start, end: peerHl.end } : null,
+  );
+  if (at < 0) return null;
   const { left, top } = mirrorCaretCoords(textarea, at);
   const el = document.createElement("span");
   el.className = "narrative-remote-caret";
@@ -190,5 +215,6 @@ function caretMarker(
   el.style.left = `${left}px`;
   el.style.top = `${top}px`;
   el.title = `${caret.displayName} is editing here`;
+  el.dataset.resolvedCaret = String(at);
   return el;
 }

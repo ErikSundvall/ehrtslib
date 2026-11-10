@@ -1,6 +1,11 @@
 import { assert, assertEquals } from "@std/assert";
 import * as Automerge from "@automerge/automerge";
-import { resolveHighlightRange } from "../../../examples/demo-app/src/cb-narrative-layout.ts";
+import {
+  caretLineIndex,
+  reconcileCaretWithHighlights,
+  resolveCaretOffset,
+  resolveHighlightRange,
+} from "../../../examples/demo-app/src/cb-narrative-layout.ts";
 import {
   advancePlaybackStep,
   exitTimeTravel,
@@ -59,6 +64,44 @@ Deno.test("cb demo #301: historical presence shows other replica, not viewer", (
 
 const temperatureComment =
   "Oral temp measurement. The temperature room was really warm.\nSynthetic example only.";
+
+Deno.test("cb demo #301: caret snaps to tail highlight when wire offset is stale", () => {
+  const text = `${temperatureComment}..sdsd`;
+  const at = reconcileCaretWithHighlights(
+    text,
+    text.indexOf("was") + 2,
+    "room was",
+    { start: text.indexOf("..sdsd"), end: text.length },
+  );
+  assertEquals(at, text.length);
+  assertEquals(caretLineIndex(text, at), 1);
+});
+
+Deno.test("cb demo #301: stale wire caret resolves via beforeCaret at line end", () => {
+  const text = `${temperatureComment}sdsd`;
+  const staleWire = temperatureComment.indexOf("was") + 2;
+  const before = "only.sdsd";
+  const at = resolveCaretOffset(text, staleWire, before);
+  assertEquals(at, text.length);
+  assertEquals(caretLineIndex(text, at), 1);
+  assertEquals(text.slice(at - before.length, at), before);
+});
+
+Deno.test("cb demo #301: caret hides when sender tail not yet merged", () => {
+  const base =
+    "Oral measurement. The room was warm.\nSynthetic example only.";
+  assertEquals(resolveCaretOffset(base, 29, "..sdsd"), -1);
+});
+
+Deno.test("cb demo #301: caret anchor after concurrent peer merge", () => {
+  const base =
+    "Oral measurement. The room was warm.\nSynthetic example only.";
+  const peer = `${base} PEER_NOTE`;
+  const staleWire = 22;
+  const at = resolveCaretOffset(peer, staleWire, " PEER_NOTE");
+  assertEquals(at, peer.length);
+  assertEquals(peer.slice(at - " PEER_NOTE".length), " PEER_NOTE");
+});
 
 Deno.test("cb demo #301: short remote inserts anchor near wire start, not the first duplicate letter", () => {
   const merged = `${temperatureComment}sdsd`;

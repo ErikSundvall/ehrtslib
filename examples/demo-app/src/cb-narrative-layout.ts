@@ -5,6 +5,63 @@ export function clampCaretOffset(text: string, offset: number): number {
   return Math.min(Math.floor(offset), text.length);
 }
 
+/**
+ * Map a remote wire caret offset onto peer text. Uses trailing context from the
+ * sender (characters immediately before the caret) so stale indices land on the
+ * correct line after Automerge merge, not on an earlier duplicate substring.
+ */
+export function resolveCaretOffset(
+  text: string,
+  wireOffset: number,
+  beforeCaret = "",
+): number {
+  const anchor = clampCaretOffset(text, wireOffset);
+  if (!beforeCaret) return anchor;
+  const tail = beforeCaret.slice(-Math.min(32, beforeCaret.length));
+  if (!tail) return anchor;
+
+  const hits = allSnippetMatches(text, tail, 0, text.length);
+  if (hits.length === 1) return hits[0]! + tail.length;
+  if (hits.length > 1) {
+    const match = closestMatch(hits, Math.max(0, anchor - tail.length), tail.length);
+    if (match) return match.end;
+  }
+
+  const nearStart = Math.max(0, anchor - tail.length - 64);
+  const nearEnd = Math.min(text.length, anchor + tail.length + 64);
+  const near = text.indexOf(tail, nearStart);
+  if (near >= 0 && near + tail.length <= nearEnd) {
+    return near + tail.length;
+  }
+
+  // Sync still in flight: sender context not in peer text yet — hide rather than
+  // trust a pre-merge UTF-16 index (often lands on duplicate words like "was").
+  if (hits.length === 0) return -1;
+  return anchor;
+}
+
+/** When wire caret lags but a peer highlight lands at the document tail, trust the tail. */
+export function reconcileCaretWithHighlights(
+  text: string,
+  wireOffset: number,
+  beforeCaret: string,
+  peerHighlight: { start: number; end: number } | null,
+): number {
+  let at = resolveCaretOffset(text, wireOffset, beforeCaret);
+  if (at < 0) return at;
+  if (!peerHighlight) return at;
+  if (peerHighlight.end >= text.length - 1 && at < peerHighlight.start) {
+    return text.length;
+  }
+  return at;
+}
+
+/** Whether index `at` is on the requested line (0-based), for caret layout checks. */
+export function caretLineIndex(text: string, at: number): number {
+  const clamped = clampCaretOffset(text, at);
+  return text.slice(0, clamped).split("\n").length - 1;
+}
+
 function allSnippetMatches(
   text: string,
   snippet: string,
@@ -89,4 +146,60 @@ export function escapeMirrorText(text: string): string {
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;");
+}
+
+/** Map a UTF-16 offset to coordinates inside a textarea (explicit `\n` lines). */
+export function caretOffsetToCoords(
+  textarea: HTMLTextAreaElement,
+  text: string,
+  at: number,
+): { left: number; top: number } {
+  const style = getComputedStyle(textarea);
+  const padL = parseFloat(style.paddingLeft) || 0;
+  const padT = parseFloat(style.paddingTop) || 0;
+  const lineHeight = parseFloat(style.lineHeight) ||
+    parseFloat(style.fontSize) * 1.2 || 16;
+  const font = style.font || `${style.fontSize} ${style.fontFamily}`;
+  const clamped = clampCaretOffset(text, at);
+  const before = text.slice(0, clamped);
+  const lineIndex = before.split("\n").length - 1;
+  const lineStart = before.lastIndexOf("\n") + 1;
+  const col = before.slice(lineStart);
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  if (!ctx) {
+    const colLen = before.slice(lineStart).length;
+    const approxChar = 7.2;
+    return {
+      left: padL + colLen * approxChar,
+      top: padT + lineIndex * lineHeight,
+    };
+  }
+  ctx.font = font;
+  const innerWidth = textarea.clientWidth - padL -
+    (parseFloat(style.paddingRight) || 0);
+  let colText = col;
+  let wrapLines = 0;
+  while (colText.length > 0) {
+    let fit = colText.length;
+    while (
+      fit > 0 && ctx.measureText(colText.slice(0, fit)).width > innerWidth
+    ) {
+      fit--;
+    }
+    if (fit === 0) fit = 1;
+    if (fit < colText.length) {
+      wrapLines++;
+      colText = colText.slice(fit);
+    } else {
+      colText = "";
+    }
+  }
+  const linePrefix = before.slice(lineStart);
+  const left = padL + Math.min(
+    ctx.measureText(linePrefix).width,
+    innerWidth,
+  );
+  const top = padT + (lineIndex + wrapLines) * lineHeight;
+  return { left, top };
 }

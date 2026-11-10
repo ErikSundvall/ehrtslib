@@ -377,6 +377,10 @@ details[open] > summary {
   box-sizing: border-box;
   overflow: auto;
 }
+.narrative-caret-measure {
+  visibility: hidden;
+  z-index: -1;
+}
 .narrative-input {
   position: relative;
   z-index: 1;

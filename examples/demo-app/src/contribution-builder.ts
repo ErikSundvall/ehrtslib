@@ -128,6 +128,11 @@ const presenceFocus = new Map<
 let presenceClock = 0;
 let presenceTicker: ReturnType<typeof globalThis.setInterval> | undefined;
 const narrativeViews = new Map<string, NarrativeCollabView>();
+const localNarrativeCaret = new Map<
+  string,
+  { offset: number; beforeCaret: string; atMs: number; textLen: number }
+>();
+const narrativeCaretIntent = new Set<string>();
 
 function narrativeCollabKey(cloneId: string, field: LongTextField): string {
   return `${cloneId}:${field}`;
@@ -208,6 +213,59 @@ function feedback(clone: DemoClone, text: string, error = false): void {
 function nowMs(): number {
   return Date.now();
 }
+function narrativeCaretKey(cloneId: string, field: LongTextField): string {
+  return `${cloneId}:${field}`;
+}
+
+function snapshotLocalCaret(input: HTMLTextAreaElement): {
+  offset: number;
+  beforeCaret: string;
+} {
+  const text = input.value;
+  const raw = input.selectionEnd ?? input.selectionStart ?? text.length;
+  const offset = clampCaretOffset(text, raw);
+  return {
+    offset,
+    beforeCaret: text.slice(Math.max(0, offset - 32), offset),
+  };
+}
+
+function broadcastNarrativeCaret(
+  clone: DemoClone,
+  field: LongTextField,
+  input: HTMLTextAreaElement,
+): void {
+  const key = narrativeCaretKey(clone.id, field);
+  const text = input.value;
+  const snap = snapshotLocalCaret(input);
+  const prev = localNarrativeCaret.get(key);
+  let offset = snap.offset;
+  if (
+    narrativeCaretIntent.has(key) && prev && text.length > prev.textLen &&
+    snap.offset >= prev.offset - 1
+  ) {
+    offset = text.length;
+  } else if (
+    document.activeElement === input && prev &&
+    snap.offset < prev.offset && !narrativeCaretIntent.has(key)
+  ) {
+    offset = prev.offset;
+  }
+  const beforeCaret = text.slice(Math.max(0, offset - 32), offset);
+  const atMs = nowMs();
+  localNarrativeCaret.set(key, { offset, beforeCaret, atMs, textLen: text.length });
+  narrativeCaretIntent.delete(key);
+  broadcastCollab(clone, {
+    t: "caret",
+    userId: clone.id,
+    name: clone.username,
+    field,
+    offset,
+    beforeCaret,
+    atMs,
+  });
+}
+
 function broadcastCollab(
   clone: DemoClone,
   message: NarrativeCollabWireMessage,
@@ -279,6 +337,15 @@ function startPresenceBeat(clone: DemoClone): void {
     const focus = presenceFocus.get(clone.id);
     if (!focus || busy || sent) return;
     emitPresence(clone, focus.field, focus.state);
+    if (isLongText(focus.field)) {
+      const panel = panels.get(clone.id);
+      const input = panel?.querySelector<HTMLTextAreaElement>(
+        `[data-field="${focus.field}"]`,
+      );
+      if (input && document.activeElement === input) {
+        broadcastNarrativeCaret(clone, focus.field, input);
+      }
+    }
   }, PRESENCE_BEAT_MS);
   presenceBeats.set(clone.id, timer);
   timers.add(timer);
@@ -775,22 +842,14 @@ function createPanel(clone: DemoClone): void {
       }
     };
     if (isLongText(field)) {
+      const caretKey = narrativeCaretKey(clone.id, field);
+      const markCaretIntent = () => narrativeCaretIntent.add(caretKey);
       ensureNarrativeShell(input);
       input.addEventListener("input", () => {
+        markCaretIntent();
         emitPresence(clone, field, "editing");
         startPresenceBeat(clone);
-        const offset = clampCaretOffset(
-          input.value,
-          input.selectionEnd ?? input.selectionStart ?? input.value.length,
-        );
-        broadcastCollab(clone, {
-          t: "caret",
-          userId: clone.id,
-          name: clone.username,
-          field,
-          offset,
-          atMs: nowMs(),
-        });
+        broadcastNarrativeCaret(clone, field, input);
         edit();
       });
       const repaintsCollab = () => renderNarrativeCollab(clone);
@@ -798,33 +857,18 @@ function createPanel(clone: DemoClone): void {
       globalThis.addEventListener("resize", repaintsCollab);
       input.addEventListener("keyup", () => {
         if (cloneReadOnly(clone)) return;
-        const offset = clampCaretOffset(
-          input.value,
-          input.selectionEnd ?? input.selectionStart ?? input.value.length,
-        );
-        broadcastCollab(clone, {
-          t: "caret",
-          userId: clone.id,
-          name: clone.username,
-          field,
-          offset,
-          atMs: nowMs(),
-        });
+        markCaretIntent();
+        broadcastNarrativeCaret(clone, field, input);
       });
       input.addEventListener("select", () => {
         if (cloneReadOnly(clone)) return;
-        const offset = clampCaretOffset(
-          input.value,
-          input.selectionEnd ?? input.selectionStart ?? input.value.length,
-        );
-        broadcastCollab(clone, {
-          t: "caret",
-          userId: clone.id,
-          name: clone.username,
-          field,
-          offset,
-          atMs: nowMs(),
-        });
+        markCaretIntent();
+        broadcastNarrativeCaret(clone, field, input);
+      });
+      input.addEventListener("pointerup", () => {
+        if (cloneReadOnly(clone)) return;
+        markCaretIntent();
+        broadcastNarrativeCaret(clone, field, input);
       });
     } else {
       input.addEventListener("change", edit);
