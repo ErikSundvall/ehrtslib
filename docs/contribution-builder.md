@@ -330,8 +330,9 @@ and where the pinned template comes from are in
 [contribution-builder.html](https://eriksundvall.github.io/ehrtslib/demo/contribution-builder.html).
 
 The page keeps two or more independent Automerge clones, delayed in-page sync,
-hand-coded vital signs and diagnosis text, an operation log, and commit-output
-tabs. The default commit destination is a local preview tab. POST to a test
+hand-coded vital signs, a short problem/diagnosis name, and narrative text on
+the template's clinical description and comment elements. It also has an
+operation log and commit-output tabs. The default commit destination is a local preview tab. POST to a test
 CDR is optional and asks for confirmation before anything is sent. It
 implements
 [#281](https://github.com/ErikSundvall/ehrtslib/issues/281).

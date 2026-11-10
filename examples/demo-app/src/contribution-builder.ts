@@ -10,6 +10,9 @@ import {
   type DemoClone,
   type DemoSession,
   type Field,
+  isLongText,
+  LONG_TEXT_FIELDS,
+  type LongTextField,
   preparePreview,
   readField,
   receive,
@@ -45,11 +48,15 @@ import {
 } from "./cb-time-travel.ts";
 
 const PRESENCE_FIELDS: Field[] = [
-  "heading",
-  "narrative",
+  "diagnosisName",
+  "clinicalDescription",
+  "comment",
   "systolic",
   "diastolic",
   "pulse",
+  "respirationRate",
+  "temperature",
+  "temperatureComment",
   "spo2",
 ];
 const PRESENCE_BEAT_MS = 2_500;
@@ -107,6 +114,23 @@ const presenceFocus = new Map<
 let presenceClock = 0;
 let presenceTicker: ReturnType<typeof globalThis.setInterval> | undefined;
 const narrativeViews = new Map<string, NarrativeCollabView>();
+
+function narrativeCollabKey(cloneId: string, field: LongTextField): string {
+  return `${cloneId}:${field}`;
+}
+
+function narrativeView(
+  cloneId: string,
+  field: LongTextField,
+): NarrativeCollabView {
+  const key = narrativeCollabKey(cloneId, field);
+  let view = narrativeViews.get(key);
+  if (!view) {
+    view = new NarrativeCollabView(cloneId);
+    narrativeViews.set(key, view);
+  }
+  return view;
+}
 const timeTravel = new Map<string, TimeTravelState>();
 const scrubPreview = new Map<
   string,
@@ -219,12 +243,11 @@ function applyCollab(
   clone: DemoClone,
   message: NarrativeCollabWireMessage,
 ): void {
-  const view = narrativeViews.get(clone.id);
-  if (!view) return;
+  const view = narrativeView(clone.id, message.field);
   view.apply(message);
   const panel = panels.get(clone.id);
   const textarea = panel?.querySelector<HTMLTextAreaElement>(
-    '[data-field="narrative"]',
+    `[data-field="${message.field}"]`,
   );
   if (textarea) {
     paintNarrativeCollab(textarea, view, nowMs());
@@ -238,13 +261,16 @@ function renderAllPresence(): void {
   }
 }
 function renderNarrativeCollab(clone: DemoClone): void {
-  const view = narrativeViews.get(clone.id);
   const panel = panels.get(clone.id);
-  const textarea = panel?.querySelector<HTMLTextAreaElement>(
-    '[data-field="narrative"]',
-  );
-  if (!view || !textarea) return;
-  paintNarrativeCollab(textarea, view, presenceClock || nowMs());
+  if (!panel) return;
+  const atMs = presenceClock || nowMs();
+  for (const field of LONG_TEXT_FIELDS) {
+    const textarea = panel.querySelector<HTMLTextAreaElement>(
+      `[data-field="${field}"]`,
+    );
+    if (!textarea) continue;
+    paintNarrativeCollab(textarea, narrativeView(clone.id, field), atMs);
+  }
 }
 function cloneReadOnly(clone: DemoClone): boolean {
   const state = timeTravel.get(clone.id);
@@ -443,8 +469,8 @@ function render(clone: DemoClone): void {
   ) {
     const field = input.dataset.field as Field;
     // A focused whole-value edit retains its base rev and unsubmitted value.
-    if (document.activeElement === input && field !== "narrative") continue;
-    if (composing.has(clone.id) && field === "narrative") continue;
+    if (document.activeElement === input && !isLongText(field)) continue;
+    if (composing.has(clone.id) && isLongText(field)) continue;
     updateText(input, String(readFieldForPanel(clone, field)));
     if (!cloneReadOnly(clone)) {
       input.dataset.rev = clone.caller.build.logRev();
@@ -516,7 +542,6 @@ function createPanel(clone: DemoClone): void {
     clone.id,
     new PresenceView(clone.id, DEFAULT_PRESENCE_CONFIG),
   );
-  narrativeViews.set(clone.id, new NarrativeCollabView(clone.id));
   const template = $<HTMLTemplateElement>("#clone-template");
   const panel = template.content.firstElementChild!.cloneNode(
     true,
@@ -573,7 +598,7 @@ function createPanel(clone: DemoClone): void {
           clone,
           field,
           value,
-          field === "narrative"
+          isLongText(field)
             ? clone.caller.build.logRev()
             : input.dataset.rev,
         );
@@ -590,12 +615,13 @@ function createPanel(clone: DemoClone): void {
             to: after,
             atMs: nowMs(),
           });
-          if (field === "narrative") {
+          if (isLongText(field)) {
             const { start, end } = diffRange(before, after);
             broadcastCollab(clone, {
               t: "text-hl",
               userId: clone.id,
               name: clone.username,
+              field,
               start,
               end,
               atMs: nowMs(),
@@ -615,7 +641,7 @@ function createPanel(clone: DemoClone): void {
         );
       }
     };
-    if (field === "narrative") {
+    if (isLongText(field)) {
       ensureNarrativeShell(input);
       input.addEventListener("input", () => {
         emitPresence(clone, field, "editing");
@@ -625,6 +651,7 @@ function createPanel(clone: DemoClone): void {
           t: "caret",
           userId: clone.id,
           name: clone.username,
+          field,
           offset,
           atMs: nowMs(),
         });
@@ -637,6 +664,7 @@ function createPanel(clone: DemoClone): void {
           t: "caret",
           userId: clone.id,
           name: clone.username,
+          field,
           offset,
           atMs: nowMs(),
         });
@@ -648,6 +676,7 @@ function createPanel(clone: DemoClone): void {
           t: "caret",
           userId: clone.id,
           name: clone.username,
+          field,
           offset,
           atMs: nowMs(),
         });
@@ -656,7 +685,7 @@ function createPanel(clone: DemoClone): void {
       input.addEventListener("change", edit);
     }
     input.addEventListener("blur", () => render(clone));
-    if (field === "narrative") {
+    if (isLongText(field)) {
       input.addEventListener("compositionstart", () => composing.add(clone.id));
       input.addEventListener("compositionend", () => {
         composing.delete(clone.id);
@@ -907,7 +936,7 @@ async function start(): Promise<void> {
   $("#log-pane").addEventListener("toggle", renderLog);
   $("#log-clone").addEventListener("change", renderLog);
   status.textContent =
-    "Ready. Scalar fields apply on change; diagnosis narrative merges as you type. Each sender and receiver adds its own random link delay.";
+    "Ready. Scalar fields apply on change; long narrative fields merge as you type. Each sender and receiver adds its own random link delay.";
 }
 globalThis.addEventListener("pagehide", () => {
   for (const timer of timers) clearTimeout(timer);

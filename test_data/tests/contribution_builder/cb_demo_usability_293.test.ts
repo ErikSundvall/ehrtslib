@@ -36,10 +36,10 @@ function msg(m: PresenceWireMessage): PresenceWireMessage {
 
 Deno.test("cb demo #293: presence badges sort by most recent activity", () => {
   const view = new PresenceView("self");
-  view.heartbeat(peer("u1", "alpha"), "heading", "focused", t0);
-  view.recordEdit(peer("u2", "beta"), "heading", "a", "b", t0 + 5_000);
-  view.heartbeat(peer("u3", "gamma"), "heading", "editing", t0 + 10_000);
-  const badges = view.badgesForField("heading", t0 + 11_000).badges;
+  view.heartbeat(peer("u1", "alpha"), "diagnosisName", "focused", t0);
+  view.recordEdit(peer("u2", "beta"), "diagnosisName", "a", "b", t0 + 5_000);
+  view.heartbeat(peer("u3", "gamma"), "diagnosisName", "editing", t0 + 10_000);
+  const badges = view.badgesForField("diagnosisName", t0 + 11_000).badges;
   assertEquals(badges.map((b) => b.userId), ["u3", "u2", "u1"]);
 });
 
@@ -78,6 +78,7 @@ Deno.test("cb demo #293: narrative highlight opacity expires", () => {
     t: "text-hl",
     userId: "remote",
     name: "remote.user",
+    field: "clinicalDescription",
     start: 0,
     end: 3,
     atMs: t0,
@@ -125,7 +126,7 @@ Deno.test("cb demo #293: wire join still shows focused badge", () => {
       atMs: t0,
     }),
   );
-  const onHeading = view.badgesForField("heading", t0 + 100);
+  const onHeading = view.badgesForField("diagnosisName", t0 + 100);
   assertEquals(onHeading.badges.length, 1);
   assertEquals(onHeading.badges[0]!.kind, "focused");
 });

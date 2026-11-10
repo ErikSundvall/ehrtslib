@@ -1,4 +1,5 @@
 /** Long-text remote carets and fading edit highlights (demo UI layer). */
+import type { LongTextField } from "./contribution-demo.ts";
 import { userAccentColor, userInitials } from "./cb-presence.ts";
 
 export interface NarrativeCollabConfig {
@@ -44,6 +45,7 @@ export type NarrativeCollabWireMessage =
     t: "caret";
     userId: string;
     name: string;
+    field: LongTextField;
     offset: number;
     atMs: number;
   }
@@ -51,6 +53,7 @@ export type NarrativeCollabWireMessage =
     t: "text-hl";
     userId: string;
     name: string;
+    field: LongTextField;
     start: number;
     end: number;
     atMs: number;

@@ -71,7 +71,8 @@ FLAT/STRUCTURED options are described in [docs/SIMPLIFIED_FORMATS.md](../../docs
 The same app also contains a separate [Contribution Builder page](https://eriksundvall.github.io/ehrtslib/demo/contribution-builder.html)
 ([guide](../../docs/contribution-builder-demo.md)):
 two or more independent Automerge clones, delayed in-page sync, hand-coded vital
-signs and diagnosis text, operation-log inspection, and server-free commit tabs.
+signs, a short problem/diagnosis name, and narrative text on the template's
+clinical description and comment fields.
 Open it from the converter's navigation, or go directly to the live page.
 
 ### Contribution Builder development checks

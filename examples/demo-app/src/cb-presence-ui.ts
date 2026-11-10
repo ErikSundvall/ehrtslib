@@ -8,11 +8,15 @@ import {
 } from "./cb-presence.ts";
 
 const HEADING_SELECTORS: Partial<Record<Field, string>> = {
-  heading: ".field-heading--heading",
-  narrative: ".field-heading--narrative",
+  diagnosisName: ".field-heading--diagnosisName",
+  clinicalDescription: ".field-heading--clinicalDescription",
+  comment: ".field-heading--comment",
+  temperatureComment: ".field-heading--temperatureComment",
   systolic: ".field-heading--systolic",
   diastolic: ".field-heading--diastolic",
   pulse: ".field-heading--pulse",
+  respirationRate: ".field-heading--respirationRate",
+  temperature: ".field-heading--temperature",
   spo2: ".field-heading--spo2",
 };
 
