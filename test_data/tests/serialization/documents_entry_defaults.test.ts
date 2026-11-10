@@ -139,7 +139,7 @@ Deno.test("divergent entry language/subject serialize explicitly and round-trip"
   const original = vitalSignsWithDivergentEntry();
   const md = new MarkdownSerializer(STRUCTURAL_MARKDOWN_CONFIG).serialize(original);
   assertStringIncludes(md, "_language:_ ISO_639-1::sv");
-  assertStringIncludes(md, "_subject:_ PARTY_IDENTIFIED:Related person");
+  assertStringIncludes(md, "_subject:_ Related person");
   const parsed = new MarkdownDeserializer().deserialize<Record<string, unknown>>(md);
   assert(rmTreesSemanticallyEqual(original, parsed));
 });
