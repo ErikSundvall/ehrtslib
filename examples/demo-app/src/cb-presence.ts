@@ -71,7 +71,7 @@ export class PresenceView {
     if (peer.userId === this.#selfId) return;
     this.#live.set(peer.userId, {
       peer,
-      field: "heading",
+      field: "diagnosisName",
       state: "focused",
       atMs,
     });

@@ -11,13 +11,15 @@ sketches are in the [user overview](contribution-builder.md).
    links illustrate office LAN and rural phone. Add more clones as needed; each
    receives a suggested, editable clinical username and its own randomised
    range.
-2. Change BP, pulse, SpO₂ or the short diagnosis heading. These whole-value
-   edits apply on change, carrying the revision captured on focus. A stale write
-   is rejected; blur shows the current value. Try editing the same field in both
-   panes before the rural link delivers.
-3. Type into the long diagnosis narrative in both panes. Unicode-aware splices
-   go to native Automerge text. Sender and receiver each add a random delay from
-   their own link range. **Sync all now** explicitly bypasses those delays.
+2. Change respiration, BP, pulse, temperature, SpO₂ or the short
+   problem/diagnosis name (`at0002`). These whole-value edits apply on change,
+   carrying the revision captured on focus. A stale write is rejected; blur
+   shows the current value. Try editing the same field in both panes before the
+   rural link delivers.
+3. Type into Clinical description (`at0009`), the diagnosis Comment (`at0069`)
+   or the temperature comment (`at0063`). Unicode-aware splices go to native
+   Automerge text. Sender and receiver each add a random delay from their own
+   link range. **Sync all now** explicitly bypasses those delays.
 4. Expand the small operation-log pane. Select the clone's view to inspect
    authored operations, revision references and eventual convergence. Per-clone
    diagnostics expose full validation and skipped concurrent operations.
@@ -33,8 +35,9 @@ The form, selected WT paths, DOM/caret handling, delay scheduler, in-page
 `MessageChannel.postMessage` hub and output tab are hand-coded. The real theme
 pack OPT/WT are bundled locally with
 [provenance](../examples/demo-app/public/contribution-builder/README.md). The
-theme pack has no general notes field: the long field is the diagnosis DV_TEXT,
-with an editable `EVALUATION.name` heading.
+theme pack is `simple-diagnose-and-vitals` 0.4.0 (Ehrlibs `3d11d53`). Long text is
+clinical description (`at0009`), diagnosis comment (`at0069`) and temperature
+comment (`at0063`). Problem/Diagnosis name (`at0002`) stays a short DV_TEXT.
 
 The library supplies template binding, RM generation, stable node keys,
 validation, append-only operations, `rev` checks, `createMultiCaller`,

@@ -10,6 +10,7 @@ import {
   type DemoClone,
   type DemoSession,
   type Field,
+  isLongText,
   preparePreview,
   readField,
   receive,
@@ -26,11 +27,15 @@ import {
 import { ensurePresenceHosts, paintPresenceBadges } from "./cb-presence-ui.ts";
 
 const PRESENCE_FIELDS: Field[] = [
-  "heading",
-  "narrative",
+  "diagnosisName",
+  "clinicalDescription",
+  "comment",
   "systolic",
   "diastolic",
   "pulse",
+  "respirationRate",
+  "temperature",
+  "temperatureComment",
   "spo2",
 ];
 const PRESENCE_BEAT_MS = 2_500;
@@ -296,8 +301,8 @@ function render(clone: DemoClone): void {
   ) {
     const field = input.dataset.field as Field;
     // A focused whole-value edit retains its base rev and unsubmitted value.
-    if (document.activeElement === input && field !== "narrative") continue;
-    if (composing.has(clone.id) && field === "narrative") continue;
+    if (document.activeElement === input && !isLongText(field)) continue;
+    if (composing.has(clone.id) && isLongText(field)) continue;
     updateText(input, String(readField(session, clone, field)));
     input.dataset.rev = clone.caller.build.logRev();
   }
@@ -375,7 +380,7 @@ function createPanel(clone: DemoClone): void {
           clone,
           field,
           value,
-          field === "narrative"
+          isLongText(field)
             ? clone.caller.build.logRev()
             : input.dataset.rev,
         );
@@ -406,7 +411,7 @@ function createPanel(clone: DemoClone): void {
         );
       }
     };
-    if (field === "narrative") {
+    if (isLongText(field)) {
       input.addEventListener("input", () => {
         emitPresence(clone, field, "editing");
         startPresenceBeat(clone);
@@ -416,7 +421,7 @@ function createPanel(clone: DemoClone): void {
       input.addEventListener("change", edit);
     }
     input.addEventListener("blur", () => render(clone));
-    if (field === "narrative") {
+    if (isLongText(field)) {
       input.addEventListener("compositionstart", () => composing.add(clone.id));
       input.addEventListener("compositionend", () => {
         composing.delete(clone.id);
@@ -662,7 +667,7 @@ async function start(): Promise<void> {
   $("#log-pane").addEventListener("toggle", renderLog);
   $("#log-clone").addEventListener("change", renderLog);
   status.textContent =
-    "Ready. Scalar fields apply on change; diagnosis narrative merges as you type. Each sender and receiver adds its own random link delay.";
+    "Ready. Vital signs and the diagnosis name apply on change. Clinical description and comments merge as you type. Each sender and receiver adds its own random link delay.";
 }
 globalThis.addEventListener("pagehide", () => {
   for (const timer of timers) clearTimeout(timer);

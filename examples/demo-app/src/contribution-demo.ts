@@ -29,12 +29,36 @@ export const DELAY_PROFILES = {
 } as const;
 export type DelayProfile = keyof typeof DELAY_PROFILES;
 export type Field =
-  | "heading"
-  | "narrative"
+  | "diagnosisName"
+  | "clinicalDescription"
+  | "comment"
   | "systolic"
   | "diastolic"
   | "pulse"
-  | "spo2";
+  | "spo2"
+  | "respirationRate"
+  | "temperature"
+  | "temperatureComment";
+
+/** DV_TEXT fields edited as native Automerge text, not whole-value replacements. */
+export const LONG_TEXT_FIELDS = [
+  "clinicalDescription",
+  "comment",
+  "temperatureComment",
+] as const;
+export type LongTextField = typeof LONG_TEXT_FIELDS[number];
+
+export function isLongText(field: Field): field is LongTextField {
+  return (LONG_TEXT_FIELDS as readonly string[]).includes(field);
+}
+
+const CLINICAL_DESCRIPTION =
+  "Symptoms began yesterday evening with a sore throat and a dry cough.\nThe patient is comfortable at rest and drinking well.\n\nNo chest pain. Follow-up is planned in two days if the fever persists.";
+const DIAGNOSIS_COMMENT =
+  "Synthetic additional comment. Household contacts have similar symptoms.\nThis note is not the diagnosis name.";
+const TEMPERATURE_COMMENT =
+  "Oral measurement. The room was warm.\nSynthetic example only.";
+const DIAGNOSIS_NAME = "Suspected viral upper respiratory infection";
 export interface FieldBinding {
   target: string;
   path: string;
@@ -132,6 +156,73 @@ function makeClone(
   return clone;
 }
 
+function parentKeyOf(
+  tree: unknown,
+  archetype: string,
+  anchorId: string,
+): string {
+  const entry = nodeIn(tree, (n) => n.archetype_node_id === archetype);
+  const anchor = nodeIn(
+    entry,
+    (n) => n._type === "ELEMENT" && n.archetype_node_id === anchorId,
+  );
+  let found: string | undefined;
+  function visit(value: unknown): void {
+    if (!value || typeof value !== "object" || found) return;
+    const rec = value as Node;
+    if (Array.isArray(rec.items) && rec.items.includes(anchor)) {
+      found = key(rec);
+      return;
+    }
+    for (const child of Object.values(rec)) {
+      if (Array.isArray(child)) child.forEach(visit);
+      else visit(child);
+    }
+  }
+  visit(entry);
+  if (!found) {
+    throw new Error(`No parent item list for ${archetype} ${anchorId}`);
+  }
+  return found;
+}
+
+function ensureTextElement(
+  build: DemoClone["caller"]["build"],
+  draftId: string,
+  spec: {
+    archetype: string;
+    anchor: string;
+    nodeId: string;
+    label: string;
+    text: string;
+  },
+): void {
+  const tree = build.toCanonicalJson(draftId);
+  const entry = nodeIn(tree, (n) => n.archetype_node_id === spec.archetype);
+  const existing = (() => {
+    try {
+      return nodeIn(
+        entry,
+        (n) => n._type === "ELEMENT" && n.archetype_node_id === spec.nodeId,
+      );
+    } catch {
+      return undefined;
+    }
+  })();
+  if (existing) {
+    build.setValue(draftId, key(existing), "value/value", spec.text, {
+      rev: build.logRev(),
+    });
+    return;
+  }
+  build.addInstance(draftId, parentKeyOf(tree, spec.archetype, spec.anchor), "items", {
+    _type: "ELEMENT",
+    archetype_node_id: spec.nodeId,
+    name: { _type: "DV_TEXT", value: spec.label },
+    value: { _type: "DV_TEXT", value: spec.text },
+  });
+}
+
 export async function createDemoSession(
   optText: string,
   wtText: string,
@@ -159,6 +250,10 @@ export async function createDemoSession(
     [`${vitals}/blood_pressure/any_event:0/diastolic|unit`]: "mm[Hg]",
     [`${vitals}/pulse_heart_beat/any_event:0/rate|magnitude`]: 72,
     [`${vitals}/pulse_heart_beat/any_event:0/rate|unit`]: "/min",
+    [`${vitals}/respiration/any_event:0/rate|magnitude`]: 16,
+    [`${vitals}/respiration/any_event:0/rate|unit`]: "/min",
+    [`${vitals}/body_temperature/any_event:0/temperature|magnitude`]: 36.8,
+    [`${vitals}/body_temperature/any_event:0/temperature|unit`]: "Cel",
     [`${vitals}/pulse_oximetry/any_event:0/spo|numerator`]: 98,
     [`${vitals}/pulse_oximetry/any_event:0/spo|denominator`]: 100,
   }, wt);
@@ -182,15 +277,34 @@ export async function createDemoSession(
     new Date().toISOString(),
     { rev: build.logRev() },
   );
+  ensureTextElement(build, draftId, {
+    archetype: "openEHR-EHR-EVALUATION.problem_diagnosis.v1",
+    anchor: "at0002",
+    nodeId: "at0009",
+    label: "Clinical description",
+    text: CLINICAL_DESCRIPTION,
+  });
+  ensureTextElement(build, draftId, {
+    archetype: "openEHR-EHR-EVALUATION.problem_diagnosis.v1",
+    anchor: "at0002",
+    nodeId: "at0069",
+    label: "Comment",
+    text: DIAGNOSIS_COMMENT,
+  });
+  ensureTextElement(build, draftId, {
+    archetype: "openEHR-EHR-OBSERVATION.body_temperature.v2",
+    anchor: "at0004",
+    nodeId: "at0063",
+    label: "Comment",
+    text: TEMPERATURE_COMMENT,
+  });
   const tree = build.toCanonicalJson(draftId);
   const diagnosis = "openEHR-EHR-EVALUATION.problem_diagnosis.v1";
   const bp = "openEHR-EHR-OBSERVATION.blood_pressure.v2";
   const fields: Record<Field, FieldBinding> = {
-    heading: {
-      target: key(nodeIn(tree, (n) => n.archetype_node_id === diagnosis)),
-      path: "name/value",
-    },
-    narrative: binding(tree, diagnosis, "at0002", "value/value"),
+    diagnosisName: binding(tree, diagnosis, "at0002", "value/value"),
+    clinicalDescription: binding(tree, diagnosis, "at0009", "value/value"),
+    comment: binding(tree, diagnosis, "at0069", "value/value"),
     systolic: binding(tree, bp, "at0004", "value/magnitude"),
     diastolic: binding(tree, bp, "at0005", "value/magnitude"),
     pulse: binding(
@@ -199,6 +313,24 @@ export async function createDemoSession(
       "at0004",
       "value/magnitude",
     ),
+    respirationRate: binding(
+      tree,
+      "openEHR-EHR-OBSERVATION.respiration.v2",
+      "at0004",
+      "value/magnitude",
+    ),
+    temperature: binding(
+      tree,
+      "openEHR-EHR-OBSERVATION.body_temperature.v2",
+      "at0004",
+      "value/magnitude",
+    ),
+    temperatureComment: binding(
+      tree,
+      "openEHR-EHR-OBSERVATION.body_temperature.v2",
+      "at0063",
+      "value/value",
+    ),
     spo2: binding(
       tree,
       "openEHR-EHR-OBSERVATION.pulse_oximetry.v1",
@@ -206,22 +338,22 @@ export async function createDemoSession(
       "value/numerator",
     ),
   };
-  for (
-    const [field, value] of [["heading", "Suspected viral infection"], [
-      "narrative",
-      "Synthetic example. Symptoms started yesterday.\nPatient is comfortable at rest. Follow-up planned.",
-    ]] as const
-  ) {
-    const f = fields[field];
-    build.setValue(draftId, f.target, f.path, value, { rev: build.logRev() });
-  }
-  const f = fields.narrative;
-  clone.caller.adapter.seedText(
+  build.setValue(
     draftId,
-    f.target,
-    f.path,
-    String(readField({ draftId, fields }, clone, "narrative")),
+    fields.diagnosisName.target,
+    fields.diagnosisName.path,
+    DIAGNOSIS_NAME,
+    { rev: build.logRev() },
   );
+  for (const field of LONG_TEXT_FIELDS) {
+    const f = fields[field];
+    clone.caller.adapter.seedText(
+      draftId,
+      f.target,
+      f.path,
+      String(readField({ draftId, fields }, clone, field)),
+    );
+  }
   const session = {
     template,
     validator: await DraftValidator.create(),
@@ -253,7 +385,7 @@ export function readField(
   field: Field,
 ): string | number {
   const f = session.fields[field];
-  if (field === "narrative") {
+  if (isLongText(field)) {
     const text = clone.caller.adapter.nativeText(
       session.draftId,
       f.target,
@@ -282,7 +414,7 @@ export function writeField(
   const f = session.fields[field];
   if (readField(session, clone, field) === value) return;
   const options = { rev, author: { id: clone.id, name: clone.username } };
-  if (field !== "narrative") {
+  if (!isLongText(field)) {
     clone.caller.build.setValue(
       session.draftId,
       f.target,
@@ -317,8 +449,14 @@ export function receive(
   bytes: Uint8Array,
 ): boolean {
   mergeCaller(clone.caller, AutomergeOperationLogAdapter.load(bytes));
-  const f = session.fields.narrative;
-  return recordNativeText(clone.caller, session.draftId, f.target, f.path);
+  let changed = false;
+  for (const field of LONG_TEXT_FIELDS) {
+    const f = session.fields[field];
+    if (recordNativeText(clone.caller, session.draftId, f.target, f.path)) {
+      changed = true;
+    }
+  }
+  return changed;
 }
 
 /** Preparation compacts text: do it on an isolated replay, NOT the live CRDT. */
