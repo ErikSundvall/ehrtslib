@@ -53,17 +53,21 @@ export function ensurePresenceHosts(
   return hosts;
 }
 
+export function paintFieldBadgeView(host: HTMLElement, view: FieldBadgeView): void {
+  const { badges, overflow } = view;
+  host.replaceChildren(
+    ...badges.map((b) => badgeEl(b)),
+    ...(overflow > 0 ? [overflowEl(overflow)] : []),
+  );
+}
+
 export function paintPresenceBadges(
   hosts: Map<Field, HTMLElement>,
   view: PresenceView,
   atMs: number,
 ): void {
   for (const [field, host] of hosts) {
-    const { badges, overflow } = view.badgesForField(field, atMs);
-    host.replaceChildren(
-      ...badges.map((b) => badgeEl(b)),
-      ...(overflow > 0 ? [overflowEl(overflow)] : []),
-    );
+    paintFieldBadgeView(host, view.badgesForField(field, atMs));
   }
 }
 

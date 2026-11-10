@@ -18,7 +18,7 @@ import {
 import {
   initialTimeTravelState,
   isCloneReadOnly,
-  leaveScrubbing,
+  exitTimeTravel,
   setScrubStep,
   toggleTimelinePanel,
 } from "../../../examples/demo-app/src/cb-time-travel.ts";
@@ -120,20 +120,24 @@ Deno.test("cb demo #293: timeline collapsed by default; return-to-live only when
   assertFalse(deriveTimeTravelChrome(state).bannerVisible);
   state = toggleTimelinePanel(state);
   assertEquals(deriveTimeTravelChrome(state).panelOpen, true);
-  assertFalse(deriveTimeTravelChrome(state).returnToLiveVisible);
-  assertFalse(deriveTimeTravelChrome(state).bannerVisible);
+  assertEquals(deriveTimeTravelChrome(state).toggleLabel, "Return to live");
+  assertEquals(deriveTimeTravelChrome(state).returnToLiveVisible, true);
+  assertEquals(deriveTimeTravelChrome(state).bannerVisible, true);
   state = setScrubStep(state, 0);
   assertEquals(isCloneReadOnly(state), true);
   const chrome = deriveTimeTravelChrome(state);
+  assertEquals(chrome.toggleLabel, "Return to live");
   assertEquals(chrome.returnToLiveVisible, true);
   assertEquals(chrome.bannerVisible, true);
   assertEquals(chrome.statusText.includes("read-only"), true);
-  state = leaveScrubbing(state);
+  state = setScrubStep(state, state.maxStep);
+  assertEquals(isCloneReadOnly(state), true);
+  state = exitTimeTravel(state);
   const afterLive = deriveTimeTravelChrome(state);
   assertFalse(isCloneReadOnly(state));
   assertFalse(afterLive.returnToLiveVisible);
   assertFalse(afterLive.bannerVisible);
-  assertEquals(afterLive.panelOpen, true);
+  assertEquals(afterLive.panelOpen, false);
 });
 
 Deno.test("cb demo #293: automerge materializeAtStep rewinds", () => {

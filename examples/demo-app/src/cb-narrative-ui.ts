@@ -38,20 +38,44 @@ export function ensureNarrativeShell(textarea: HTMLTextAreaElement): {
   return { shell, backdrop, caretLayer };
 }
 
+export type NarrativeHighlightPaint = {
+  start: number;
+  end: number;
+  snippet: string;
+  accent: string;
+  opacity: number;
+};
+
+export function paintNarrativeHighlights(
+  textarea: HTMLTextAreaElement,
+  text: string,
+  highlights: NarrativeHighlightPaint[],
+  carets: ReturnType<NarrativeCollabView["carets"]> = [],
+): void {
+  const { backdrop, caretLayer } = ensureNarrativeShell(textarea);
+  syncMirrorGeometry(textarea, backdrop);
+  const views = highlights.map((hl, i) => ({
+    ...hl,
+    id: `paint-${i}`,
+    userId: "",
+    displayName: "",
+    atMs: 0,
+    initials: "",
+    expired: false,
+  }));
+  backdrop.replaceChildren(renderHighlightLayer(text, views));
+  caretLayer.replaceChildren(
+    ...carets.map((c) => caretMarker(c, textarea)),
+  );
+}
+
 export function paintNarrativeCollab(
   textarea: HTMLTextAreaElement,
   view: NarrativeCollabView,
   atMs: number,
 ): void {
-  const { backdrop, caretLayer } = ensureNarrativeShell(textarea);
-  syncMirrorGeometry(textarea, backdrop);
   const text = textarea.value;
-  const highlights = view.highlights(atMs);
-  backdrop.replaceChildren(renderHighlightLayer(text, highlights));
-  const carets = view.carets(atMs);
-  caretLayer.replaceChildren(
-    ...carets.map((c) => caretMarker(c, textarea)),
-  );
+  paintNarrativeHighlights(textarea, text, view.highlights(atMs), view.carets(atMs));
 }
 
 function syncMirrorGeometry(
@@ -75,7 +99,7 @@ function renderHighlightLayer(
 ): DocumentFragment {
   const frag = document.createDocumentFragment();
   const resolved = highlights.map((hl) => {
-    const range = resolveHighlightRange(text, hl.start, hl.snippet);
+    const range = resolveHighlightRange(text, hl.start, hl.snippet, hl.end);
     return range ? { ...hl, start: range.start, end: range.end } : null;
   }).filter(Boolean) as Array<
     ReturnType<NarrativeCollabView["highlights"]>[number]

@@ -26,7 +26,12 @@ import {
   PresenceView,
   type PresenceWireMessage,
 } from "./cb-presence.ts";
-import { ensurePresenceHosts, paintPresenceBadges } from "./cb-presence-ui.ts";
+import { historicalBadgesForField } from "./cb-history-presence.ts";
+import {
+  ensurePresenceHosts,
+  paintFieldBadgeView,
+  paintPresenceBadges,
+} from "./cb-presence-ui.ts";
 import {
   diffRange,
   NarrativeCollabView,
@@ -35,15 +40,22 @@ import {
 import {
   ensureNarrativeShell,
   paintNarrativeCollab,
+  paintNarrativeHighlights,
 } from "./cb-narrative-ui.ts";
+import {
+  historicalTextHighlights,
+  lastOpForField,
+} from "./cb-time-travel-narrative.ts";
 import { clampCaretOffset } from "./cb-narrative-layout.ts";
 import {
+  advancePlaybackStep,
   createHistoricalCaller,
+  exitTimeTravel,
   initialTimeTravelState,
   isCloneReadOnly,
-  leaveScrubbing,
   refreshTimeline,
   setScrubStep,
+  toggleHistoryPlayback,
   toggleTimelinePanel,
   type TimeTravelState,
 } from "./cb-time-travel.ts";
@@ -136,8 +148,44 @@ function narrativeView(
 const timeTravel = new Map<string, TimeTravelState>();
 const scrubPreview = new Map<
   string,
-  { step: number; caller: DemoClone["caller"] }
+  Map<number, DemoClone["caller"]>
 >();
+const historyPlayTimers = new Map<
+  string,
+  ReturnType<typeof globalThis.setInterval>
+>();
+
+function stopHistoryPlayback(cloneId: string): void {
+  const timer = historyPlayTimers.get(cloneId);
+  if (timer !== undefined) {
+    clearInterval(timer);
+    historyPlayTimers.delete(cloneId);
+    timers.delete(timer);
+  }
+}
+
+function syncHistoryPlayback(clone: DemoClone): void {
+  const state = timeTravel.get(clone.id);
+  if (!state?.playing || !state.panelOpen) {
+    stopHistoryPlayback(clone.id);
+    return;
+  }
+  if (historyPlayTimers.has(clone.id)) return;
+  const timer = globalThis.setInterval(() => {
+    const current = timeTravel.get(clone.id);
+    if (!current?.playing || !current.panelOpen) {
+      stopHistoryPlayback(clone.id);
+      return;
+    }
+    const next = advancePlaybackStep(current);
+    timeTravel.set(clone.id, next);
+    scrubPreview.delete(clone.id);
+    render(clone);
+    if (!next.playing) stopHistoryPlayback(clone.id);
+  }, 500);
+  historyPlayTimers.set(clone.id, timer);
+  timers.add(timer);
+}
 
 function later(fn: () => void, ms: number): Timer {
   const timer = globalThis.setTimeout(() => {
@@ -262,15 +310,65 @@ function renderAllPresence(): void {
     renderNarrativeCollab(clone);
   }
 }
+function historicalCaller(
+  clone: DemoClone,
+  step: number,
+): DemoClone["caller"] {
+  let byStep = scrubPreview.get(clone.id);
+  if (!byStep) {
+    byStep = new Map();
+    scrubPreview.set(clone.id, byStep);
+  }
+  const cached = byStep.get(step);
+  if (cached) return cached;
+  const caller = createHistoricalCaller(
+    { author: clone.author, replica: clone.id },
+    clone.caller.adapter.save(),
+    step,
+    clone.caller.build.buildId,
+  );
+  byStep.set(step, caller);
+  return caller;
+}
+
 function renderNarrativeCollab(clone: DemoClone): void {
   const panel = panels.get(clone.id);
   if (!panel) return;
+  const travel = timeTravel.get(clone.id);
   const atMs = presenceClock || nowMs();
   for (const field of LONG_TEXT_FIELDS) {
     const textarea = panel.querySelector<HTMLTextAreaElement>(
       `[data-field="${field}"]`,
     );
     if (!textarea) continue;
+    if (travel?.panelOpen) {
+      const afterText = String(readFieldForPanel(clone, field));
+      const beforeText = travel.step > 0
+        ? String(
+          readField(
+            session,
+            { ...clone, caller: historicalCaller(clone, travel.step - 1) },
+            field,
+          ),
+        )
+        : afterText;
+      const ops = historicalCaller(clone, travel.step).adapter.operations();
+      const op = lastOpForField(
+        ops,
+        session.fields,
+        field,
+        travel.step,
+        travel.maxStep,
+      );
+      const highlights = historicalTextHighlights(
+        field,
+        beforeText,
+        afterText,
+        op,
+      );
+      paintNarrativeHighlights(textarea, afterText, highlights);
+      continue;
+    }
     paintNarrativeCollab(textarea, narrativeView(clone.id, field), atMs);
   }
 }
@@ -303,14 +401,21 @@ function refreshTimeTravel(clone: DemoClone): void {
   const toggle = $(".time-travel-toggle", panel);
   const panelEl = $(".time-travel-panel", panel);
   const liveBtn = $(".time-travel-live", panel);
+  const playBtn = $<HTMLButtonElement>(".time-travel-play", panel);
   const banner = $(".time-travel-readonly-banner", panel);
-  const chrome = deriveTimeTravelChrome(next);
+  const chrome = deriveTimeTravelChrome(next, bytes);
   panelEl.hidden = !chrome.panelOpen;
   toggle.setAttribute("aria-expanded", chrome.panelOpen ? "true" : "false");
-  liveBtn.hidden = !chrome.returnToLiveVisible;
+  toggle.textContent = chrome.toggleLabel;
+  liveBtn.hidden = true;
   banner.hidden = !chrome.bannerVisible;
   $(".time-travel-status", panel).textContent = chrome.statusText;
+  $(".time-travel-moment", panel).textContent = chrome.timelineCaption;
+  playBtn.hidden = !chrome.panelOpen;
+  playBtn.textContent = chrome.playing ? "Pause" : "Play";
+  playBtn.setAttribute("aria-pressed", chrome.playing ? "true" : "false");
   panel.classList.toggle("clone--history-readonly", chrome.bannerVisible);
+  syncHistoryPlayback(clone);
   updateCloneInputsDisabled(clone);
 }
 function updateCloneInputsDisabled(clone: DemoClone): void {
@@ -330,18 +435,11 @@ function readFieldForPanel(clone: DemoClone, field: Field): string | number {
   const state = timeTravel.get(clone.id);
   if (state && isCloneReadOnly(state)) {
     try {
-      const cached = scrubPreview.get(clone.id);
-      let caller = cached?.step === state.step ? cached.caller : undefined;
-      if (!caller) {
-        caller = createHistoricalCaller(
-          { author: clone.author, replica: clone.id },
-          clone.caller.adapter.save(),
-          state.step,
-          clone.caller.build.buildId,
-        );
-        scrubPreview.set(clone.id, { step: state.step, caller });
-      }
-      return readField(session, { ...clone, caller }, field);
+      return readField(
+        session,
+        { ...clone, caller: historicalCaller(clone, state.step) },
+        field,
+      );
     } catch {
       return readField(session, clone, field);
     }
@@ -352,7 +450,26 @@ function renderPresence(clone: DemoClone): void {
   const hosts = presenceHosts.get(clone.id);
   const view = presenceViews.get(clone.id);
   if (!hosts || !view) return;
-  paintPresenceBadges(hosts, view, presenceClock || nowMs());
+  const travel = timeTravel.get(clone.id);
+  const atMs = presenceClock || nowMs();
+  if (travel?.panelOpen) {
+    const ops = historicalCaller(clone, travel.step).adapter.operations();
+    for (const [field, host] of hosts) {
+      paintFieldBadgeView(
+        host,
+        historicalBadgesForField(
+          ops,
+          session.fields,
+          field,
+          travel.step,
+          travel.maxStep,
+          atMs,
+        ),
+      );
+    }
+    return;
+  }
+  paintPresenceBadges(hosts, view, atMs);
 }
 function ensurePresenceTicker(): void {
   if (presenceTicker !== undefined) return;
@@ -517,17 +634,17 @@ function render(clone: DemoClone): void {
 function setupTimeTravel(clone: DemoClone, panel: HTMLElement): void {
   const toggle = $(".time-travel-toggle", panel);
   const scrub = $(".time-travel-scrub", panel);
-  const liveBtn = $(".time-travel-live", panel);
+  const playBtn = $(".time-travel-play", panel);
   timeTravel.set(
     clone.id,
     initialTimeTravelState(0),
   );
   toggle.addEventListener("click", () => {
     const state = timeTravel.get(clone.id)!;
-    const next = refreshTimeline(
-      clone.caller.adapter.save(),
-      toggleTimelinePanel(state),
-    );
+    const toggled = state.panelOpen
+      ? exitTimeTravel(state)
+      : toggleTimelinePanel(state);
+    const next = refreshTimeline(clone.caller.adapter.save(), toggled);
     timeTravel.set(clone.id, next);
     scrubPreview.delete(clone.id);
     render(clone);
@@ -542,14 +659,13 @@ function setupTimeTravel(clone: DemoClone, panel: HTMLElement): void {
   scrub.addEventListener("input", onScrubInput);
   scrub.addEventListener("change", onScrubInput);
   scrub.addEventListener("pointerup", onScrubInput);
-  liveBtn.addEventListener("click", () => {
+  playBtn.addEventListener("click", () => {
     const state = timeTravel.get(clone.id)!;
     const next = refreshTimeline(
       clone.caller.adapter.save(),
-      leaveScrubbing(state),
+      toggleHistoryPlayback(state),
     );
     timeTravel.set(clone.id, next);
-    scrubPreview.delete(clone.id);
     render(clone);
   });
 }
