@@ -4,6 +4,7 @@
 
 import { JsonCanonicalSerializer } from "../json/json_canonical_serializer.ts";
 import { normalizeCompositionEntryDefaultsInPlace } from "./document_entry_defaults.ts";
+import { hydrateInferrableRmTypesInPlace } from "./rm_type_hydrate.ts";
 
 function canonicalize(value: unknown): unknown {
   const serializer = new JsonCanonicalSerializer({ onNonRmValue: "pass" });
@@ -23,11 +24,13 @@ function sortKeysDeep(value: unknown): unknown {
   return value;
 }
 
-function withCompositionEntryDefaults(root: unknown): unknown {
+function prepareForSemanticCompare(root: unknown): unknown {
   if (!root || typeof root !== "object") return root;
-  if ((root as Record<string, unknown>)._type !== "COMPOSITION") return root;
-  const copy = structuredClone(root);
-  normalizeCompositionEntryDefaultsInPlace(copy);
+  const copy = structuredClone(root) as Record<string, unknown>;
+  hydrateInferrableRmTypesInPlace(copy);
+  if (copy._type === "COMPOSITION") {
+    normalizeCompositionEntryDefaultsInPlace(copy);
+  }
   return copy;
 }
 
@@ -35,7 +38,7 @@ function withCompositionEntryDefaults(root: unknown): unknown {
  * Compare two RM trees after canonical JSON normalization (not byte-identical text).
  */
 export function rmTreesSemanticallyEqual(a: unknown, b: unknown): boolean {
-  const ca = sortKeysDeep(canonicalize(withCompositionEntryDefaults(a)));
-  const cb = sortKeysDeep(canonicalize(withCompositionEntryDefaults(b)));
+  const ca = sortKeysDeep(canonicalize(prepareForSemanticCompare(a)));
+  const cb = sortKeysDeep(canonicalize(prepareForSemanticCompare(b)));
   return JSON.stringify(ca) === JSON.stringify(cb);
 }

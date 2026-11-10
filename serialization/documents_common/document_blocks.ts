@@ -2,6 +2,7 @@
  * Normalized block stream for Markdown and AsciiDoc document deserializers.
  */
 
+import { isOeRmAnnotationInner } from "./oe_rm_annotation.ts";
 import {
   isOeValueAnnotationInner,
   OE_VALUE_ANNOTATION_PREFIX,
@@ -25,6 +26,8 @@ export type DocumentListItemBlock = {
   archetypeNodeId?: string;
   /** Inner payload `oe:v1:b64:…` when present (sparse value typing). */
   oeValuePayload?: string;
+  /** Inner payload `oe:rm:v1:b64:…` when present (sparse RM patch). */
+  oeRmPayload?: string;
 };
 
 export type DocumentBoldBlock = {
@@ -75,22 +78,35 @@ export const ENTRY_TYPES = new Set([
 
 export function stripNodeIdAndType(
   line: string,
-): { text: string; archetypeNodeId?: string; rmType?: string; oeValuePayload?: string } {
+): {
+  text: string;
+  archetypeNodeId?: string;
+  rmType?: string;
+  oeValuePayload?: string;
+  oeRmPayload?: string;
+} {
   let rest = line.trim();
   let archetypeNodeId: string | undefined;
   let oeValuePayload: string | undefined;
+  let oeRmPayload: string | undefined;
 
   for (const comment of rest.matchAll(/<!--\s*([^>]+?)\s*-->/g)) {
     const inner = comment[1].trim();
-    if (isOeValueAnnotationInner(inner)) oeValuePayload = inner;
+    if (isOeRmAnnotationInner(inner)) oeRmPayload = inner;
+    else if (isOeValueAnnotationInner(inner)) oeValuePayload = inner;
     else if (isArchetypeNodeIdMarker(inner)) archetypeNodeId ??= inner;
   }
   rest = rest.replace(/<!--\s*[^>]+?\s*-->/g, "").trim();
 
-  const oeAdoc = rest.match(new RegExp(String.raw`\s+//\s+(${OE_VALUE_ANNOTATION_PREFIX}\S+)\s*$`));
-  if (oeAdoc) {
-    oeValuePayload = oeAdoc[1].trim();
-    rest = rest.replace(new RegExp(String.raw`\s+//\s+${OE_VALUE_ANNOTATION_PREFIX}\S+\s*$`), "").trim();
+  const oeRmAny = rest.match(/\s+\/\/\s+(oe:rm:v1:b64:\S+)/);
+  if (oeRmAny) {
+    oeRmPayload ??= oeRmAny[1].trim();
+    rest = rest.replace(/\s+\/\/\s+oe:rm:v1:b64:\S+/g, "").trim();
+  }
+  const oeValAny = rest.match(new RegExp(String.raw`\s+//\s+(${OE_VALUE_ANNOTATION_PREFIX}\S+)`));
+  if (oeValAny) {
+    oeValuePayload ??= oeValAny[1].trim();
+    rest = rest.replace(new RegExp(String.raw`\s+//\s+${OE_VALUE_ANNOTATION_PREFIX}\S+`, "g"), "").trim();
   }
 
   const inlineAdoc = rest.match(/\s+\/\/\s+([^\s]+)\s*$/);
@@ -111,7 +127,7 @@ export function stripNodeIdAndType(
 
   rest = rest.replace(/\[\[urn:openehr:aom:[^\]]+\|[^\]]*\]\]/g, "").trim();
 
-  return { text: rest, archetypeNodeId, rmType, oeValuePayload };
+  return { text: rest, archetypeNodeId, rmType, oeValuePayload, oeRmPayload };
 }
 
 /** AsciiDoc `//` comment lines that carry round-trip archetype node ids (not free-form doc notes). */

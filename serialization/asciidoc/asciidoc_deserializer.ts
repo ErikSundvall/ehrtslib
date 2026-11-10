@@ -3,6 +3,7 @@
  */
 
 import {
+  applyCompositionEntryDefaults,
   blocksToRmObject,
   detectDocumentDialect,
   type DocumentMetadata,
@@ -39,9 +40,10 @@ export class AsciidocDeserializer {
     try {
       const { frontmatter, blocks } = lexAsciidocLossless(adoc);
       const meta: DocumentMetadata = { frontmatter };
-      const instance = blocksToRmObject(blocks, meta, {
+      let instance = blocksToRmObject(blocks, meta, {
         validateAgainstTemplate: this.config.validateAgainstTemplate,
       });
+      applyCompositionEntryDefaults(instance, meta);
       this.maybeValidate(instance, adoc);
       return instance as T;
     } catch (error) {

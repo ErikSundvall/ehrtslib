@@ -104,19 +104,24 @@ export function lexMarkdownStructural(body: string): DocumentBlock[] {
           value: meta[2],
           archetypeNodeId: stripped.archetypeNodeId,
           oeValuePayload: stripped.oeValuePayload,
+          oeRmPayload: stripped.oeRmPayload,
         });
         continue;
       }
-      const kv = itemText.match(/^\*\*([^:]+):\*\*\s*(.+)$/);
+      const dblColon = itemText.match(/^\*\*(.+)::\*\*\s*(.*)$/s);
+      const kv = dblColon ?? itemText.match(/^\*\*([^:]+):\*\*\s*(.*)$/s);
       if (kv) {
+        const label = dblColon ? `${dblColon[1]}:` : kv[1];
+        const value = dblColon ? dblColon[2] : kv[2];
         blocks.push({
           kind: "list_item",
           indent,
           raw: `- ${itemText}`,
-          label: kv[1],
-          value: kv[2],
+          label,
+          value,
           archetypeNodeId: stripped.archetypeNodeId,
           oeValuePayload: stripped.oeValuePayload,
+          oeRmPayload: stripped.oeRmPayload,
         });
         continue;
       }
@@ -132,6 +137,7 @@ export function lexMarkdownStructural(body: string): DocumentBlock[] {
           value: plain[2],
           archetypeNodeId: stripped.archetypeNodeId,
           oeValuePayload: stripped.oeValuePayload,
+          oeRmPayload: stripped.oeRmPayload,
         });
         continue;
       }
@@ -144,6 +150,7 @@ export function lexMarkdownStructural(body: string): DocumentBlock[] {
           label: clusterOnly[1],
           archetypeNodeId: stripped.archetypeNodeId,
           oeValuePayload: stripped.oeValuePayload,
+          oeRmPayload: stripped.oeRmPayload,
         });
         continue;
       }

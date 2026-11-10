@@ -14,39 +14,39 @@ import { TypeRegistry } from "../../../serialization/common/type_registry.ts";
 TypeRegistry.registerModule(rm);
 TypeRegistry.registerModule(base);
 
-function sampleObservation(): rm.OBSERVATION {
-  const obs = new rm.OBSERVATION();
-  obs.name = new rm.DV_TEXT();
-  obs.name.value = "Blood pressure";
-  obs.archetype_node_id = "openEHR-EHR-OBSERVATION.blood_pressure.v2";
-  obs.data = {
-    _type: "HISTORY",
-    origin: { _type: "DV_DATE_TIME", value: "2026-04-13T10:30:00Z" },
-    events: [{
-      _type: "POINT_EVENT",
-      name: { _type: "DV_TEXT", value: "Any event" },
-      archetype_node_id: "at0006",
-      time: { _type: "DV_DATE_TIME", value: "2026-04-13T10:30:00Z" },
-      data: {
-        _type: "ITEM_TREE",
-        items: [
-          {
-            _type: "ELEMENT",
-            name: { _type: "DV_TEXT", value: "Systolic" },
-            archetype_node_id: "at0004",
-            value: { _type: "DV_QUANTITY", magnitude: 145, units: "mm[Hg]" },
-          },
-          {
-            _type: "ELEMENT",
-            name: { _type: "DV_TEXT", value: "Diastolic" },
-            archetype_node_id: "at0005",
-            value: { _type: "DV_QUANTITY", magnitude: 90, units: "mm[Hg]" },
-          },
-        ],
-      },
-    }],
-  } as unknown as rm.HISTORY;
-  return obs;
+function sampleObservation(): Record<string, unknown> {
+  return {
+    _type: "OBSERVATION",
+    name: { _type: "DV_TEXT", value: "Blood pressure" },
+    archetype_node_id: "openEHR-EHR-OBSERVATION.blood_pressure.v2",
+    data: {
+      _type: "HISTORY",
+      origin: { _type: "DV_DATE_TIME", value: "2026-04-13T10:30:00Z" },
+      events: [{
+        _type: "POINT_EVENT",
+        name: { _type: "DV_TEXT", value: "Any event" },
+        archetype_node_id: "at0006",
+        time: { _type: "DV_DATE_TIME", value: "2026-04-13T10:30:00Z" },
+        data: {
+          _type: "ITEM_TREE",
+          items: [
+            {
+              _type: "ELEMENT",
+              name: { _type: "DV_TEXT", value: "Systolic" },
+              archetype_node_id: "at0004",
+              value: { _type: "DV_QUANTITY", magnitude: 145, units: "mm[Hg]" },
+            },
+            {
+              _type: "ELEMENT",
+              name: { _type: "DV_TEXT", value: "Diastolic" },
+              archetype_node_id: "at0005",
+              value: { _type: "DV_QUANTITY", magnitude: 90, units: "mm[Hg]" },
+            },
+          ],
+        },
+      }],
+    },
+  };
 }
 
 Deno.test("Markdown structural round-trip: OBSERVATION", () => {

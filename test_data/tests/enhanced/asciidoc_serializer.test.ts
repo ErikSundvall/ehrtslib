@@ -7,6 +7,7 @@ import { AsciidocSerializer } from "../../../serialization/asciidoc/mod.ts";
 import {
   COMPACT_ASCIIDOC_CONFIG,
   STRUCTURAL_ASCIIDOC_CONFIG,
+  WIKILINK_ASCIIDOC_CONFIG,
 } from "../../../serialization/asciidoc/mod.ts";
 import * as rm from "../../../rm/openehr_rm.ts";
 import * as base from "../../../base/openehr_base.ts";
@@ -143,8 +144,12 @@ Deno.test("AsciidocSerializer: serialize COMPOSITION with lossless config", () =
   assertStringIncludes(adoc, ":archetype-id: openEHR-EHR-COMPOSITION.encounter.v1");
   // Should have heading
   assertStringIncludes(adoc, "= Blood Pressure Recording");
-  // Should have openEHR URN comment
-  assertStringIncludes(adoc, "urn:openehr:aom:org.openehr::openEHR-EHR-COMPOSITION.encounter.v1");
+  // Structural preset uses archetype comments, not wikilink URNs
+  assertStringIncludes(adoc, "// openEHR-EHR-COMPOSITION.encounter.v1");
+  assertEquals(
+    adoc.includes("urn:openehr:aom:org.openehr::openEHR-EHR-COMPOSITION"),
+    false,
+  );
   // Should have composer
   assertStringIncludes(adoc, ":composer: Dr. Smith");
 
@@ -179,8 +184,10 @@ Deno.test("AsciidocSerializer: serialize OBSERVATION with blood pressure data", 
   assertStringIncludes(adocLossless, "Systolic");
   assertStringIncludes(adocLossless, "145");
   assertStringIncludes(adocLossless, "mm[Hg]");
-  // Should include node IDs as comments
-  assertStringIncludes(adocLossless, "// urn:openehr:aom:org.openehr::openEHR-EHR-OBSERVATION.blood_pressure.v2");
+  assertStringIncludes(
+    adocLossless,
+    "// openEHR-EHR-OBSERVATION.blood_pressure.v2",
+  );
 
   console.log("OBSERVATION (lossless):\n", adocLossless);
 
@@ -351,12 +358,12 @@ Deno.test("AsciidocSerializer: EVALUATION with data", () => {
   console.log("EVALUATION (lossless):\n", adoc);
 });
 
-Deno.test("AsciidocSerializer: openEHR URN links in lossless mode", () => {
+Deno.test("AsciidocSerializer: openEHR URN links in wikilink preset", () => {
   const comp = createSampleComposition();
   const obs = createBloodPressureObservation();
   comp.content = [obs] as any;
 
-  const serializer = new AsciidocSerializer(STRUCTURAL_ASCIIDOC_CONFIG);
+  const serializer = new AsciidocSerializer(WIKILINK_ASCIIDOC_CONFIG);
   const adoc = serializer.serialize(comp);
 
   assertExists(adoc);
