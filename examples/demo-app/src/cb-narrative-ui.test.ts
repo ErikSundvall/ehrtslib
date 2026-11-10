@@ -78,6 +78,11 @@ Deno.test("narrative UI: line 2 caret stem within line band", async () => {
   const stemTop = Number(marker.style.top.replace("px", ""));
   const stem = marker.querySelector(".narrative-remote-caret__stem")!;
   assert(stem);
+  const lineHeight = parseFloat(getComputedStyle(textarea).lineHeight) || 19;
+  assert(
+    Math.abs(stemTop - band.caretTop) <= lineHeight * 0.35,
+    `stem top ${stemTop}px should match caret line ${band.caretTop}px`,
+  );
   assert(
     stemTop >= band.lineTop - 1,
     `stem ${stemTop}px above line band [${band.lineTop}, ${band.lineBottom}]`,
@@ -106,6 +111,11 @@ Deno.test("narrative UI: line 1 mid-text stem within line band", async () => {
   assertEquals(caretLineIndex(TEXT, mid), 0);
   const band = verticalLineBand(textarea, TEXT, mid, caretLayer);
   const stemTop = Number(marker.style.top.replace("px", ""));
+  const lineHeight = parseFloat(getComputedStyle(textarea).lineHeight) || 19;
+  assert(
+    Math.abs(stemTop - band.caretTop) <= lineHeight * 0.35,
+    `stem top ${stemTop}px should match caret line ${band.caretTop}px`,
+  );
   assert(
     stemTop >= band.lineTop - 1 && stemTop <= band.lineBottom - 4,
     `stem ${stemTop}px outside line 1 band [${band.lineTop}, ${band.lineBottom}]`,

@@ -206,16 +206,18 @@ export function mirrorCaretCoords(
     probe,
     document.createTextNode(text.slice(at)),
   );
-  if (probe.offsetParent === mirror || mirror.contains(probe)) {
-    return { left: probe.offsetLeft, top: probe.offsetTop };
-  }
   const layerRect = layer.getBoundingClientRect();
   const probeRect = probe.getBoundingClientRect();
   if (probeRect.width || probeRect.height) {
     return {
-      left: probeRect.left - layerRect.left + layer.scrollLeft,
-      top: probeRect.top - layerRect.top + layer.scrollTop,
+      left: probeRect.left - layerRect.left,
+      top: probeRect.top - layerRect.top,
     };
+  }
+  if (probe.offsetParent === mirror || mirror.contains(probe)) {
+    const top = probe.offsetTop - layer.scrollTop;
+    const left = probe.offsetLeft - layer.scrollLeft;
+    return { left, top };
   }
   return caretOffsetToCoords(textarea, text, at);
 }
