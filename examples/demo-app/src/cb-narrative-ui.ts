@@ -101,7 +101,7 @@ function renderHighlightLayer(
       const top = active[active.length - 1]!;
       span.className = "narrative-hl";
       span.style.setProperty("--hl-accent", top.accent);
-      span.style.opacity = String(Math.max(0.25, top.opacity));
+      span.style.opacity = String(Math.max(0.45, top.opacity));
     }
     frag.append(span);
   }

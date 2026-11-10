@@ -75,7 +75,7 @@ Deno.test("cb demo #293: focus-only badges drop when focus leaves", () => {
 
 Deno.test("cb demo #293: narrative highlight opacity expires", () => {
   const ttl = DEFAULT_NARRATIVE_COLLAB_CONFIG.highlightTtlMs;
-  assertEquals(highlightOpacity(0, ttl), 0.58);
+  assertEquals(highlightOpacity(0, ttl), 0.72);
   assert(highlightOpacity(ttl - 1, ttl) >= 0);
   assertEquals(highlightOpacity(ttl + 1, ttl), 0);
   const view = new NarrativeCollabView("self");

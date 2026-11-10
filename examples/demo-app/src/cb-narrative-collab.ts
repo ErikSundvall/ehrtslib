@@ -86,11 +86,11 @@ export function highlightOpacity(
   ageMs: number,
   ttlMs: number,
 ): number {
-  if (ageMs <= 0) return 0.58;
+  if (ageMs <= 0) return 0.72;
   if (ageMs >= ttlMs) return 0;
   const fadeStart = ttlMs * 0.35;
-  if (ageMs <= fadeStart) return 0.58;
-  return Math.max(0, 0.58 * (1 - (ageMs - fadeStart) / (ttlMs - fadeStart)));
+  if (ageMs <= fadeStart) return 0.72;
+  return Math.max(0, 0.72 * (1 - (ageMs - fadeStart) / (ttlMs - fadeStart)));
 }
 
 /** Per-clone view of other users’ narrative carets and highlights. */

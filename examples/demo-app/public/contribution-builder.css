@@ -365,7 +365,7 @@ details[open] > summary {
 }
 .narrative-hl {
   border-radius: .15rem;
-  background: color-mix(in srgb, var(--hl-accent, #12618f) 38%, white);
+  background: color-mix(in srgb, var(--hl-accent, #12618f) 58%, white);
   box-decoration-break: clone;
 }
 .narrative-carets {

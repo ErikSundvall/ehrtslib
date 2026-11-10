@@ -337,7 +337,7 @@ function readFieldForPanel(clone: DemoClone, field: Field): string | number {
         clone.caller.adapter.save(),
         state.step,
         clone.caller.build.buildId,
-      ).caller;
+      );
       scrubPreview.set(clone.id, { step: state.step, caller });
     }
     return readField(session, { ...clone, caller }, field);
@@ -537,6 +537,7 @@ function setupTimeTravel(clone: DemoClone, panel: HTMLElement): void {
   };
   scrub.addEventListener("input", onScrubInput);
   scrub.addEventListener("change", onScrubInput);
+  scrub.addEventListener("pointerup", onScrubInput);
   liveBtn.addEventListener("click", () => {
     const state = timeTravel.get(clone.id)!;
     const next = refreshTimeline(
