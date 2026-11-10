@@ -51,16 +51,20 @@
         </div>
         <p class="sync-state" aria-live="polite"></p>
         <div class="clone-tools">
-          <button type="button" class="time-travel-toggle">Time travel</button>
-          <div class="time-travel-panel" hidden>
+          <button type="button" class="time-travel-toggle" aria-expanded="false"
+            aria-controls="time-travel-panel">Time travel</button>
+          <div class="time-travel-panel" id="time-travel-panel" hidden>
             <label class="time-travel-scrub-label">Document history
               <input type="range" class="time-travel-scrub" min="0" max="0" value="0" step="1"
                 aria-valuemin="0" aria-valuemax="0" aria-valuetext="Live">
             </label>
-            <button type="button" class="time-travel-live">Return to live</button>
+            <button type="button" class="time-travel-live" hidden>Return to live</button>
             <span class="time-travel-status" aria-live="polite"></span>
           </div>
         </div>
+        <p class="time-travel-readonly-banner" role="status" hidden>
+          Viewing an earlier revision — fields are read-only until you return to live.
+        </p>
         <form>
           <fieldset>
             <legend>Vital signs</legend>

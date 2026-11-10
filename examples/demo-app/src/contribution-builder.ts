@@ -35,14 +35,17 @@ import {
 } from "./cb-narrative-ui.ts";
 import {
   createHistoricalCaller,
-  enterScrubbing,
   initialTimeTravelState,
   isCloneReadOnly,
   leaveScrubbing,
   refreshTimeline,
   setScrubStep,
+  showReturnToLive,
+  showTimelinePanel,
   type TimeTravelState,
+  toggleTimelinePanel,
 } from "./cb-time-travel.ts";
+import { clampCaretOffset } from "./cb-narrative-layout.ts";
 
 const PRESENCE_FIELDS: Field[] = [
   "heading",
@@ -267,11 +270,24 @@ function refreshTimeTravel(clone: DemoClone): void {
     "aria-valuetext",
     next.step >= next.maxStep ? "Live" : `Step ${next.step} of ${next.maxStep}`,
   );
+  const toggle = $(".time-travel-toggle", panel);
+  const panelEl = $(".time-travel-panel", panel);
+  const liveBtn = $(".time-travel-live", panel);
+  const banner = $(".time-travel-readonly-banner", panel);
+  panelEl.hidden = !showTimelinePanel(next);
+  toggle.setAttribute(
+    "aria-expanded",
+    showTimelinePanel(next) ? "true" : "false",
+  );
+  liveBtn.hidden = !showReturnToLive(next);
+  banner.hidden = !isCloneReadOnly(next);
   const status = $(".time-travel-status", panel);
-  status.textContent = next.scrubbing && next.step < next.maxStep
+  status.textContent = isCloneReadOnly(next)
     ? `Viewing history step ${next.step} of ${next.maxStep} (read-only)`
-    : "Live editing";
-  panel.classList.toggle("clone--scrubbing", isCloneReadOnly(next));
+    : showTimelinePanel(next)
+    ? "Live editing — scrub the slider to explore history"
+    : "";
+  panel.classList.toggle("clone--history-readonly", isCloneReadOnly(next));
   updateCloneInputsDisabled(clone);
 }
 function updateCloneInputsDisabled(clone: DemoClone): void {
@@ -469,10 +485,10 @@ function render(clone: DemoClone): void {
   );
   renderSync();
   renderLog();
+  renderNarrativeCollab(clone);
 }
 function setupTimeTravel(clone: DemoClone, panel: HTMLElement): void {
   const toggle = $(".time-travel-toggle", panel);
-  const panelEl = $(".time-travel-panel", panel);
   const scrub = $(".time-travel-scrub", panel);
   const liveBtn = $(".time-travel-live", panel);
   timeTravel.set(
@@ -481,14 +497,11 @@ function setupTimeTravel(clone: DemoClone, panel: HTMLElement): void {
   );
   toggle.addEventListener("click", () => {
     const state = timeTravel.get(clone.id)!;
-    const next = state.scrubbing
-      ? leaveScrubbing(state)
-      : enterScrubbing(state);
-    timeTravel.set(
-      clone.id,
-      refreshTimeline(clone.caller.adapter.save(), next),
+    const next = refreshTimeline(
+      clone.caller.adapter.save(),
+      toggleTimelinePanel(state),
     );
-    panelEl.hidden = !next.scrubbing;
+    timeTravel.set(clone.id, next);
     scrubPreview.delete(clone.id);
     render(clone);
   });
@@ -501,12 +514,12 @@ function setupTimeTravel(clone: DemoClone, panel: HTMLElement): void {
   });
   liveBtn.addEventListener("click", () => {
     const state = timeTravel.get(clone.id)!;
-    const next = leaveScrubbing(
-      refreshTimeline(clone.caller.adapter.save(), state),
+    const next = refreshTimeline(
+      clone.caller.adapter.save(),
+      leaveScrubbing(state),
     );
     timeTravel.set(clone.id, next);
     scrubPreview.delete(clone.id);
-    panelEl.hidden = true;
     render(clone);
   });
 }
@@ -592,14 +605,18 @@ function createPanel(clone: DemoClone): void {
           });
           if (field === "narrative") {
             const { start, end } = diffRange(before, after);
-            broadcastCollab(clone, {
-              t: "text-hl",
-              userId: clone.id,
-              name: clone.username,
-              start,
-              end,
-              atMs: nowMs(),
-            });
+            const snippet = after.slice(start, end);
+            if (snippet) {
+              broadcastCollab(clone, {
+                t: "text-hl",
+                userId: clone.id,
+                name: clone.username,
+                start,
+                end,
+                snippet,
+                atMs: nowMs(),
+              });
+            }
           }
         }
         feedback(clone, "Local edit appended; waiting for this clone’s link.");
@@ -620,7 +637,10 @@ function createPanel(clone: DemoClone): void {
       input.addEventListener("input", () => {
         emitPresence(clone, field, "editing");
         startPresenceBeat(clone);
-        const offset = input.selectionStart ?? input.value.length;
+        const offset = clampCaretOffset(
+          input.value,
+          input.selectionEnd ?? input.selectionStart ?? input.value.length,
+        );
         broadcastCollab(clone, {
           t: "caret",
           userId: clone.id,
@@ -630,9 +650,17 @@ function createPanel(clone: DemoClone): void {
         });
         edit();
       });
+      const repaintsCollab = () => {
+        renderNarrativeCollab(clone);
+      };
+      input.addEventListener("scroll", repaintsCollab);
+      globalThis.addEventListener("resize", repaintsCollab);
       input.addEventListener("keyup", () => {
         if (cloneReadOnly(clone)) return;
-        const offset = input.selectionStart ?? input.value.length;
+        const offset = clampCaretOffset(
+          input.value,
+          input.selectionEnd ?? input.selectionStart ?? input.value.length,
+        );
         broadcastCollab(clone, {
           t: "caret",
           userId: clone.id,
@@ -643,7 +671,10 @@ function createPanel(clone: DemoClone): void {
       });
       input.addEventListener("select", () => {
         if (cloneReadOnly(clone)) return;
-        const offset = input.selectionStart ?? input.value.length;
+        const offset = clampCaretOffset(
+          input.value,
+          input.selectionEnd ?? input.selectionStart ?? input.value.length,
+        );
         broadcastCollab(clone, {
           t: "caret",
           userId: clone.id,

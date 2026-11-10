@@ -260,18 +260,42 @@ function findNode(
   return undefined;
 }
 
-/** Automerge history steps in a saved replica (initial + each change). */
+function operationLogOpCount(bytes: Uint8Array): number | undefined {
+  try {
+    const doc = Automerge.load<AmLog>(bytes);
+    if (!doc.byId || !Array.isArray(doc.order)) return undefined;
+    return AutomergeOperationLogAdapter.load(bytes).operations().length;
+  } catch {
+    return undefined;
+  }
+}
+
+/** Automerge history steps (initial + each change); falls back to op-log length in the browser. */
 export function historyStepCount(bytes: Uint8Array): number {
-  return Automerge.getHistory(Automerge.load(bytes)).length;
+  const hist = Automerge.getHistory(Automerge.load(bytes)).length;
+  const ops = operationLogOpCount(bytes);
+  return ops === undefined ? hist : Math.max(hist, ops + 1);
 }
 
 /** Materialise a saved replica at a history step (0 = initial). */
 export function materializeAtStep(bytes: Uint8Array, step: number): Uint8Array {
   const doc = Automerge.load(bytes);
   const hist = Automerge.getHistory(doc);
-  if (!hist.length) return bytes;
-  const idx = Math.max(0, Math.min(step, hist.length - 1));
-  const heads = Automerge.getHeads(hist[idx].snapshot);
-  const viewed = Automerge.view(doc, heads);
-  return Automerge.save(Automerge.clone(viewed));
+  const total = historyStepCount(bytes);
+  const idx = Math.max(0, Math.min(step, total - 1));
+  if (idx < hist.length) {
+    const heads = Automerge.getHeads(hist[idx].snapshot);
+    const viewed = Automerge.view(doc, heads);
+    return Automerge.save(Automerge.clone(viewed));
+  }
+  const ops = operationLogOpCount(bytes);
+  if (ops === undefined) return bytes;
+  const full = AutomergeOperationLogAdapter.load(bytes);
+  const all = full.operations();
+  const opCount = total <= 1
+    ? 0
+    : Math.min(all.length, Math.round((idx / (total - 1)) * all.length));
+  const partial = new AutomergeOperationLogAdapter();
+  if (opCount > 0) partial.replaceAll(all.slice(0, opCount));
+  return partial.save();
 }

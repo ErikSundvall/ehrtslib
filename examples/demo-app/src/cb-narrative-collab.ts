@@ -24,6 +24,7 @@ export interface TextHighlight {
   displayName: string;
   start: number;
   end: number;
+  snippet: string;
   atMs: number;
 }
 
@@ -53,6 +54,7 @@ export type NarrativeCollabWireMessage =
     name: string;
     start: number;
     end: number;
+    snippet: string;
     atMs: number;
   };
 
@@ -81,11 +83,11 @@ export function highlightOpacity(
   ageMs: number,
   ttlMs: number,
 ): number {
-  if (ageMs <= 0) return 1;
+  if (ageMs <= 0) return 0.58;
   if (ageMs >= ttlMs) return 0;
   const fadeStart = ttlMs * 0.35;
-  if (ageMs <= fadeStart) return 0.38;
-  return Math.max(0, 0.38 * (1 - (ageMs - fadeStart) / (ttlMs - fadeStart)));
+  if (ageMs <= fadeStart) return 0.58;
+  return Math.max(0, 0.58 * (1 - (ageMs - fadeStart) / (ttlMs - fadeStart)));
 }
 
 /** Per-clone view of other users’ narrative carets and highlights. */
@@ -121,6 +123,7 @@ export class NarrativeCollabView {
       displayName: msg.name,
       start: msg.start,
       end: Math.max(msg.start, msg.end),
+      snippet: msg.snippet,
       atMs: msg.atMs,
     });
   }

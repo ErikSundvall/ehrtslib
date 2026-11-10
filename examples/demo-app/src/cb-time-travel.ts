@@ -8,22 +8,28 @@ import {
 import type { BuildContext } from "../../../contribution_builder/mod.ts";
 
 export interface TimeTravelState {
-  scrubbing: boolean;
+  /** Scrub UI expanded (collapsed by default). */
+  panelOpen: boolean;
   /** Inclusive step index; live is always `maxStep`. */
   step: number;
   maxStep: number;
 }
 
 export function initialTimeTravelState(maxStep: number): TimeTravelState {
-  return { scrubbing: false, step: maxStep, maxStep };
+  return { panelOpen: false, step: maxStep, maxStep };
 }
 
-export function enterScrubbing(state: TimeTravelState): TimeTravelState {
-  return { ...state, scrubbing: true, step: state.maxStep };
+export function toggleTimelinePanel(state: TimeTravelState): TimeTravelState {
+  const panelOpen = !state.panelOpen;
+  return {
+    ...state,
+    panelOpen,
+    step: panelOpen ? state.step : state.maxStep,
+  };
 }
 
 export function leaveScrubbing(state: TimeTravelState): TimeTravelState {
-  return { ...state, scrubbing: false, step: state.maxStep };
+  return { ...state, step: state.maxStep };
 }
 
 export function setScrubStep(
@@ -31,7 +37,7 @@ export function setScrubStep(
   step: number,
 ): TimeTravelState {
   const clamped = Math.max(0, Math.min(step, state.maxStep));
-  return { ...state, step: clamped, scrubbing: true };
+  return { ...state, step: clamped, panelOpen: true };
 }
 
 export function refreshTimeline(
@@ -39,12 +45,23 @@ export function refreshTimeline(
   state: TimeTravelState,
 ): TimeTravelState {
   const maxStep = Math.max(0, historyStepCount(liveBytes) - 1);
-  const step = state.scrubbing ? Math.min(state.step, maxStep) : maxStep;
-  return { scrubbing: state.scrubbing, step, maxStep };
+  const step = state.panelOpen && state.step < maxStep
+    ? Math.min(state.step, maxStep)
+    : maxStep;
+  return { panelOpen: state.panelOpen, step, maxStep };
 }
 
+/** Viewing a historical step inside the open timeline panel. */
 export function isCloneReadOnly(state: TimeTravelState): boolean {
-  return state.scrubbing && state.step < state.maxStep;
+  return state.panelOpen && state.step < state.maxStep;
+}
+
+export function showTimelinePanel(state: TimeTravelState): boolean {
+  return state.panelOpen;
+}
+
+export function showReturnToLive(state: TimeTravelState): boolean {
+  return state.panelOpen && state.step < state.maxStep;
 }
 
 export function createHistoricalCaller(
