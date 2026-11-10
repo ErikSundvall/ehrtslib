@@ -1,5 +1,15 @@
 /// <reference lib="dom" />
 import type { NarrativeCollabView } from "./cb-narrative-collab.ts";
+import {
+  clampCaretOffset,
+  escapeMirrorText,
+  resolveHighlightRange,
+} from "./cb-narrative-layout.ts";
+
+const mirrorByTextarea = new WeakMap<
+  HTMLTextAreaElement,
+  HTMLDivElement
+>();
 
 export function ensureNarrativeShell(textarea: HTMLTextAreaElement): {
   shell: HTMLElement;
@@ -34,18 +44,29 @@ export function paintNarrativeCollab(
   atMs: number,
 ): void {
   const { backdrop, caretLayer } = ensureNarrativeShell(textarea);
+  syncMirrorGeometry(textarea, backdrop);
   const text = textarea.value;
-  const style = getComputedStyle(textarea);
-  backdrop.style.padding = style.padding;
-  backdrop.style.font = style.font;
-  backdrop.style.lineHeight = style.lineHeight;
   const highlights = view.highlights(atMs);
   backdrop.replaceChildren(renderHighlightLayer(text, highlights));
   const carets = view.carets(atMs);
-  const metrics = measureLines(textarea, text);
   caretLayer.replaceChildren(
-    ...carets.map((c) => caretMarker(c, metrics, textarea)),
+    ...carets.map((c) => caretMarker(c, textarea)),
   );
+}
+
+function syncMirrorGeometry(
+  textarea: HTMLTextAreaElement,
+  backdrop: HTMLElement,
+): void {
+  const style = getComputedStyle(textarea);
+  backdrop.style.boxSizing = style.boxSizing;
+  backdrop.style.padding = style.padding;
+  backdrop.style.font = style.font;
+  backdrop.style.lineHeight = style.lineHeight;
+  backdrop.style.letterSpacing = style.letterSpacing;
+  backdrop.style.width = `${textarea.clientWidth}px`;
+  backdrop.style.height = `${textarea.clientHeight}px`;
+  backdrop.scrollTop = textarea.scrollTop;
 }
 
 function renderHighlightLayer(
@@ -53,12 +74,18 @@ function renderHighlightLayer(
   highlights: ReturnType<NarrativeCollabView["highlights"]>,
 ): DocumentFragment {
   const frag = document.createDocumentFragment();
-  if (!highlights.length) {
-    frag.append(document.createElement("span"));
+  const resolved = highlights.map((hl) => {
+    const range = resolveHighlightRange(text, hl.start, hl.snippet);
+    return range ? { ...hl, start: range.start, end: range.end } : null;
+  }).filter(Boolean) as Array<
+    ReturnType<NarrativeCollabView["highlights"]>[number]
+  >;
+  if (!resolved.length) {
+    frag.append(document.createTextNode(text));
     return frag;
   }
   const points = new Set<number>([0, text.length]);
-  for (const hl of highlights) {
+  for (const hl of resolved) {
     points.add(hl.start);
     points.add(hl.end);
   }
@@ -67,65 +94,77 @@ function renderHighlightLayer(
     const start = sorted[i]!;
     const end = sorted[i + 1]!;
     if (start === end) continue;
-    const active = highlights.filter((hl) => hl.start < end && hl.end > start);
+    const active = resolved.filter((hl) => hl.start < end && hl.end > start);
     const span = document.createElement("span");
     span.textContent = text.slice(start, end);
     if (active.length) {
       const top = active[active.length - 1]!;
       span.className = "narrative-hl";
       span.style.setProperty("--hl-accent", top.accent);
-      span.style.opacity = String(top.opacity);
+      span.style.opacity = String(Math.max(0.45, top.opacity));
     }
     frag.append(span);
   }
   return frag;
 }
 
-interface LineMetrics {
-  lineHeight: number;
-  charWidth: number;
-  paddingTop: number;
-  paddingLeft: number;
+function layoutMirror(textarea: HTMLTextAreaElement): HTMLDivElement {
+  let mirror = mirrorByTextarea.get(textarea);
+  if (!mirror) {
+    mirror = document.createElement("div");
+    mirror.className = "narrative-layout-mirror";
+    mirror.setAttribute("aria-hidden", "true");
+    mirrorByTextarea.set(textarea, mirror);
+    textarea.parentElement?.append(mirror);
+  }
+  const style = getComputedStyle(textarea);
+  mirror.style.boxSizing = style.boxSizing;
+  mirror.style.padding = style.padding;
+  mirror.style.border = style.border;
+  mirror.style.font = style.font;
+  mirror.style.lineHeight = style.lineHeight;
+  mirror.style.letterSpacing = style.letterSpacing;
+  mirror.style.whiteSpace = "pre-wrap";
+  mirror.style.wordWrap = "break-word";
+  mirror.style.overflowWrap = "break-word";
+  mirror.style.width = `${textarea.clientWidth}px`;
+  mirror.style.height = `${textarea.clientHeight}px`;
+  mirror.scrollTop = textarea.scrollTop;
+  return mirror;
 }
 
-function measureLines(
+export function mirrorCaretCoords(
   textarea: HTMLTextAreaElement,
-  text: string,
-): LineMetrics {
-  const style = getComputedStyle(textarea);
-  const lineHeight = parseFloat(style.lineHeight) ||
-    parseFloat(style.fontSize) * 1.5;
-  const paddingTop = parseFloat(style.paddingTop);
-  const paddingLeft = parseFloat(style.paddingLeft);
-  const probe = document.createElement("span");
-  probe.textContent = "M";
-  probe.style.visibility = "hidden";
-  probe.style.position = "absolute";
-  probe.style.font = style.font;
-  document.body.append(probe);
-  const charWidth = probe.getBoundingClientRect().width || 8;
-  probe.remove();
-  if (!text) {
-    return { lineHeight, charWidth, paddingTop, paddingLeft };
-  }
-  return { lineHeight, charWidth, paddingTop, paddingLeft };
+  offset: number,
+): { left: number; top: number } {
+  const mirror = layoutMirror(textarea);
+  const text = textarea.value;
+  const at = clampCaretOffset(text, offset);
+  const before = escapeMirrorText(text.slice(0, at));
+  const after = escapeMirrorText(text.slice(at));
+  mirror.innerHTML =
+    `${before}<span class="narrative-caret-probe">\u200b</span>${after}`;
+  const probe = mirror.querySelector(".narrative-caret-probe")!;
+  const mirrorRect = mirror.getBoundingClientRect();
+  const probeRect = probe.getBoundingClientRect();
+  return {
+    left: probeRect.left - mirrorRect.left,
+    top: probeRect.top - mirrorRect.top,
+  };
 }
 
 function caretMarker(
   caret: ReturnType<NarrativeCollabView["carets"]>[number],
-  metrics: LineMetrics,
   textarea: HTMLTextAreaElement,
 ): HTMLElement {
-  const before = textarea.value.slice(0, caret.offset);
-  const lines = before.split("\n");
-  const line = Math.max(0, lines.length - 1);
-  const col = lines[lines.length - 1]?.length ?? 0;
+  const at = clampCaretOffset(textarea.value, caret.offset);
+  const { left, top } = mirrorCaretCoords(textarea, at);
   const el = document.createElement("span");
   el.className = "narrative-remote-caret";
   el.textContent = caret.initials;
   el.style.setProperty("--caret-accent", caret.accent);
-  el.style.left = `${metrics.paddingLeft + col * metrics.charWidth}px`;
-  el.style.top = `${metrics.paddingTop + line * metrics.lineHeight}px`;
+  el.style.left = `${left}px`;
+  el.style.top = `${top}px`;
   el.title = `${caret.displayName} is editing here`;
   return el;
 }

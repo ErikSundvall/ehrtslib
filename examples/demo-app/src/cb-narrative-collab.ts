@@ -25,6 +25,7 @@ export interface TextHighlight {
   displayName: string;
   start: number;
   end: number;
+  snippet: string;
   atMs: number;
 }
 
@@ -56,6 +57,7 @@ export type NarrativeCollabWireMessage =
     field: LongTextField;
     start: number;
     end: number;
+    snippet: string;
     atMs: number;
   };
 
@@ -84,11 +86,11 @@ export function highlightOpacity(
   ageMs: number,
   ttlMs: number,
 ): number {
-  if (ageMs <= 0) return 1;
+  if (ageMs <= 0) return 0.72;
   if (ageMs >= ttlMs) return 0;
   const fadeStart = ttlMs * 0.35;
-  if (ageMs <= fadeStart) return 0.38;
-  return Math.max(0, 0.38 * (1 - (ageMs - fadeStart) / (ttlMs - fadeStart)));
+  if (ageMs <= fadeStart) return 0.72;
+  return Math.max(0, 0.72 * (1 - (ageMs - fadeStart) / (ttlMs - fadeStart)));
 }
 
 /** Per-clone view of other users’ narrative carets and highlights. */
@@ -109,7 +111,7 @@ export class NarrativeCollabView {
   apply(msg: NarrativeCollabWireMessage): void {
     if (msg.userId === this.#selfId) return;
     if (msg.t === "caret") {
-      this.#carets.set(msg.userId, {
+      this.#carets.set(`${msg.userId}:${msg.field}`, {
         userId: msg.userId,
         displayName: msg.name,
         offset: Math.max(0, msg.offset),
@@ -117,13 +119,14 @@ export class NarrativeCollabView {
       });
       return;
     }
-    const id = `${msg.userId}:${msg.start}:${msg.end}:${msg.atMs}`;
+    const id = `${msg.field}:${msg.userId}:${msg.start}:${msg.end}:${msg.atMs}`;
     this.#highlights.set(id, {
       id,
       userId: msg.userId,
       displayName: msg.name,
       start: msg.start,
       end: Math.max(msg.start, msg.end),
+      snippet: msg.snippet,
       atMs: msg.atMs,
     });
   }
