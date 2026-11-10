@@ -3,6 +3,9 @@
  */
 
 import { parseCodePhraseDisplay } from "./value_parse.ts";
+import { mergeRmPatchPayload } from "./oe_rm_sparse.ts";
+import { renderRmValue } from "./document_rm_render.ts";
+import { formatSparseRmAsciidoc, formatSparseRmMarkdown } from "./oe_rm_sparse.ts";
 import type { DocumentMetadata } from "./document_to_rm.ts";
 import { ENTRY_TYPES } from "./document_blocks.ts";
 
@@ -44,10 +47,19 @@ export function subjectsEqual(a: unknown, b: unknown): boolean {
   return subjectKey(a) === subjectKey(b);
 }
 
+const SUBJECT_REF_PREFIX = ";ref=b64:";
+
 export function formatSubjectMeta(subject: Record<string, unknown>): string {
   const type = String(subject._type ?? "PARTY_SELF");
   if (type === "PARTY_IDENTIFIED" && typeof subject.name === "string") {
     return `PARTY_IDENTIFIED:${subject.name}`;
+  }
+  if (subject.external_ref) {
+    const b64 = btoa(JSON.stringify(subject.external_ref))
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/, "");
+    return `${type}${SUBJECT_REF_PREFIX}${b64}`;
   }
   return type;
 }
@@ -60,7 +72,68 @@ export function parseSubjectMeta(raw: string): Record<string, unknown> {
       name: trimmed.slice("PARTY_IDENTIFIED:".length),
     };
   }
+  const refIdx = trimmed.indexOf(SUBJECT_REF_PREFIX);
+  if (refIdx >= 0) {
+    const type = trimmed.slice(0, refIdx) || "PARTY_SELF";
+    const b64 = trimmed.slice(refIdx + SUBJECT_REF_PREFIX.length);
+    try {
+      const json = atob(b64.replace(/-/g, "+").replace(/_/g, "/"));
+      const external_ref = JSON.parse(json);
+      return { _type: type, external_ref };
+    } catch {
+      /* fall through */
+    }
+  }
   return { _type: trimmed || "PARTY_SELF" };
+}
+
+const SUBJECT_RENDER_OPTS = {
+  lossy: false,
+  useTerseFormat: false,
+  codeRendering: "inline_bracket" as const,
+  includeTypeAnnotations: false,
+};
+
+export function formatSubjectStructural(
+  subject: Record<string, unknown>,
+  codec: "markdown" | "asciidoc",
+): string {
+  const vis = renderRmValue(subject, SUBJECT_RENDER_OPTS, 0);
+  const recovered: Record<string, unknown> = {};
+  if (subject._type === "PARTY_IDENTIFIED" && typeof subject.name === "string") {
+    recovered._type = "PARTY_IDENTIFIED";
+    recovered.name = subject.name;
+  } else if (subject.external_ref) {
+    recovered._type = typeof subject._type === "string" ? subject._type : "PARTY_SELF";
+    recovered.external_ref = subject.external_ref;
+  } else if (typeof subject._type === "string") {
+    recovered._type = subject._type;
+  }
+  const ann = codec === "markdown"
+    ? formatSparseRmMarkdown(subject, recovered)
+    : formatSparseRmAsciidoc(subject, recovered);
+  return `${vis}${ann}`;
+}
+
+export function parseSubjectFromList(
+  visible: string,
+  oeRmPayload?: string,
+): Record<string, unknown> {
+  const vis = visible.trim();
+  if (vis && vis !== "—") {
+    if (vis.startsWith("PARTY_IDENTIFIED:") || vis.includes(SUBJECT_REF_PREFIX)) {
+      return mergeRmPatchPayload(parseSubjectMeta(vis), oeRmPayload);
+    }
+    if (/^PARTY_[A-Z_]+$/.test(vis)) {
+      return mergeRmPatchPayload(parseSubjectMeta(vis), oeRmPayload);
+    }
+    const fromPlainName: Record<string, unknown> = {
+      _type: "PARTY_IDENTIFIED",
+      name: vis.split(" · ")[0].trim(),
+    };
+    return mergeRmPatchPayload(fromPlainName, oeRmPayload);
+  }
+  return mergeRmPatchPayload(parseSubjectMeta("PARTY_SELF"), oeRmPayload);
 }
 
 function walkEntries(

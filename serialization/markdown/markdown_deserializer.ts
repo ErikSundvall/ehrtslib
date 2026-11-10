@@ -4,6 +4,7 @@
 
 import type { openehr_am } from "../../am/openehr_am.ts";
 import {
+  applyCompositionEntryDefaults,
   blocksToRmObject,
   detectDocumentDialect,
   type DocumentMetadata,
@@ -39,11 +40,11 @@ export class MarkdownDeserializer {
 
     try {
       const { body, frontmatter } = parseMarkdownFrontmatter(markdown);
-      const blocks = lexMarkdownStructural(body);
       const meta: DocumentMetadata = { frontmatter };
-      const instance = blocksToRmObject(blocks, meta, {
+      let instance = blocksToRmObject(lexMarkdownStructural(body), meta, {
         validateAgainstTemplate: this.config.validateAgainstTemplate,
       });
+      applyCompositionEntryDefaults(instance, meta);
       this.maybeValidate(instance, markdown);
       return instance as T;
     } catch (error) {
