@@ -112,7 +112,7 @@ export function lexAsciidocLossless(text: string): {
       } else {
         const kv = itemText.match(/^\*\*(.+?)\*\*::\s*(.+)$/) ??
           itemText.match(/^\*\*([^:]+):\*\*\s*(.+)$/) ??
-          itemText.match(/^\*([^:]+):\*\s+(.+)$/);
+          itemText.match(/^\*([^:]+):\*\s*(.*)$/s);
         if (kv) {
           blocks.push({
             kind: "list_item",

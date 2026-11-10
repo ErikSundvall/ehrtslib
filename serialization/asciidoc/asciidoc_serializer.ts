@@ -471,8 +471,11 @@ export class AsciidocSerializer {
 
   private emitItemStructureMeta(itemStruct: any, lines: string[]): void {
     if (this.config.style !== "structural" || !itemStruct) return;
-    if (itemStruct.archetype_node_id) {
-      this.pushBlockCommentLine(lines, formatOeMetaAsciidoc("item_node_id", itemStruct.archetype_node_id));
+    if (Object.prototype.hasOwnProperty.call(itemStruct, "archetype_node_id")) {
+      this.pushBlockCommentLine(lines, formatOeMetaAsciidoc(
+        "item_node_id",
+        String(itemStruct.archetype_node_id),
+      ));
     }
     const n = this.extractName(itemStruct);
     if (n) {

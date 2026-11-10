@@ -108,7 +108,7 @@ export function lexMarkdownStructural(body: string): DocumentBlock[] {
         });
         continue;
       }
-      const kv = itemText.match(/^\*\*([^:]+):\*\*\s*(.+)$/);
+      const kv = itemText.match(/^\*\*([^:]+):\*\*\s*(.*)$/s);
       if (kv) {
         blocks.push({
           kind: "list_item",

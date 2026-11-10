@@ -50,7 +50,13 @@ export function emitStructuralEventContextMarkdown(
   };
   if (ctx.start_time) ctxScalar("start_time", ctx.start_time, "DV_DATE_TIME");
   if (ctx.end_time) ctxScalar("end_time", ctx.end_time, "DV_DATE_TIME");
-  if (ctx.location) ctxScalar("location", ctx.location, "DV_TEXT");
+  if (ctx.location !== undefined) {
+    if (typeof ctx.location === "string") {
+      push(`- _location:_ ${ctx.location || "—"}`);
+    } else {
+      ctxScalar("location", ctx.location, "DV_TEXT");
+    }
+  }
   if (ctx.setting) ctxScalar("setting", ctx.setting, "DV_CODED_TEXT");
   if (ctx.health_care_facility) {
     const party = { ...(ctx.health_care_facility as Record<string, unknown>) };
@@ -95,7 +101,13 @@ export function emitStructuralEventContextAsciidoc(
   };
   if (ctx.start_time) ctxScalar("start_time", ctx.start_time, "DV_DATE_TIME");
   if (ctx.end_time) ctxScalar("end_time", ctx.end_time, "DV_DATE_TIME");
-  if (ctx.location) ctxScalar("location", ctx.location, "DV_TEXT");
+  if (ctx.location !== undefined) {
+    if (typeof ctx.location === "string") {
+      push(`* _location:_ ${ctx.location || "—"}`);
+    } else {
+      ctxScalar("location", ctx.location, "DV_TEXT");
+    }
+  }
   if (ctx.setting) ctxScalar("setting", ctx.setting, "DV_CODED_TEXT");
   if (ctx.health_care_facility) {
     const party = { ...(ctx.health_care_facility as Record<string, unknown>) };

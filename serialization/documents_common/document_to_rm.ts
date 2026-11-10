@@ -207,6 +207,7 @@ function parseContextScalarField(
     return parseDvCodedTextDisplay(t) ?? { _type: "DV_CODED_TEXT", value: t };
   }
   if (field === "location") {
+    if (t === "—" || t === "") return "";
     return parseDataValueDisplay(t) ?? { _type: "DV_TEXT", value: t };
   }
   return parseDataValueDisplay(t);
@@ -251,8 +252,8 @@ export function blocksToRmObject(
   } = {};
 
   const applyPendingStructureMeta = (target: Record<string, unknown>) => {
-    if (pendingStructureMeta.item_node_id) {
-      target.archetype_node_id = pendingStructureMeta.item_node_id;
+    if (Object.prototype.hasOwnProperty.call(pendingStructureMeta, "item_node_id")) {
+      target.archetype_node_id = pendingStructureMeta.item_node_id ?? "";
     }
     if (pendingStructureMeta.item_name) {
       target.name = dvText(pendingStructureMeta.item_name);
@@ -264,11 +265,13 @@ export function blocksToRmObject(
   };
 
   const flushPendingStructureMeta = () => {
-    if (
-      !pendingStructureMeta.item_node_id &&
-      !pendingStructureMeta.item_name &&
-      !pendingStructureMeta.structure
-    ) {
+    const hasPending = Object.prototype.hasOwnProperty.call(
+        pendingStructureMeta,
+        "item_node_id",
+      ) ||
+      pendingStructureMeta.item_name ||
+      pendingStructureMeta.structure;
+    if (!hasPending) {
       return;
     }
     const top = stack[stack.length - 1];
