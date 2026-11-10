@@ -329,18 +329,22 @@ function updateCloneInputsDisabled(clone: DemoClone): void {
 function readFieldForPanel(clone: DemoClone, field: Field): string | number {
   const state = timeTravel.get(clone.id);
   if (state && isCloneReadOnly(state)) {
-    const cached = scrubPreview.get(clone.id);
-    let caller = cached?.step === state.step ? cached.caller : undefined;
-    if (!caller) {
-      caller = createHistoricalCaller(
-        { author: clone.author, replica: clone.id },
-        clone.caller.adapter.save(),
-        state.step,
-        clone.caller.build.buildId,
-      );
-      scrubPreview.set(clone.id, { step: state.step, caller });
+    try {
+      const cached = scrubPreview.get(clone.id);
+      let caller = cached?.step === state.step ? cached.caller : undefined;
+      if (!caller) {
+        caller = createHistoricalCaller(
+          { author: clone.author, replica: clone.id },
+          clone.caller.adapter.save(),
+          state.step,
+          clone.caller.build.buildId,
+        );
+        scrubPreview.set(clone.id, { step: state.step, caller });
+      }
+      return readField(session, { ...clone, caller }, field);
+    } catch {
+      return readField(session, clone, field);
     }
-    return readField(session, { ...clone, caller }, field);
   }
   return readField(session, clone, field);
 }
@@ -474,6 +478,7 @@ function updateText(
   } else input.value = value;
 }
 function render(clone: DemoClone): void {
+  refreshTimeTravel(clone);
   const panel = panels.get(clone.id)!;
   for (
     const input of panel.querySelectorAll<
@@ -489,7 +494,6 @@ function render(clone: DemoClone): void {
       input.dataset.rev = clone.caller.build.logRev();
     }
   }
-  refreshTimeTravel(clone);
   const validation = session.validator.validate(
     clone.caller.build,
     session.draftId,
