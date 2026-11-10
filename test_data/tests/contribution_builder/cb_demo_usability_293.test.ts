@@ -6,18 +6,23 @@ import {
   type PresenceWireMessage,
 } from "../../../examples/demo-app/src/cb-presence.ts";
 import {
+  clampCaretOffset,
+  resolveHighlightRange,
+} from "../../../examples/demo-app/src/cb-narrative-layout.ts";
+import {
   DEFAULT_NARRATIVE_COLLAB_CONFIG,
   diffRange,
   highlightOpacity,
   NarrativeCollabView,
 } from "../../../examples/demo-app/src/cb-narrative-collab.ts";
 import {
-  enterScrubbing,
   initialTimeTravelState,
   isCloneReadOnly,
   leaveScrubbing,
   setScrubStep,
+  toggleTimelinePanel,
 } from "../../../examples/demo-app/src/cb-time-travel.ts";
+import { deriveTimeTravelChrome } from "../../../examples/demo-app/src/cb-time-travel-ui.ts";
 import {
   historyStepCount,
   materializeAtStep,
@@ -70,7 +75,7 @@ Deno.test("cb demo #293: focus-only badges drop when focus leaves", () => {
 
 Deno.test("cb demo #293: narrative highlight opacity expires", () => {
   const ttl = DEFAULT_NARRATIVE_COLLAB_CONFIG.highlightTtlMs;
-  assertEquals(highlightOpacity(0, ttl), 1);
+  assertEquals(highlightOpacity(0, ttl), 0.58);
   assert(highlightOpacity(ttl - 1, ttl) >= 0);
   assertEquals(highlightOpacity(ttl + 1, ttl), 0);
   const view = new NarrativeCollabView("self");
@@ -81,6 +86,7 @@ Deno.test("cb demo #293: narrative highlight opacity expires", () => {
     field: "clinicalDescription",
     start: 0,
     end: 3,
+    snippet: "abc",
     atMs: t0,
   });
   assertEquals(view.highlights(t0 + ttl + 1).length, 0);
@@ -91,15 +97,43 @@ Deno.test("cb demo #293: diffRange finds edited span", () => {
   assertEquals(range, { start: 6, end: 12 });
 });
 
-Deno.test("cb demo #293: time-travel read-only while scrubbing", () => {
+Deno.test("cb demo #293: clampCaretOffset maps Automerge/text offsets", () => {
+  const text = "Line one\nFollow-up planned.";
+  assertEquals(clampCaretOffset(text, 42), text.length);
+  assertEquals(clampCaretOffset(text, 9), 9);
+  assertEquals(clampCaretOffset(text, -3), 0);
+});
+
+Deno.test("cb demo #293: resolveHighlightRange finds remote insert after merge", () => {
+  const merged =
+    "Synthetic example.\nPatient is comfortable at rest.\nPatient presents with cough and fever.";
+  const snippet = "Patient presents with cough and fever";
+  const range = resolveHighlightRange(merged, 90, snippet);
+  assert(range);
+  assertEquals(merged.slice(range!.start, range!.end), snippet);
+});
+
+Deno.test("cb demo #293: timeline collapsed by default; return-to-live only when rewound", () => {
   let state = initialTimeTravelState(8);
-  assertFalse(isCloneReadOnly(state));
-  state = enterScrubbing(state);
-  assertFalse(isCloneReadOnly(state));
-  state = setScrubStep(state, 3);
+  assertFalse(deriveTimeTravelChrome(state).panelOpen);
+  assertFalse(deriveTimeTravelChrome(state).returnToLiveVisible);
+  assertFalse(deriveTimeTravelChrome(state).bannerVisible);
+  state = toggleTimelinePanel(state);
+  assertEquals(deriveTimeTravelChrome(state).panelOpen, true);
+  assertFalse(deriveTimeTravelChrome(state).returnToLiveVisible);
+  assertFalse(deriveTimeTravelChrome(state).bannerVisible);
+  state = setScrubStep(state, 0);
   assertEquals(isCloneReadOnly(state), true);
+  const chrome = deriveTimeTravelChrome(state);
+  assertEquals(chrome.returnToLiveVisible, true);
+  assertEquals(chrome.bannerVisible, true);
+  assertEquals(chrome.statusText.includes("read-only"), true);
   state = leaveScrubbing(state);
+  const afterLive = deriveTimeTravelChrome(state);
   assertFalse(isCloneReadOnly(state));
+  assertFalse(afterLive.returnToLiveVisible);
+  assertFalse(afterLive.bannerVisible);
+  assertEquals(afterLive.panelOpen, true);
 });
 
 Deno.test("cb demo #293: automerge materializeAtStep rewinds", () => {

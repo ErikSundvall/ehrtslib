@@ -157,6 +157,40 @@ assert.deepEqual(
   JSON.parse(posted[1]),
   JSON.parse(popups[3].document.querySelector("pre").textContent),
 );
+const timelineCollapsed = panels[0].querySelector(".time-travel-panel");
+assert.equal(
+  timelineCollapsed?.hasAttribute("hidden"),
+  true,
+  "timeline panel must be collapsed on load",
+);
+panels[0].querySelector(".time-travel-toggle").click();
+const scrub = panels[0].querySelector(".time-travel-scrub");
+assert.ok(Number(scrub.max) > 0, `expected history steps, max=${scrub.max}`);
+scrub.value = "0";
+scrub.focus();
+Object.defineProperty(w.document, "activeElement", {
+  configurable: true,
+  get: () => scrub,
+});
+w.document.querySelector("#sync-now").click();
+Object.defineProperty(w.document, "activeElement", {
+  configurable: true,
+  get: () => w.document.body,
+});
+const banner = panels[0].querySelector(".time-travel-readonly-banner");
+const liveBtn = panels[0].querySelector(".time-travel-live");
+const status = panels[0].querySelector(".time-travel-status");
+assert.equal(banner?.hasAttribute("hidden"), false, "banner must show when rewound");
+assert.equal(liveBtn?.hasAttribute("hidden"), false, "return to live must show");
+assert.match(
+  status?.textContent ?? "",
+  /read-only/i,
+  "status must mention read-only when rewound",
+);
+liveBtn.click();
+await waitFor(() =>
+  panels[0].querySelector(".time-travel-readonly-banner")?.hasAttribute("hidden")
+);
 console.log(
   "PASS: built browser bundle initializes in synthetic DOM; 2→3 panes, native concurrent Unicode edits, manual and delayed sync, two unique popup bodies, popup-block handling, mocked CDR failure/retry/success; no external requests",
 );

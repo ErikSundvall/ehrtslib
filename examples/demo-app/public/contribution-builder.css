@@ -285,6 +285,25 @@ details[open] > summary {
   border-radius: .35rem;
   background: #f8fbfd;
 }
+.time-travel-panel[hidden],
+.time-travel-readonly-banner[hidden],
+.time-travel-live[hidden] {
+  display: none !important;
+}
+.time-travel-readonly-banner {
+  margin: 0 0 .75rem;
+  padding: .55rem .75rem;
+  font-size: .86rem;
+  font-weight: 600;
+  color: #5c3a12;
+  background: #fff3d6;
+  border: 1px solid #e6b86a;
+  border-radius: .35rem;
+}
+.clone.clone--history-readonly {
+  background: #f6f8fa;
+  box-shadow: inset 0 0 0 2px #e6b86a;
+}
 .time-travel-scrub-label {
   flex: 1 1 10rem;
   font-weight: 600;
@@ -299,14 +318,13 @@ details[open] > summary {
   font-size: .82rem;
   color: #4d687b;
 }
-.clone.clone--scrubbing input,
-.clone.clone--scrubbing textarea,
-.clone.clone--scrubbing button.commit {
-  opacity: .72;
+.clone.clone--history-readonly input:not([disabled]),
+.clone.clone--history-readonly textarea:not([disabled]) {
+  background: #eef2f6;
+  border-color: #b8c6d0;
 }
-.clone.clone--scrubbing input,
-.clone.clone--scrubbing textarea {
-  background: #f4f7f9;
+.clone.clone--history-readonly button.commit {
+  opacity: .55;
 }
 .narrative-shell {
   position: relative;
@@ -314,17 +332,31 @@ details[open] > summary {
 }
 .narrative-backdrop {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
   padding: inherit;
   border: 1px solid transparent;
   border-radius: .3rem;
   pointer-events: none;
   white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
   overflow: hidden;
   color: transparent;
   font: inherit;
   line-height: inherit;
+  box-sizing: border-box;
   z-index: 0;
+}
+.narrative-layout-mirror {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  visibility: hidden;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  box-sizing: border-box;
+  overflow: auto;
 }
 .narrative-input {
   position: relative;
@@ -333,7 +365,7 @@ details[open] > summary {
 }
 .narrative-hl {
   border-radius: .15rem;
-  background: color-mix(in srgb, var(--hl-accent, #12618f) 22%, white);
+  background: color-mix(in srgb, var(--hl-accent, #12618f) 38%, white);
   box-decoration-break: clone;
 }
 .narrative-carets {

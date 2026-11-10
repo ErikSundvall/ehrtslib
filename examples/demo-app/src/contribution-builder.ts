@@ -36,16 +36,18 @@ import {
   ensureNarrativeShell,
   paintNarrativeCollab,
 } from "./cb-narrative-ui.ts";
+import { clampCaretOffset } from "./cb-narrative-layout.ts";
 import {
   createHistoricalCaller,
-  enterScrubbing,
   initialTimeTravelState,
   isCloneReadOnly,
   leaveScrubbing,
   refreshTimeline,
   setScrubStep,
+  toggleTimelinePanel,
   type TimeTravelState,
 } from "./cb-time-travel.ts";
+import { deriveTimeTravelChrome } from "./cb-time-travel-ui.ts";
 
 const PRESENCE_FIELDS: Field[] = [
   "diagnosisName",
@@ -277,14 +279,19 @@ function cloneReadOnly(clone: DemoClone): boolean {
   return state ? isCloneReadOnly(state) : false;
 }
 function refreshTimeTravel(clone: DemoClone): void {
-  const bytes = clone.caller.adapter.save();
-  const prev = timeTravel.get(clone.id) ??
-    initialTimeTravelState(0);
-  const next = refreshTimeline(bytes, prev);
-  timeTravel.set(clone.id, next);
   const panel = panels.get(clone.id);
   if (!panel) return;
-  const scrub = $(".time-travel-scrub", panel);
+  const scrub = $<HTMLInputElement>(".time-travel-scrub", panel);
+  let prev = timeTravel.get(clone.id) ?? initialTimeTravelState(0);
+  if (prev.panelOpen && document.activeElement === scrub) {
+    const fromDom = Number(scrub.value);
+    if (Number.isFinite(fromDom) && fromDom !== prev.step) {
+      prev = setScrubStep(prev, fromDom);
+    }
+  }
+  const bytes = clone.caller.adapter.save();
+  const next = refreshTimeline(bytes, prev);
+  timeTravel.set(clone.id, next);
   scrub.max = String(next.maxStep);
   scrub.min = "0";
   scrub.value = String(next.step);
@@ -293,11 +300,17 @@ function refreshTimeTravel(clone: DemoClone): void {
     "aria-valuetext",
     next.step >= next.maxStep ? "Live" : `Step ${next.step} of ${next.maxStep}`,
   );
-  const status = $(".time-travel-status", panel);
-  status.textContent = next.scrubbing && next.step < next.maxStep
-    ? `Viewing history step ${next.step} of ${next.maxStep} (read-only)`
-    : "Live editing";
-  panel.classList.toggle("clone--scrubbing", isCloneReadOnly(next));
+  const toggle = $(".time-travel-toggle", panel);
+  const panelEl = $(".time-travel-panel", panel);
+  const liveBtn = $(".time-travel-live", panel);
+  const banner = $(".time-travel-readonly-banner", panel);
+  const chrome = deriveTimeTravelChrome(next);
+  panelEl.hidden = !chrome.panelOpen;
+  toggle.setAttribute("aria-expanded", chrome.panelOpen ? "true" : "false");
+  liveBtn.hidden = !chrome.returnToLiveVisible;
+  banner.hidden = !chrome.bannerVisible;
+  $(".time-travel-status", panel).textContent = chrome.statusText;
+  panel.classList.toggle("clone--history-readonly", chrome.bannerVisible);
   updateCloneInputsDisabled(clone);
 }
 function updateCloneInputsDisabled(clone: DemoClone): void {
@@ -495,10 +508,10 @@ function render(clone: DemoClone): void {
   );
   renderSync();
   renderLog();
+  renderNarrativeCollab(clone);
 }
 function setupTimeTravel(clone: DemoClone, panel: HTMLElement): void {
   const toggle = $(".time-travel-toggle", panel);
-  const panelEl = $(".time-travel-panel", panel);
   const scrub = $(".time-travel-scrub", panel);
   const liveBtn = $(".time-travel-live", panel);
   timeTravel.set(
@@ -507,32 +520,31 @@ function setupTimeTravel(clone: DemoClone, panel: HTMLElement): void {
   );
   toggle.addEventListener("click", () => {
     const state = timeTravel.get(clone.id)!;
-    const next = state.scrubbing
-      ? leaveScrubbing(state)
-      : enterScrubbing(state);
-    timeTravel.set(
-      clone.id,
-      refreshTimeline(clone.caller.adapter.save(), next),
+    const next = refreshTimeline(
+      clone.caller.adapter.save(),
+      toggleTimelinePanel(state),
     );
-    panelEl.hidden = !next.scrubbing;
+    timeTravel.set(clone.id, next);
     scrubPreview.delete(clone.id);
     render(clone);
   });
-  scrub.addEventListener("input", () => {
+  const onScrubInput = () => {
     const state = timeTravel.get(clone.id)!;
     const next = setScrubStep(state, Number(scrub.value));
     timeTravel.set(clone.id, next);
     scrubPreview.delete(clone.id);
     render(clone);
-  });
+  };
+  scrub.addEventListener("input", onScrubInput);
+  scrub.addEventListener("change", onScrubInput);
   liveBtn.addEventListener("click", () => {
     const state = timeTravel.get(clone.id)!;
-    const next = leaveScrubbing(
-      refreshTimeline(clone.caller.adapter.save(), state),
+    const next = refreshTimeline(
+      clone.caller.adapter.save(),
+      leaveScrubbing(state),
     );
     timeTravel.set(clone.id, next);
     scrubPreview.delete(clone.id);
-    panelEl.hidden = true;
     render(clone);
   });
 }
@@ -617,15 +629,19 @@ function createPanel(clone: DemoClone): void {
           });
           if (isLongText(field)) {
             const { start, end } = diffRange(before, after);
-            broadcastCollab(clone, {
-              t: "text-hl",
-              userId: clone.id,
-              name: clone.username,
-              field,
-              start,
-              end,
-              atMs: nowMs(),
-            });
+            const snippet = after.slice(start, end);
+            if (snippet) {
+              broadcastCollab(clone, {
+                t: "text-hl",
+                userId: clone.id,
+                name: clone.username,
+                field,
+                start,
+                end,
+                snippet,
+                atMs: nowMs(),
+              });
+            }
           }
         }
         feedback(clone, "Local edit appended; waiting for this clone’s link.");
@@ -646,7 +662,10 @@ function createPanel(clone: DemoClone): void {
       input.addEventListener("input", () => {
         emitPresence(clone, field, "editing");
         startPresenceBeat(clone);
-        const offset = input.selectionStart ?? input.value.length;
+        const offset = clampCaretOffset(
+          input.value,
+          input.selectionEnd ?? input.selectionStart ?? input.value.length,
+        );
         broadcastCollab(clone, {
           t: "caret",
           userId: clone.id,
@@ -657,9 +676,15 @@ function createPanel(clone: DemoClone): void {
         });
         edit();
       });
+      const repaintsCollab = () => renderNarrativeCollab(clone);
+      input.addEventListener("scroll", repaintsCollab);
+      globalThis.addEventListener("resize", repaintsCollab);
       input.addEventListener("keyup", () => {
         if (cloneReadOnly(clone)) return;
-        const offset = input.selectionStart ?? input.value.length;
+        const offset = clampCaretOffset(
+          input.value,
+          input.selectionEnd ?? input.selectionStart ?? input.value.length,
+        );
         broadcastCollab(clone, {
           t: "caret",
           userId: clone.id,
@@ -671,7 +696,10 @@ function createPanel(clone: DemoClone): void {
       });
       input.addEventListener("select", () => {
         if (cloneReadOnly(clone)) return;
-        const offset = input.selectionStart ?? input.value.length;
+        const offset = clampCaretOffset(
+          input.value,
+          input.selectionEnd ?? input.selectionStart ?? input.value.length,
+        );
         broadcastCollab(clone, {
           t: "caret",
           userId: clone.id,
