@@ -1,6 +1,7 @@
 /// <reference lib="dom" />
 import type { NarrativeCollabView } from "./cb-narrative-collab.ts";
 import {
+  caretLogicalLineRange,
   caretOffsetToCoords,
   resolveHighlightRange,
 } from "./cb-narrative-layout.ts";
@@ -68,7 +69,7 @@ export function paintNarrativeHighlights(
   backdrop.replaceChildren(renderHighlightLayer(text, views));
   syncCaretLayerScroll(textarea, caretLayer);
   const caretViews = carets.map((c) =>
-    caretMarker(c, textarea, resolveCaretOffset)
+    caretMarker(c, textarea, caretLayer, resolveCaretOffset)
   ).filter(Boolean);
   caretLayer.replaceChildren(...caretViews);
 }
@@ -151,38 +152,51 @@ function renderHighlightLayer(
   return frag;
 }
 
-function layoutMirror(textarea: HTMLTextAreaElement): HTMLDivElement {
+function layoutMirror(
+  textarea: HTMLTextAreaElement,
+  caretLayer: HTMLElement,
+): HTMLDivElement {
   let mirror = mirrorByTextarea.get(textarea);
-  const shell = textarea.closest(".narrative-shell") ?? textarea.parentElement;
   if (!mirror) {
     mirror = document.createElement("div");
     mirror.className = "narrative-layout-mirror";
     mirror.setAttribute("aria-hidden", "true");
     mirrorByTextarea.set(textarea, mirror);
-    shell?.append(mirror);
+    caretLayer.append(mirror);
+  } else if (mirror.parentElement !== caretLayer) {
+    caretLayer.append(mirror);
   }
   const style = getComputedStyle(textarea);
   mirror.style.boxSizing = style.boxSizing;
   mirror.style.padding = style.padding;
   mirror.style.border = style.border;
+  mirror.style.borderRadius = style.borderRadius;
   mirror.style.font = style.font;
   mirror.style.lineHeight = style.lineHeight;
   mirror.style.letterSpacing = style.letterSpacing;
   mirror.style.whiteSpace = "pre-wrap";
   mirror.style.wordWrap = "break-word";
   mirror.style.overflowWrap = "break-word";
-  mirror.style.width = `${textarea.clientWidth}px`;
-  mirror.style.height = `${textarea.clientHeight}px`;
-  mirror.scrollTop = textarea.scrollTop;
+  mirror.style.overflow = "visible";
+  mirror.style.height = "auto";
+  mirror.style.minHeight = "100%";
+  mirror.scrollTop = 0;
+  mirror.scrollLeft = 0;
   return mirror;
 }
 
 export function mirrorCaretCoords(
   textarea: HTMLTextAreaElement,
   offset: number,
+  caretLayer?: HTMLElement,
 ): { left: number; top: number } {
   const text = textarea.value;
-  const mirror = layoutMirror(textarea);
+  const layer = caretLayer ??
+    textarea.closest<HTMLElement>(".narrative-carets");
+  if (!layer) {
+    return caretOffsetToCoords(textarea, text, offset);
+  }
+  const mirror = layoutMirror(textarea, layer);
   const at = Math.max(0, Math.min(offset, text.length));
   const probe = document.createElement("span");
   probe.className = "narrative-caret-probe";
@@ -192,31 +206,61 @@ export function mirrorCaretCoords(
     probe,
     document.createTextNode(text.slice(at)),
   );
-  if (probe) {
-    const mirrorRect = mirror.getBoundingClientRect();
-    const probeRect = probe.getBoundingClientRect();
+  if (probe.offsetParent === mirror || mirror.contains(probe)) {
+    return { left: probe.offsetLeft, top: probe.offsetTop };
+  }
+  const layerRect = layer.getBoundingClientRect();
+  const probeRect = probe.getBoundingClientRect();
+  if (probeRect.width || probeRect.height) {
     return {
-      left: probeRect.left - mirrorRect.left,
-      top: probeRect.top - mirrorRect.top,
+      left: probeRect.left - layerRect.left + layer.scrollLeft,
+      top: probeRect.top - layerRect.top + layer.scrollTop,
     };
   }
   return caretOffsetToCoords(textarea, text, at);
 }
 
+/** Vertical band (px in caret layer) for the logical line holding `at`. */
+export function verticalLineBand(
+  textarea: HTMLTextAreaElement,
+  text: string,
+  at: number,
+  caretLayer: HTMLElement,
+): { lineTop: number; lineBottom: number; caretTop: number } {
+  const { start, end } = caretLogicalLineRange(text, at);
+  const lineHeight = parseFloat(getComputedStyle(textarea).lineHeight) ||
+    parseFloat(getComputedStyle(textarea).fontSize) * 1.2 || 16;
+  const lineTop = mirrorCaretCoords(textarea, start, caretLayer).top;
+  const lineTail = mirrorCaretCoords(
+    textarea,
+    Math.max(start, end - 1),
+    caretLayer,
+  ).top;
+  const caretTop = mirrorCaretCoords(textarea, at, caretLayer).top;
+  const lineBottom = Math.max(lineTop, lineTail, caretTop) + lineHeight;
+  return { lineTop, lineBottom, caretTop };
+}
+
 function caretMarker(
   caret: TextCaretView,
   textarea: HTMLTextAreaElement,
+  caretLayer: HTMLElement,
   resolveCaretOffset: NarrativeCaretOffsetResolver,
 ): HTMLElement | null {
   const at = resolveCaretOffset(caret);
   if (at === null) return null;
-  const { left, top } = mirrorCaretCoords(textarea, at);
+  const { left, top } = mirrorCaretCoords(textarea, at, caretLayer);
   const el = document.createElement("span");
   el.className = "narrative-remote-caret";
-  el.textContent = caret.initials;
   el.style.setProperty("--caret-accent", caret.accent);
   el.style.left = `${left}px`;
   el.style.top = `${top}px`;
+  const stem = document.createElement("span");
+  stem.className = "narrative-remote-caret__stem";
+  const tag = document.createElement("span");
+  tag.className = "narrative-remote-caret__tag";
+  tag.textContent = caret.initials;
+  el.append(stem, tag);
   el.title = `${caret.displayName} is editing here`;
   el.dataset.resolvedCaret = String(at);
   return el;
