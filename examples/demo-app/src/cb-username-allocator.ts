@@ -29,7 +29,9 @@ export function parseDemoUsername(
   if (!match) return undefined;
   const base = match[1]!;
   const generation = Number(match[2]);
-  if (!USERNAME_SET.has(base) || !Number.isInteger(generation) || generation < 2) {
+  if (
+    !USERNAME_SET.has(base) || !Number.isInteger(generation) || generation < 2
+  ) {
     return undefined;
   }
   return { base, generation };

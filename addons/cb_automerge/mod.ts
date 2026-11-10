@@ -259,3 +259,19 @@ function findNode(
   }
   return undefined;
 }
+
+/** Automerge history steps in a saved replica (initial + each change). */
+export function historyStepCount(bytes: Uint8Array): number {
+  return Automerge.getHistory(Automerge.load(bytes)).length;
+}
+
+/** Materialise a saved replica at a history step (0 = initial). */
+export function materializeAtStep(bytes: Uint8Array, step: number): Uint8Array {
+  const doc = Automerge.load(bytes);
+  const hist = Automerge.getHistory(doc);
+  if (!hist.length) return bytes;
+  const idx = Math.max(0, Math.min(step, hist.length - 1));
+  const heads = Automerge.getHeads(hist[idx].snapshot);
+  const viewed = Automerge.view(doc, heads);
+  return Automerge.save(Automerge.clone(viewed));
+}
