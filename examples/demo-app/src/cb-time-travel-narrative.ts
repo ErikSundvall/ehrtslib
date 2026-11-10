@@ -1,4 +1,7 @@
-import type { CbOperation } from "../../../contribution_builder/mod.ts";
+import {
+  type CbOperation,
+  operationRef,
+} from "../../../contribution_builder/mod.ts";
 import { diffRange } from "./cb-narrative-collab.ts";
 import type { Field, FieldBinding } from "./contribution-demo.ts";
 import { LONG_TEXT_FIELDS, type LongTextField } from "./contribution-demo.ts";
@@ -41,14 +44,15 @@ export function historicalTextHighlights(
   if (!snippet) return [];
   const range = resolveHighlightRange(after, start, snippet, end);
   if (!range) return [];
+  const peerId = op.author.id || op.replica;
   return [{
     id: `hist:${field}:${start}:${end}`,
-    userId: op.replica,
+    userId: peerId,
     displayName: op.author.name,
     start: range.start,
     end: range.end,
     snippet,
-    accent: userAccentColor(op.replica),
+    accent: userAccentColor(peerId),
     initials: userInitials(op.author.name),
     opacity: 0.55,
   }];
@@ -58,23 +62,36 @@ export function isLongTextField(field: Field): field is LongTextField {
   return (LONG_TEXT_FIELDS as readonly string[]).includes(field);
 }
 
+/** Op that appeared between two materialised steps for this long-text field. */
+export function opNewAtStep(
+  opsAtStep: readonly CbOperation[],
+  opsAtPrev: readonly CbOperation[],
+  fields: Record<Field, FieldBinding>,
+  field: LongTextField,
+): CbOperation | undefined {
+  const prev = new Set(opsAtPrev.map(operationRef));
+  let hit: CbOperation | undefined;
+  for (const op of opsAtStep) {
+    if (prev.has(operationRef(op))) continue;
+    if (fieldForOperation(op, fields) !== field) continue;
+    hit = op;
+  }
+  return hit ?? lastOpForField(opsAtStep, fields, field);
+}
+
+/** Last materialised op that touched `field` (operation order in the log). */
 export function lastOpForField(
   operations: readonly CbOperation[],
   fields: Record<Field, FieldBinding>,
   field: LongTextField,
-  step: number,
-  maxStep: number,
+  preferReplica?: string,
 ): CbOperation | undefined {
-  if (!operations.length) return undefined;
-  const idx = maxStep <= 0
-    ? 0
-    : Math.min(
-      operations.length,
-      Math.round((step / maxStep) * operations.length),
-    );
-  for (let i = Math.max(0, idx) - 1; i >= 0; i--) {
-    const op = operations[i]!;
-    if (fieldForOperation(op, fields) === field) return op;
+  let last: CbOperation | undefined;
+  let lastPreferred: CbOperation | undefined;
+  for (const op of operations) {
+    if (fieldForOperation(op, fields) !== field) continue;
+    last = op;
+    if (preferReplica && op.replica === preferReplica) lastPreferred = op;
   }
-  return undefined;
+  return lastPreferred ?? last;
 }

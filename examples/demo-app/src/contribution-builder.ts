@@ -44,7 +44,7 @@ import {
 } from "./cb-narrative-ui.ts";
 import {
   historicalTextHighlights,
-  lastOpForField,
+  opNewAtStep,
 } from "./cb-time-travel-narrative.ts";
 import { clampCaretOffset } from "./cb-narrative-layout.ts";
 import {
@@ -352,14 +352,11 @@ function renderNarrativeCollab(clone: DemoClone): void {
           ),
         )
         : afterText;
-      const ops = historicalCaller(clone, travel.step).adapter.operations();
-      const op = lastOpForField(
-        ops,
-        session.fields,
-        field,
-        travel.step,
-        travel.maxStep,
-      );
+      const opsAtStep = historicalCaller(clone, travel.step).adapter.operations();
+      const opsAtPrev = travel.step > 0
+        ? historicalCaller(clone, travel.step - 1).adapter.operations()
+        : [];
+      const op = opNewAtStep(opsAtStep, opsAtPrev, session.fields, field);
       const highlights = historicalTextHighlights(
         field,
         beforeText,
@@ -461,8 +458,7 @@ function renderPresence(clone: DemoClone): void {
           ops,
           session.fields,
           field,
-          travel.step,
-          travel.maxStep,
+          clone.id,
           atMs,
         ),
       );

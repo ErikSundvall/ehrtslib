@@ -12,6 +12,50 @@ import {
   toggleTimelinePanel,
 } from "../../../examples/demo-app/src/cb-time-travel.ts";
 import { deriveTimeTravelChrome } from "../../../examples/demo-app/src/cb-time-travel-ui.ts";
+import { historicalBadgesForField } from "../../../examples/demo-app/src/cb-history-presence.ts";
+import type { FieldBinding } from "../../../examples/demo-app/src/contribution-demo.ts";
+import type { CbOperation } from "../../../contribution_builder/mod.ts";
+
+function mockOp(
+  replica: string,
+  name: string,
+  target: string,
+  path: string,
+  value: string,
+  ts: string,
+): CbOperation {
+  return {
+    type: "set-value",
+    replica,
+    seq: 1,
+    author: { id: replica, name },
+    timestamp: ts,
+    draft: "d",
+    target,
+    path,
+    value,
+  };
+}
+
+Deno.test("cb demo #301: historical presence shows other replica, not viewer", () => {
+  const fields = {
+    pulse: { target: "bp", path: "value/magnitude" },
+  } as Record<string, FieldBinding>;
+  const ops = [
+    mockOp("viewer", "nurse.a", "bp", "value/magnitude", "72", "2026-01-01T10:00:00.000Z"),
+    mockOp("peer", "nurse.b", "bp", "value/magnitude", "88", "2026-01-01T10:01:00.000Z"),
+  ];
+  const view = historicalBadgesForField(
+    ops,
+    fields as never,
+    "pulse",
+    "viewer",
+    0,
+  );
+  assertEquals(view.badges.length, 1);
+  assertEquals(view.badges[0]!.userId, "peer");
+  assertEquals(view.badges[0]!.displayName, "nurse.b");
+});
 
 const temperatureComment =
   "Oral temp measurement. The temperature room was really warm.\nSynthetic example only.";
