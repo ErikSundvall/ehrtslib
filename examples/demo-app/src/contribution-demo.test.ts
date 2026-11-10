@@ -58,22 +58,22 @@ Deno.test("Contribution Builder demo: a focused stale whole-value edit cannot re
   const s = await started();
   const [a, b] = s.clones;
   const seen = b.caller.build.logRev();
-  writeField(s, a, "heading", "Peer diagnosis");
+  writeField(s, a, "diagnosisName", "Peer diagnosis");
   receive(s, b, a.caller.adapter.save());
   const error = assertThrows(
-    () => writeField(s, b, "heading", "Stale diagnosis", seen),
+    () => writeField(s, b, "diagnosisName", "Stale diagnosis", seen),
     CbOperationError,
   );
   assertEquals(error.code, "changed-by-someone-else");
-  assertEquals(readField(s, b, "heading"), "Peer diagnosis");
+  assertEquals(readField(s, b, "diagnosisName"), "Peer diagnosis");
 });
 
 Deno.test("Contribution Builder demo: native Unicode text converges on N clones and remains committable", async () => {
   const s = await started();
   const [a, b] = s.clones;
-  const original = String(readField(s, a, "narrative"));
-  writeField(s, a, "narrative", `Å👩‍⚕️ ${original}`);
-  writeField(s, b, "narrative", `${original}\nReviewed 🫀`);
+  const original = String(readField(s, a, "clinicalDescription"));
+  writeField(s, a, "clinicalDescription", `Å👩‍⚕️ ${original}`);
+  writeField(s, b, "clinicalDescription", `${original}\nReviewed 🫀`);
   const c = addClone(s);
   for (let pass = 0; pass < 2; pass++) {
     for (const source of s.clones) {
@@ -84,7 +84,7 @@ Deno.test("Contribution Builder demo: native Unicode text converges on N clones 
   }
   const expected = `Å👩‍⚕️ ${original}\nReviewed 🫀`;
   for (const clone of [a, b, c]) {
-    assertEquals(readField(s, clone, "narrative"), expected);
+    assertEquals(readField(s, clone, "clinicalDescription"), expected);
   }
   const p = await preparePreview(s, c);
   assertEquals(p.validation[0].valid, true);
@@ -94,7 +94,7 @@ Deno.test("Contribution Builder demo: native Unicode text converges on N clones 
 Deno.test("Contribution Builder demo: repeated preview never compacts or locks the live Automerge log", async () => {
   const s = await started();
   const a = s.clones[0];
-  writeField(s, a, "narrative", "Revised diagnosis narrative.");
+  writeField(s, a, "clinicalDescription", "Revised clinical description.");
   // Its base rev names text which compaction will remove.
   writeField(s, a, "pulse", 75);
   const bytes = a.caller.adapter.save();
@@ -106,7 +106,7 @@ Deno.test("Contribution Builder demo: repeated preview never compacts or locks t
     (first.body.versions as Array<{ data: unknown }>)[0].data,
     (second.body.versions as Array<{ data: unknown }>)[0].data,
   );
-  assert(JSON.stringify(first.body).includes("Revised diagnosis narrative."));
+  assert(JSON.stringify(first.body).includes("Revised clinical description."));
   assert(JSON.stringify(first.body).includes('"magnitude":75'));
   assertEquals(a.caller.adapter.save(), bytes);
   assertEquals(a.caller.build.exportLog(), log);
@@ -130,12 +130,56 @@ Deno.test("Contribution Builder demo: present-but-invalid vitals block output pr
   );
 });
 
+Deno.test("Contribution Builder demo: long text stays off the diagnosis name (#286)", async () => {
+  const s = await started();
+  const a = s.clones[0];
+  assertEquals(readField(s, a, "diagnosisName"), "Suspected viral upper respiratory infection");
+  assertEquals(s.fields.diagnosisName.path, "value/value");
+  assertEquals(s.fields.clinicalDescription.path, "value/value");
+  assertEquals(s.fields.comment.path, "value/value");
+  assert(s.fields.diagnosisName.target !== s.fields.clinicalDescription.target);
+  assert(s.fields.clinicalDescription.target !== s.fields.comment.target);
+  const description = String(readField(s, a, "clinicalDescription"));
+  const comment = String(readField(s, a, "comment"));
+  assert(description.includes("\n\n"));
+  assert(comment.includes("not the diagnosis name"));
+  assert(!String(readField(s, a, "diagnosisName")).includes("\n"));
+  assertEquals(readField(s, a, "respirationRate"), 16);
+  assertEquals(readField(s, a, "temperature"), 36.8);
+  assert(String(readField(s, a, "temperatureComment")).includes("Oral measurement"));
+  const canonical = JSON.stringify(a.caller.build.toCanonicalJson(s.draftId));
+  assert(canonical.includes("Suspected viral upper respiratory infection"));
+  assert(canonical.includes("Follow-up is planned in two days"));
+  assert(canonical.includes("Household contacts"));
+  const prepared = await preparePreview(s, a);
+  assertEquals(prepared.validation[0].valid, true);
+  const body = JSON.stringify(prepared.body);
+  assert(body.includes("Follow-up is planned in two days"));
+  assert(body.includes("Suspected viral upper respiratory infection"));
+  writeField(s, a, "comment", `${comment}\nSecond paragraph, still not the name.`);
+  receive(s, s.clones[1], a.caller.adapter.save());
+  assertEquals(
+    readField(s, s.clones[1], "comment"),
+    `${comment}\nSecond paragraph, still not the name.`,
+  );
+  assertEquals(
+    readField(s, s.clones[1], "diagnosisName"),
+    "Suspected viral upper respiratory infection",
+  );
+  writeField(s, a, "clinicalDescription", "");
+  assertEquals(readField(s, a, "clinicalDescription"), "");
+  assertEquals(
+    readField(s, a, "diagnosisName"),
+    "Suspected viral upper respiratory infection",
+  );
+});
+
 Deno.test("Contribution Builder demo: edits record the editable username, with stable caller identity", async () => {
   const s = await started();
   const a = s.clones[0];
   a.username = "dr.changed";
   a.author.name = a.username;
-  writeField(s, a, "heading", "Changed heading");
+  writeField(s, a, "diagnosisName", "Changed name");
   const op = a.caller.adapter.operations().at(-1)!;
   assertEquals(op.author, { id: a.id, name: "dr.changed" });
 });

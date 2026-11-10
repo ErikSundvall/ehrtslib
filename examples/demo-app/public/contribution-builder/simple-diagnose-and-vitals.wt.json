@@ -1,6 +1,6 @@
 {
   "templateId" : "simple-diagnose-and-vitals",
-  "semVer" : "0.1.0",
+  "semVer" : "0.4.0",
   "version" : "2.3",
   "defaultLanguage" : "en",
   "languages" : [ "sv", "de", "en" ],
@@ -64,7 +64,7 @@
       "rmType" : "EVALUATION",
       "nodeId" : "openEHR-EHR-EVALUATION.problem_diagnosis.v1",
       "min" : 0,
-      "max" : 1,
+      "max" : -1,
       "localizedNames" : {
         "sv" : "Problem/Diagnos",
         "de" : "Problem/Diagnose",
@@ -101,6 +101,48 @@
           "comment" : "Coding of the name of the problem or diagnosis with a terminology is preferred, where possible."
         },
         "aqlPath" : "/content[openEHR-EHR-EVALUATION.problem_diagnosis.v1]/data[at0001]/items[at0002]/value",
+        "inputs" : [ {
+          "type" : "TEXT"
+        } ]
+      }, {
+        "id" : "clinical_description",
+        "name" : "Clinical description",
+        "localizedName" : "Clinical description",
+        "rmType" : "DV_TEXT",
+        "nodeId" : "at0009",
+        "min" : 0,
+        "max" : 1,
+        "localizedNames" : {
+          "en" : "Clinical description"
+        },
+        "localizedDescriptions" : {
+          "en" : "Narrative description of the problem or diagnosis."
+        },
+        "annotations" : {
+          "comment" : "Background and context. Not the problem or diagnosis name."
+        },
+        "aqlPath" : "/content[openEHR-EHR-EVALUATION.problem_diagnosis.v1]/data[at0001]/items[at0009]/value",
+        "inputs" : [ {
+          "type" : "TEXT"
+        } ]
+      }, {
+        "id" : "comment",
+        "name" : "Comment",
+        "localizedName" : "Comment",
+        "rmType" : "DV_TEXT",
+        "nodeId" : "at0069",
+        "min" : 0,
+        "max" : 1,
+        "localizedNames" : {
+          "en" : "Comment"
+        },
+        "localizedDescriptions" : {
+          "en" : "Additional narrative comment about the problem or diagnosis not captured in other fields."
+        },
+        "annotations" : {
+          "comment" : "Not the problem or diagnosis name."
+        },
+        "aqlPath" : "/content[openEHR-EHR-EVALUATION.problem_diagnosis.v1]/data[at0001]/items[at0069]/value",
         "inputs" : [ {
           "type" : "TEXT"
         } ]
@@ -897,6 +939,27 @@
                 "terminologyId" : "SNOMED-CT"
               }
             }
+          }, {
+            "id" : "comment",
+            "name" : "Comment",
+            "localizedName" : "Comment",
+            "rmType" : "DV_TEXT",
+            "nodeId" : "at0063",
+            "min" : 0,
+            "max" : 1,
+            "localizedNames" : {
+              "en" : "Comment"
+            },
+            "localizedDescriptions" : {
+              "en" : "Additional comment about the body temperature measurement not captured in other fields."
+            },
+            "annotations" : {
+              "comment" : "Narrative comment on the measurement, not the temperature value."
+            },
+            "aqlPath" : "/content[openEHR-EHR-SECTION.adhoc.v1,'Vital signs']/items[openEHR-EHR-OBSERVATION.body_temperature.v2]/data[at0002]/events[at0003]/data[at0001]/items[at0063]/value",
+            "inputs" : [ {
+              "type" : "TEXT"
+            } ]
           }, {
             "id" : "time",
             "name" : "Time",

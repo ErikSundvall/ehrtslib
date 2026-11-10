@@ -18,7 +18,7 @@
     <main>
       <section class="intro">
         <p>One build, independent Automerge clones. Edit both panes before their delayed updates arrive. <strong>Synthetic data only; nothing is saved after reload.</strong></p>
-        <p>Hand-coded fields bound to <a href="contribution-builder/simple-diagnose-and-vitals.opt">the real OPT</a> and <a href="contribution-builder/simple-diagnose-and-vitals.wt.json">Web Template</a>. The long field is the template’s diagnosis text, not an added clinical-notes archetype. Each clone’s committer is also the explicit composer of its output.</p>
+        <p>Hand-coded fields bound to <a href="contribution-builder/simple-diagnose-and-vitals.opt">the real OPT</a> and <a href="contribution-builder/simple-diagnose-and-vitals.wt.json">Web Template</a> of theme pack <code>simple-diagnose-and-vitals</code> 0.4.0. Long text uses Clinical description and Comment, not the diagnosis name. Each clone’s committer is also the explicit composer of its output.</p>
         <div
           class="toolbar"><button id="add-clone" disabled>Add clone</button><button id="sync-now" disabled>Sync all now (bypass delays)</button><span id="build-info"></span></div>
         <p id="status" role="status">Loading template and Automerge…</p>
@@ -68,15 +68,21 @@
               <label class="field-shell"><span class="field-heading field-heading--systolic">Systolic (mmHg)</span><input data-field="systolic" type="number" min="0" max="999" step="1" required></label>
               <label class="field-shell"><span class="field-heading field-heading--diastolic">Diastolic (mmHg)</span><input data-field="diastolic" type="number" min="0" max="999" step="1" required></label>
               <label class="field-shell"><span class="field-heading field-heading--pulse">Pulse (/min)</span><input data-field="pulse" type="number" min="0" max="999" step="1" required></label>
+              <label class="field-shell"><span class="field-heading field-heading--respirationRate">Respiration (/min)</span><input data-field="respirationRate" type="number" min="0" max="200" step="1" required></label>
+              <label class="field-shell"><span class="field-heading field-heading--temperature">Temperature (°C)</span><input data-field="temperature" type="number" min="30" max="45" step="0.1" required></label>
               <label class="field-shell"><span class="field-heading field-heading--spo2">SpO₂ (%)</span><input data-field="spo2" type="number" min="0" max="100" step="0.1" required></label>
             </div>
+            <label class="field-shell"><span class="field-heading field-heading--temperatureComment">Temperature comment</span><textarea data-field="temperatureComment" rows="3" spellcheck="false" required></textarea></label>
           </fieldset>
-          <label class="field-shell"><span class="field-heading field-heading--heading">Problem / diagnosis heading</span> <input data-field="heading" required></label>
-          <p
-            class="hint">Whole-value edits carry the revision seen when you focus the field. A stale edit is rejected, never silently overwritten.</p>
-          <label class="field-shell"><span class="field-heading field-heading--narrative">Problem / diagnosis narrative</span> <textarea data-field="narrative" rows="9" spellcheck="false" required></textarea></label>
-          <p
-            class="hint">Native Automerge text: type in both clones during a rural-phone delay to see concurrent inserts merge. This is the diagnosis DV_TEXT; the heading is EVALUATION.name.</p>
+          <fieldset>
+            <legend>Problem / diagnosis</legend>
+            <label class="field-shell"><span class="field-heading field-heading--diagnosisName">Name</span><input data-field="diagnosisName" required maxlength="120"></label>
+            <p class="hint">Problem/Diagnosis name (at0002): a short label. Whole-value edits carry the revision seen on focus. A stale edit is rejected.</p>
+            <label class="field-shell"><span class="field-heading field-heading--clinicalDescription">Clinical description</span><textarea data-field="clinicalDescription" rows="8" spellcheck="false" required></textarea></label>
+            <p class="hint">Clinical description (at0009): native Automerge text. Type in both clones during a rural-phone delay to see concurrent inserts merge.</p>
+            <label class="field-shell"><span class="field-heading field-heading--comment">Comment</span><textarea data-field="comment" rows="4" spellcheck="false" required></textarea></label>
+            <p class="hint">Comment (at0069): a separate narrative, not the diagnosis name.</p>
+          </fieldset>
           <details>
             <summary>Revision, validation & skipped operations</summary>
             <pre class="diagnostics"></pre>

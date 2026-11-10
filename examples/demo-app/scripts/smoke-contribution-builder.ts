@@ -39,6 +39,7 @@ const openPopup = () => {
 };
 globalThis.open = openPopup;
 globalThis.confirm = () => true;
+globalThis.getComputedStyle = w.getComputedStyle.bind(w);
 const lifecycle = new EventTarget();
 globalThis.addEventListener = lifecycle.addEventListener.bind(lifecycle);
 globalThis.fetch = async (url) => {
@@ -65,8 +66,8 @@ await import(new URL("docs/demo/contribution-builder.js", root).href);
 await waitFor(() => w.document.querySelectorAll(".clone").length === 2);
 assert.match(w.document.querySelector("#status").textContent, /Ready/);
 const panels = [...w.document.querySelectorAll(".clone")];
-const first = panels[0].querySelector("textarea"),
-  second = panels[1].querySelector("textarea");
+const first = panels[0].querySelector('[data-field="clinicalDescription"]'),
+  second = panels[1].querySelector('[data-field="clinicalDescription"]');
 const original = first.value;
 first.value = "Start 👩‍⚕️ " + original;
 first.dispatchEvent(new w.Event("input"));
