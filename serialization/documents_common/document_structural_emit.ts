@@ -134,12 +134,16 @@ export function emitStructuralCompositionExtrasMarkdown(
     push(`- _feeder_audit:_ ${vis}${mdAnn(fa, vis)}`);
   }
   if (Array.isArray(comp.links)) {
-    for (const link of comp.links) {
-      if (!link || typeof link !== "object") continue;
-      const l = { ...(link as Record<string, unknown>) };
-      if (!l._type) l._type = "LINK";
-      const vis = rmDisplay(l);
-      push(`- _link:_ ${vis}${mdAnn(l, vis)}`);
+    if (comp.links.length === 0) {
+      push("- _links:_ —");
+    } else {
+      for (const link of comp.links) {
+        if (!link || typeof link !== "object") continue;
+        const l = { ...(link as Record<string, unknown>) };
+        if (!l._type) l._type = "LINK";
+        const vis = rmDisplay(l);
+        push(`- _link:_ ${vis}${mdAnn(l, vis)}`);
+      }
     }
   }
   if (comp.archetype_details?.rm_version) {
@@ -166,12 +170,16 @@ export function emitStructuralCompositionExtrasAsciidoc(
     push(`* _feeder_audit:_ ${vis}${adAnn(fa, vis)}`);
   }
   if (Array.isArray(comp.links)) {
-    for (const link of comp.links) {
-      if (!link || typeof link !== "object") continue;
-      const l = { ...(link as Record<string, unknown>) };
-      if (!l._type) l._type = "LINK";
-      const vis = rmDisplay(l);
-      push(`* _link:_ ${vis}${adAnn(l, vis)}`);
+    if (comp.links.length === 0) {
+      push("* _links:_ —");
+    } else {
+      for (const link of comp.links) {
+        if (!link || typeof link !== "object") continue;
+        const l = { ...(link as Record<string, unknown>) };
+        if (!l._type) l._type = "LINK";
+        const vis = rmDisplay(l);
+        push(`* _link:_ ${vis}${adAnn(l, vis)}`);
+      }
     }
   }
   if (comp.archetype_details?.rm_version) {

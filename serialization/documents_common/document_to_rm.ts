@@ -8,6 +8,7 @@ import {
   parseDataValueDisplay,
   parseDvCodedTextDisplay,
 } from "./value_parse.ts";
+import { archetypeIdFromOpenehrUrn } from "./openehr_aom_urn.ts";
 import { parseOeRmAnnotationPayload } from "./oe_rm_annotation.ts";
 import { mergeRmPatchPayload } from "./oe_rm_sparse.ts";
 import { resolveDataValueFromDisplayAndAnnotation } from "./oe_value_annotation.ts";
@@ -59,7 +60,8 @@ function parseFrontmatterValue(key: string, raw: string): unknown {
     return cp ?? dvText(unquoted);
   }
   if (key === "uid") {
-    return { _type: "HIER_OBJECT_ID", value: unquoted };
+    const idType = unquoted.includes("::") ? "OBJECT_VERSION_ID" : "HIER_OBJECT_ID";
+    return { _type: idType, value: unquoted };
   }
   if (key === "template_id") {
     return { _type: "TEMPLATE_ID", value: unquoted };
@@ -536,10 +538,9 @@ export function blocksToRmObject(
         if (parsed.field === "context") continue;
         if (parsed.field === "composer") {
           const vis = (parsed.valueText ?? li.value ?? "").trim();
-          const base: Record<string, unknown> = { _type: "PARTY_IDENTIFIED" };
-          if (vis && vis !== "—") {
-            base.name = vis.split(" · ")[0].trim();
-          }
+          const base: Record<string, unknown> = vis && vis !== "—"
+            ? { _type: "PARTY_IDENTIFIED", name: vis.split(" · ")[0].trim() }
+            : { _type: "PARTY_SELF" };
           comp.composer = mergeRmPatchPayload(base, li.oeRmPayload);
           continue;
         }
@@ -548,6 +549,10 @@ export function blocksToRmObject(
             { _type: "FEEDER_AUDIT" },
             li.oeRmPayload,
           );
+          continue;
+        }
+        if (parsed.field === "links") {
+          comp.links = [];
           continue;
         }
         if (parsed.field === "link") {
@@ -611,7 +616,8 @@ export function blocksToRmObject(
       if (parsed.field === "item_node_id") {
         const target = listItemStructureTarget(stack, entryForMeta);
         if (target) {
-          target.archetype_node_id = parsed.valueText;
+          const raw = parsed.valueText ?? "";
+          target.archetype_node_id = archetypeIdFromOpenehrUrn(raw) ?? raw;
           continue;
         }
       }

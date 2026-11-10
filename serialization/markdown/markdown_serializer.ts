@@ -53,6 +53,7 @@ import {
   emitStructuralEventContextMarkdown,
 } from "../documents_common/document_structural_emit.ts";
 import { formatSparseRmMarkdown } from "../documents_common/oe_rm_sparse.ts";
+import { parseDataValueDisplay } from "../documents_common/value_parse.ts";
 import {
   shouldEmitHistoryOrigin,
   shouldSkipLossyEventTitles,
@@ -714,8 +715,10 @@ export class MarkdownSerializer {
     const elRmAnn = this.config.style === "structural"
       ? formatSparseRmMarkdown(element as Record<string, unknown>, {
         _type: "ELEMENT",
-        name: element.name,
-        value: element.value,
+        name: { _type: "DV_TEXT", value: name },
+        value: typeof valueStr === "string"
+          ? parseDataValueDisplay(valueStr) ?? { _type: "DV_TEXT", value: valueStr }
+          : element.value,
       })
       : "";
 

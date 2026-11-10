@@ -125,6 +125,19 @@ export function lexAsciidocLossless(text: string): {
           oeRmPayload: stripped.oeRmPayload,
           });
         } else {
+          const clusterOnly = itemText.match(/^\*([^*]+)\*\s*$/);
+          if (clusterOnly) {
+            blocks.push({
+              kind: "list_item",
+              indent: listIndent,
+              label: clusterOnly[1],
+              raw: itemText,
+              archetypeNodeId: stripped.archetypeNodeId ?? pendingNodeId,
+              oeValuePayload: stripped.oeValuePayload,
+              oeRmPayload: stripped.oeRmPayload,
+            });
+            continue;
+          }
           const plain = itemText.match(/^(.+?):\s*(.+)$/);
           blocks.push({
             kind: "list_item",

@@ -62,7 +62,7 @@ export const STRUCTURAL_ASCIIDOC_CONFIG: AsciidocSerializationConfig = {
   includeRedundantEntryMetadata: false,
   maxHeadingDepth: 5,
   includeEmptyFields: false,
-  useOpenehrUrnLinks: true,
+  useOpenehrUrnLinks: false,
 };
 
 /**
