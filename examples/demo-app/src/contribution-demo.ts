@@ -58,7 +58,11 @@ const DIAGNOSIS_COMMENT =
   "Synthetic additional comment. Household contacts have similar symptoms.\nThis note is not the diagnosis name.";
 const TEMPERATURE_COMMENT =
   "Oral measurement. The room was warm.\nSynthetic example only.";
-const DIAGNOSIS_NAME = "Suspected viral upper respiratory infection";
+export const DEMO_FILLED_DIAGNOSIS_NAME =
+  "Suspected viral upper respiratory infection";
+
+/** Left empty at session start so template validation is visible immediately (#303). */
+export const DEMO_INITIAL_EMPTY_MANDATORY_FIELD = "diagnosisName" as const;
 export interface FieldBinding {
   target: string;
   path: string;
@@ -342,7 +346,7 @@ export async function createDemoSession(
     draftId,
     fields.diagnosisName.target,
     fields.diagnosisName.path,
-    DIAGNOSIS_NAME,
+    "",
     { rev: build.logRev() },
   );
   for (const field of LONG_TEXT_FIELDS) {

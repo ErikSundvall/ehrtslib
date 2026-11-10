@@ -65,6 +65,13 @@ import {
   type TimeTravelState,
 } from "./cb-time-travel.ts";
 import { deriveTimeTravelChrome } from "./cb-time-travel-ui.ts";
+import { fieldValidationViews } from "./cb-field-validation.ts";
+import {
+  ensureFieldValidationHosts,
+  type FieldValidationHost,
+  paintFieldValidation,
+} from "./cb-field-validation-ui.ts";
+import { handleFieldEnterKey } from "./cb-field-enter.ts";
 
 const PRESENCE_FIELDS: Field[] = [
   "diagnosisName",
@@ -122,6 +129,7 @@ let busy = false;
 let sent = false;
 const presenceViews = new Map<string, PresenceView>();
 const presenceHosts = new Map<string, Map<Field, HTMLElement>>();
+const validationHosts = new Map<string, Map<Field, FieldValidationHost>>();
 const presenceBeats = new Map<
   string,
   ReturnType<typeof globalThis.setInterval>
@@ -671,6 +679,10 @@ function render(clone: DemoClone): void {
     session.draftId,
     session.template,
   );
+  const valHosts = validationHosts.get(clone.id);
+  if (valHosts) {
+    paintFieldValidation(valHosts, fieldValidationViews(session, validation));
+  }
   $(".diagnostics", panel).textContent = JSON.stringify(
     {
       rev: clone.caller.build.logRev(),
@@ -752,6 +764,7 @@ function createPanel(clone: DemoClone): void {
   });
   const hosts = ensurePresenceHosts(panel, PRESENCE_FIELDS);
   presenceHosts.set(clone.id, hosts);
+  validationHosts.set(clone.id, ensureFieldValidationHosts(panel));
   setupTimeTravel(clone, panel);
   ensurePresenceTicker();
   for (
@@ -872,7 +885,13 @@ function createPanel(clone: DemoClone): void {
       });
     }
   }
-  $("form", panel).addEventListener("submit", (event) => {
+  const form = $("form", panel);
+  form.addEventListener("keydown", (event) => {
+    handleFieldEnterKey(event, panel, (input) => {
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+  });
+  form.addEventListener("submit", (event) => {
     event.preventDefault();
     void commit(clone);
   });

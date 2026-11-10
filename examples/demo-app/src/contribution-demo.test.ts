@@ -4,6 +4,8 @@ import {
   addClone,
   createDemoSession,
   delayFor,
+  DEMO_FILLED_DIAGNOSIS_NAME,
+  DEMO_INITIAL_EMPTY_MANDATORY_FIELD,
   preparePreview,
   readField,
   receive,
@@ -33,10 +35,9 @@ Deno.test("Contribution Builder demo: two independent clones bind the real OPT/W
   assertEquals(readField(s, a, "diastolic"), 80);
   assertEquals(readField(s, a, "pulse"), 72);
   assertEquals(readField(s, a, "spo2"), 98);
-  assertEquals(
-    s.validator.validate(a.caller.build, s.draftId, s.template).errors,
-    [],
-  );
+  assertEquals(readField(s, a, DEMO_INITIAL_EMPTY_MANDATORY_FIELD), "");
+  assert(s.validator.validate(a.caller.build, s.draftId, s.template).errors
+    .length > 0);
   assertEquals(
     a.caller.build.toCanonicalJson(s.draftId),
     b.caller.build.toCanonicalJson(s.draftId),
@@ -86,6 +87,7 @@ Deno.test("Contribution Builder demo: native Unicode text converges on N clones 
   for (const clone of [a, b, c]) {
     assertEquals(readField(s, clone, "clinicalDescription"), expected);
   }
+  writeField(s, c, "diagnosisName", DEMO_FILLED_DIAGNOSIS_NAME);
   const p = await preparePreview(s, c);
   assertEquals(p.validation[0].valid, true);
   assert(JSON.stringify(p.body).includes("Reviewed 🫀"));
@@ -94,11 +96,13 @@ Deno.test("Contribution Builder demo: native Unicode text converges on N clones 
 Deno.test("Contribution Builder demo: repeated preview never compacts or locks the live Automerge log", async () => {
   const s = await started();
   const a = s.clones[0];
+  writeField(s, a, "diagnosisName", DEMO_FILLED_DIAGNOSIS_NAME);
   writeField(s, a, "clinicalDescription", "Revised clinical description.");
   // Its base rev names text which compaction will remove.
   writeField(s, a, "pulse", 75);
   const bytes = a.caller.adapter.save();
   const log = a.caller.build.exportLog();
+  writeField(s, a, "diagnosisName", DEMO_FILLED_DIAGNOSIS_NAME);
   const first = await preparePreview(s, a);
   const second = await preparePreview(s, a);
   assertEquals(Object.keys(first.body).sort(), ["audit", "versions"]);
@@ -118,6 +122,7 @@ Deno.test("Contribution Builder demo: repeated preview never compacts or locks t
 
 Deno.test("Contribution Builder demo: present-but-invalid vitals block output preparation", async () => {
   const s = await started();
+  writeField(s, s.clones[0], "diagnosisName", DEMO_FILLED_DIAGNOSIS_NAME);
   writeField(s, s.clones[0], "spo2", 101);
   await assertRejects(
     () => preparePreview(s, s.clones[0]),
@@ -133,7 +138,7 @@ Deno.test("Contribution Builder demo: present-but-invalid vitals block output pr
 Deno.test("Contribution Builder demo: long text stays off the diagnosis name (#286)", async () => {
   const s = await started();
   const a = s.clones[0];
-  assertEquals(readField(s, a, "diagnosisName"), "Suspected viral upper respiratory infection");
+  assertEquals(readField(s, a, "diagnosisName"), "");
   assertEquals(s.fields.diagnosisName.path, "value/value");
   assertEquals(s.fields.clinicalDescription.path, "value/value");
   assertEquals(s.fields.comment.path, "value/value");
@@ -148,9 +153,10 @@ Deno.test("Contribution Builder demo: long text stays off the diagnosis name (#2
   assertEquals(readField(s, a, "temperature"), 36.8);
   assert(String(readField(s, a, "temperatureComment")).includes("Oral measurement"));
   const canonical = JSON.stringify(a.caller.build.toCanonicalJson(s.draftId));
-  assert(canonical.includes("Suspected viral upper respiratory infection"));
   assert(canonical.includes("Follow-up is planned in two days"));
   assert(canonical.includes("Household contacts"));
+  assert(!canonical.includes(DEMO_FILLED_DIAGNOSIS_NAME));
+  writeField(s, a, "diagnosisName", DEMO_FILLED_DIAGNOSIS_NAME);
   const prepared = await preparePreview(s, a);
   assertEquals(prepared.validation[0].valid, true);
   const body = JSON.stringify(prepared.body);
@@ -164,14 +170,11 @@ Deno.test("Contribution Builder demo: long text stays off the diagnosis name (#2
   );
   assertEquals(
     readField(s, s.clones[1], "diagnosisName"),
-    "Suspected viral upper respiratory infection",
+    DEMO_FILLED_DIAGNOSIS_NAME,
   );
   writeField(s, a, "clinicalDescription", "");
   assertEquals(readField(s, a, "clinicalDescription"), "");
-  assertEquals(
-    readField(s, a, "diagnosisName"),
-    "Suspected viral upper respiratory infection",
-  );
+  assertEquals(readField(s, a, "diagnosisName"), DEMO_FILLED_DIAGNOSIS_NAME);
 });
 
 Deno.test("Contribution Builder demo: edits record the editable username, with stable caller identity", async () => {

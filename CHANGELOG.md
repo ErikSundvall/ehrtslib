@@ -8,6 +8,7 @@ Add an entry under **Unreleased** in every PR that changes user-visible behaviou
 
 ## [Unreleased]
 
+- **Demo.** Contribution Builder: Enter in single-line fields confirms the value and moves to the next field (never submits); multi-line fields keep Enter for new lines; demo starts with empty mandatory Problem/Diagnosis name so validation marks show immediately; invalid fields get a red outline and warning tooltip ([#303](https://github.com/ErikSundvall/ehrtslib/issues/303)).
 - **Demo.** Contribution Builder: remote narrative edit highlights anchor at wire offsets (no stray single-letter matches); time travel keeps read-only editing until Return to live, full-width scrub bar with moment readout and play/pause replay, historical presence badges and long-text highlights ([#301](https://github.com/ErikSundvall/ehrtslib/issues/301)).
 - **Demo.** Contribution Builder: remote narrative carets use Automerge stable cursors on native text fields (encode with `getCursor`, resolve with `getCursorPosition` on the peer’s merged doc) ([#301](https://github.com/ErikSundvall/ehrtslib/issues/301)).
 - **Serialization (Markdown/AsciiDoc).** Embedding list depth resets under each heading and block title. AsciiDoc values directly under a heading use `::` (then `:::`, `::::`, and `;;` only for real nested lists). Markdown values under a heading are not indented by the heading level. Nameless embedding items are omitted instead of a bare `- ` line.
