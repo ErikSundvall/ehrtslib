@@ -610,6 +610,9 @@ export class AsciidocSerializer {
 
   private serializeItemStructure(itemStruct: any, lines: string[], _depth: number): void {
     if (!itemStruct) return;
+    // Heading depth is not labelled-list depth. Under a section, entry, or
+    // block title the list starts again at `::`.
+    const depth = this.config.style === "embedding" ? 0 : _depth;
 
     const typeName = this.getTypeName(itemStruct);
 
@@ -622,16 +625,16 @@ export class AsciidocSerializer {
         if (this.config.dataValueRendering === 'table' && this.canRenderAsTable(itemStruct.items)) {
           this.renderItemsAsTable(itemStruct.items, lines);
         } else {
-          this.serializeItems(itemStruct.items, lines, _depth);
+          this.serializeItems(itemStruct.items, lines, depth);
         }
       }
     } else if (typeName === 'ITEM_SINGLE') {
       if (itemStruct.item) {
-        this.serializeItem(itemStruct.item, lines, _depth);
+        this.serializeItem(itemStruct.item, lines, depth);
       }
     } else {
       if (itemStruct.items && Array.isArray(itemStruct.items)) {
-        this.serializeItems(itemStruct.items, lines, _depth);
+        this.serializeItems(itemStruct.items, lines, depth);
       }
     }
   }

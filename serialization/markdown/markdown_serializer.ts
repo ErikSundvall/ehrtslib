@@ -584,6 +584,9 @@ export class MarkdownSerializer {
 
   private serializeItemStructure(itemStruct: any, lines: string[], _depth: number): void {
     if (!itemStruct) return;
+    // Heading depth is not list depth. Values directly under a heading are
+    // not indented as if they were nested inside every ancestor section.
+    const depth = this.config.style === "embedding" ? 0 : _depth;
 
     const typeName = this.getTypeName(itemStruct);
 
@@ -598,17 +601,17 @@ export class MarkdownSerializer {
         if (this.config.dataValueRendering === 'table' && this.canRenderAsTable(itemStruct.items)) {
           this.renderItemsAsTable(itemStruct.items, lines);
         } else {
-          this.serializeItems(itemStruct.items, lines, _depth);
+          this.serializeItems(itemStruct.items, lines, depth);
         }
       }
     } else if (typeName === 'ITEM_SINGLE') {
       if (itemStruct.item) {
-        this.serializeItem(itemStruct.item, lines, _depth);
+        this.serializeItem(itemStruct.item, lines, depth);
       }
     } else {
       // Unknown structure - try items
       if (itemStruct.items && Array.isArray(itemStruct.items)) {
-        this.serializeItems(itemStruct.items, lines, _depth);
+        this.serializeItems(itemStruct.items, lines, depth);
       }
     }
   }
@@ -627,8 +630,12 @@ export class MarkdownSerializer {
     } else if (typeName === 'ELEMENT') {
       this.serializeElement(item, lines, nestLevel);
     } else {
-      // Unknown item type
       const name = this.extractName(item);
+      if (this.config.style === "embedding") {
+        if (!name) return;
+        lines.push(name);
+        return;
+      }
       const indent = this.getIndent(nestLevel);
       lines.push(`${indent}- ${name || '(unknown)'}`);
     }
@@ -706,7 +713,12 @@ export class MarkdownSerializer {
     const nodeId = this.formatInlineNodeIdAnnotation(element);
 
     if (element.value === undefined || element.value === null) {
-      // Null element
+      if (this.config.style === "embedding") {
+        if (this.config.includeNullFlavour && element.null_flavour && name) {
+          lines.push(`${name}: ${this.formatDvCodedText(element.null_flavour)}`);
+        }
+        return;
+      }
       if (this.config.includeNullFlavour && element.null_flavour) {
         const nullStr = this.formatDvCodedText(element.null_flavour);
         lines.push(`${indent}- ${name}: _${nullStr}_${nodeId}`);

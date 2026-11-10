@@ -72,7 +72,8 @@ Import entry point: [`documents-codecs.md`](documents-codecs.md).
 | Markdown (embedding) | AsciiDoc (embedding) |
 | --- | --- |
 | `origin: …` / `time: …` plain lines (when not redundant) | `origin:: …` / `time:: …` definition-list lines |
-| `SpO₂: 98%` inline | `SpO₂:: 98%` |
+| `SpO₂: 98%` at column 0 under a heading | `SpO₂:: 98%` under a heading |
+| List indent resets at each heading; a cluster label indents its children once | Labelled-list depth resets at each heading or block title (`::`). Nested lists use `:::`, `::::`, then `;;` |
 | Multi-event: `**Event name**` or block context | Multi-event: `.Event name` block title |
 | Single-event HISTORY: no event title line | Single-event: no `.Any event` |
 

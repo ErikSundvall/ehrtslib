@@ -3,15 +3,27 @@
  */
 
 /**
+ * AsciiDoc labelled-list delimiters, shallowest first.
+ * `::` / `:::` / `::::` are the colon forms; deeper nesting uses `;;`.
+ */
+const ASCIIDOC_DLIST_DELIMITERS = ["::", ":::", "::::", ";;"] as const;
+
+/**
  * AsciiDoc definition list term line.
- * Nesting depth is extra `:` **after the term** (`Namn::`, `Namn:::`, …), never leading colons.
+ * `nestLevel` 0 is a value directly under a heading or block title (`Term:: value`).
+ * Deeper levels are only real nested lists, and never more than four colons.
  */
 export function asciidocDlistTermLine(
   nestLevel: number,
   term: string,
   value: string,
 ): string {
-  const delimiter = "::" + (nestLevel > 0 ? ":".repeat(nestLevel) : "");
+  const level = Number.isFinite(nestLevel)
+    ? Math.max(0, Math.floor(nestLevel))
+    : 0;
+  const delimiter = ASCIIDOC_DLIST_DELIMITERS[
+    Math.min(level, ASCIIDOC_DLIST_DELIMITERS.length - 1)
+  ];
   return `${term}${delimiter} ${value}`;
 }
 
