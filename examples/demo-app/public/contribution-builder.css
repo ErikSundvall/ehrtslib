@@ -369,13 +369,15 @@ details[open] > summary {
 }
 .narrative-layout-mirror {
   position: absolute;
-  left: -9999px;
-  top: 0;
+  inset: 0;
   visibility: hidden;
+  pointer-events: none;
   white-space: pre-wrap;
   overflow-wrap: break-word;
   box-sizing: border-box;
-  overflow: auto;
+  overflow: visible;
+  height: auto;
+  min-height: 100%;
 }
 .narrative-caret-measure {
   visibility: hidden;
@@ -396,16 +398,33 @@ details[open] > summary {
   inset: 0;
   pointer-events: none;
   z-index: 2;
+  overflow: hidden;
 }
 .narrative-remote-caret {
   position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  pointer-events: none;
+}
+.narrative-remote-caret__stem {
+  position: relative;
+  width: 2px;
+  height: 1.15em;
+  background: var(--caret-accent, #12618f);
+  border-radius: 1px;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--caret-accent, #12618f) 40%, white);
+}
+.narrative-remote-caret__tag {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 2px);
   font: 700 .62rem/1 system-ui, sans-serif;
   padding: .08rem .22rem;
   border-radius: .12rem;
   color: white;
   background: var(--caret-accent, #12618f);
   border: 1px solid white;
-  transform: translateY(-100%);
   white-space: nowrap;
 }
 @media (max-width: 600px) {

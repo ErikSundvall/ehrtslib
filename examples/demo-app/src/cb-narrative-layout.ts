@@ -5,6 +5,23 @@ export function clampCaretOffset(text: string, offset: number): number {
   return Math.min(Math.floor(offset), text.length);
 }
 
+/** Start/end UTF-16 offsets for the logical line containing `at`. */
+export function caretLogicalLineRange(text: string, at: number): {
+  start: number;
+  end: number;
+  lineIndex: number;
+} {
+  const clamped = clampCaretOffset(text, at);
+  const start = text.lastIndexOf("\n", clamped - 1) + 1;
+  const nextNl = text.indexOf("\n", clamped);
+  const end = nextNl < 0 ? text.length : nextNl;
+  return {
+    start,
+    end,
+    lineIndex: text.slice(0, clamped).split("\n").length - 1,
+  };
+}
+
 /** Whether index `at` is on the requested line (0-based), for caret layout checks. */
 export function caretLineIndex(text: string, at: number): number {
   const clamped = clampCaretOffset(text, at);
