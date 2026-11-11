@@ -8,6 +8,7 @@ Add an entry under **Unreleased** in every PR that changes user-visible behaviou
 
 ## [Unreleased]
 
+- **Demo.** Contribution Builder: Enter in single-line fields confirms the value and moves to the next field (never submits); multi-line fields keep Enter for new lines; demo starts with empty mandatory Problem/Diagnosis name so validation marks show immediately; invalid fields get a red outline and warning tooltip ([#303](https://github.com/ErikSundvall/ehrtslib/issues/303)).
 - **Demo.** Contribution Builder: remote narrative edit highlights anchor at wire offsets (no stray single-letter matches); time travel keeps read-only editing until Return to live, full-width scrub bar with moment readout and play/pause replay, historical presence badges and long-text highlights ([#301](https://github.com/ErikSundvall/ehrtslib/issues/301)).
 - **Demo.** Contribution Builder: remote narrative carets use Automerge stable cursors on native text fields (encode with `getCursor`, resolve with `getCursorPosition` on the peer’s merged doc) ([#301](https://github.com/ErikSundvall/ehrtslib/issues/301)).
 - **Demo.** Contribution Builder: remote narrative caret markers paint on the peer’s caret line (stem + label in the caret layer mirror) ([#301](https://github.com/ErikSundvall/ehrtslib/issues/301)).

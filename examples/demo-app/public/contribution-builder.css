@@ -80,6 +80,69 @@ label {
   font-weight: 600;
   margin-bottom: .7rem;
 }
+.field-control {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+.field-control--invalid > input,
+.field-control--invalid > textarea:not(.narrative-input),
+.field-control--invalid .narrative-input.field-input--invalid,
+.field-input--invalid {
+  border-color: #b82034;
+  box-shadow: inset 0 0 0 1px #b82034;
+  padding-right: 2.15rem;
+}
+.field-validation-mark {
+  position: absolute;
+  right: .45rem;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
+  width: 1.55rem;
+  height: 1.55rem;
+  padding: 0;
+  border: 0;
+  border-radius: .25rem;
+  font-size: 1rem;
+  line-height: 1;
+  color: #8b1526;
+  background: #fff5f6;
+  box-shadow: 0 0 0 1px #dfaeb6;
+  cursor: help;
+}
+.field-validation-mark:focus-visible {
+  outline: 2px solid #e69a2d;
+  outline-offset: 1px;
+}
+.field-validation-tooltip {
+  position: absolute;
+  z-index: 6;
+  right: 0;
+  top: calc(100% + .35rem);
+  min-width: 12rem;
+  max-width: 22rem;
+  padding: .45rem .55rem;
+  font-size: .72rem;
+  font-weight: 500;
+  line-height: 1.35;
+  color: #4a0f18;
+  background: #fff5f6;
+  border: 1px solid #dfaeb6;
+  border-radius: .35rem;
+  box-shadow: 0 .25rem .6rem rgba(74, 15, 24, .12);
+  white-space: normal;
+  text-align: left;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(-2px);
+  transition: opacity .12s ease, transform .12s ease;
+}
+.field-validation-mark:hover .field-validation-tooltip,
+.field-validation-mark:focus-visible .field-validation-tooltip {
+  opacity: 1;
+  transform: translateY(0);
+}
 .field-heading {
   display: inline-flex;
   align-items: center;
