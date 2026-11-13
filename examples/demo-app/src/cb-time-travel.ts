@@ -45,6 +45,14 @@ export function setScrubStep(
   return { ...state, step: clamped, panelOpen: true, playing: false };
 }
 
+export function scrubToStart(state: TimeTravelState): TimeTravelState {
+  return setScrubStep(state, 0);
+}
+
+export function scrubToEnd(state: TimeTravelState): TimeTravelState {
+  return setScrubStep(state, state.maxStep);
+}
+
 export function refreshTimeline(
   liveBytes: Uint8Array,
   state: TimeTravelState,

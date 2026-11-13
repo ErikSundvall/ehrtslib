@@ -76,9 +76,41 @@ main {
 label {
   display: flex;
   flex-direction: column;
-  gap: .3rem;
+  gap: .2rem;
   font-weight: 600;
-  margin-bottom: .7rem;
+  margin-bottom: .45rem;
+}
+.field-quantity {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  min-width: 0;
+}
+.field-quantity > input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-right: 0;
+}
+.field-unit {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 .55rem;
+  font-size: .82rem;
+  font-weight: 600;
+  color: #4d687b;
+  background: #eef3f7;
+  border: 1px solid #90a9ba;
+  border-left: 0;
+  border-radius: 0 .3rem .3rem 0;
+  user-select: none;
+  pointer-events: none;
+}
+.field-control--invalid .field-unit {
+  border-color: #b82034;
+  box-shadow: inset 0 0 0 1px #b82034;
 }
 .field-control {
   position: relative;
@@ -165,7 +197,7 @@ label {
   padding: .12rem .38rem;
   min-width: 1.35rem;
   text-align: center;
-  color: white;
+  color: var(--presence-foreground, #0e2f44);
   background: var(--presence-accent, #12618f);
   cursor: pointer;
   position: relative;
@@ -279,7 +311,7 @@ button:disabled {
 .cdr-fields {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: .7rem;
+  gap: .45rem;
 }
 .cdr-fields {
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -287,8 +319,8 @@ button:disabled {
 fieldset {
   border: 1px solid #d4dfe6;
   border-radius: .4rem;
-  margin: .8rem 0;
-  padding: .7rem;
+  margin: .5rem 0;
+  padding: .5rem .55rem;
 }
 legend {
   font-weight: 700;
@@ -296,8 +328,9 @@ legend {
 .hint,
 .sync-state,
 #build-info {
-  font-size: .82rem;
+  font-size: .78rem;
   color: #4d687b;
+  margin-bottom: .35rem;
 }
 .feedback {
   margin-top: .6rem;
@@ -342,14 +375,39 @@ details[open] > summary {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: .6rem;
+  gap: .35rem .45rem;
   flex: 1 1 100%;
   width: 100%;
   min-width: 0;
-  padding: .55rem .7rem;
+  padding: .35rem .5rem;
   border: 1px dashed #90a9ba;
   border-radius: .35rem;
   background: #f8fbfd;
+}
+.time-travel-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+  flex: 0 0 auto;
+}
+.time-travel-skip-start,
+.time-travel-skip-end,
+.time-travel-icon-btn {
+  min-width: 2rem;
+  min-height: 2rem;
+  padding: .25rem .35rem;
+  line-height: 0;
+  background: #e6eef4;
+  color: #1a4d6e;
+}
+.time-travel-skip-start:hover,
+.time-travel-skip-end:hover,
+.time-travel-icon-btn:hover {
+  background: #d5e3ed;
+}
+.time-travel-play--active {
+  background: #fff3d6;
+  color: #5c3a12;
 }
 .time-travel-panel[hidden],
 .time-travel-readonly-banner[hidden],
@@ -387,13 +445,10 @@ details[open] > summary {
 }
 .time-travel-moment {
   display: block;
-  margin-top: .35rem;
+  margin-top: .2rem;
   font-weight: 500;
-  font-size: .8rem;
+  font-size: .76rem;
   color: #2d4a5c;
-}
-.time-travel-play {
-  flex: 0 0 auto;
 }
 .time-travel-status {
   flex: 1 1 100%;
@@ -455,6 +510,13 @@ details[open] > summary {
   border-radius: .15rem;
   background: color-mix(in srgb, var(--hl-accent, #12618f) 58%, white);
   box-decoration-break: clone;
+}
+.narrative-shell--single .narrative-backdrop {
+  white-space: pre;
+  overflow: hidden;
+}
+.narrative-input--single {
+  background: transparent !important;
 }
 .narrative-carets {
   position: absolute;
