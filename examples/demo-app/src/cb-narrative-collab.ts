@@ -1,6 +1,7 @@
 /** Long-text remote carets and fading edit highlights (demo UI layer). */
-import type { LongTextField } from "./contribution-demo.ts";
-import { userAccentColor, userInitials } from "./cb-presence.ts";
+import type { CollabTextField } from "./contribution-demo.ts";
+import { userInitials } from "./cb-presence.ts";
+import { userAccentColor } from "./cb-user-colors.ts";
 
 export interface NarrativeCollabConfig {
   highlightTtlMs: number;
@@ -47,7 +48,7 @@ export type NarrativeCollabWireMessage =
     t: "caret";
     userId: string;
     name: string;
-    field: LongTextField;
+    field: CollabTextField;
     cursor: string;
     atMs: number;
   }
@@ -55,7 +56,7 @@ export type NarrativeCollabWireMessage =
     t: "text-hl";
     userId: string;
     name: string;
-    field: LongTextField;
+    field: CollabTextField;
     start: number;
     end: number;
     snippet: string;
@@ -153,7 +154,7 @@ export class NarrativeCollabView {
       .map((c) => ({
         ...c,
         initials: userInitials(c.displayName),
-        accent: userAccentColor(c.userId),
+        accent: userAccentColor(c.displayName),
       }));
   }
 
@@ -167,7 +168,7 @@ export class NarrativeCollabView {
         return {
           ...hl,
           initials: userInitials(hl.displayName),
-          accent: userAccentColor(hl.userId),
+          accent: userAccentColor(hl.displayName),
           opacity,
           expired: opacity <= 0,
         };

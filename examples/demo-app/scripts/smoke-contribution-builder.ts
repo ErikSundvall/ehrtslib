@@ -81,7 +81,7 @@ assert.equal(w.document.querySelectorAll(".clone").length, 3);
 w.document.querySelector("#sync-now").click();
 const diagnosisName = panels[0].querySelector('[data-field="diagnosisName"]');
 diagnosisName.value = "Suspected viral upper respiratory infection";
-diagnosisName.dispatchEvent(new w.Event("change"));
+diagnosisName.dispatchEvent(new w.Event("input"));
 for (let i = 0; i < 2; i++) {
   panels[0].querySelector("form").dispatchEvent(
     new w.Event("submit", { cancelable: true }),
