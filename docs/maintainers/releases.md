@@ -44,12 +44,20 @@ version in that package's `deno.json` (the library check is
 `scripts/release_version.test.ts`). `--message` sets the tag title only.
 [`.github/workflows/release.yml`](../../.github/workflows/release.yml) then:
 
-1. Builds that webapp (demo / TAAAT).
-2. Assembles a Pages tree: wget-mirrors the live site, **adds** `/<tag>/` as an
-   immutable copy, writes
+1. Builds the demo and TAAAT (bleeding-edge `/demo/` and `/taaat/`, the same
+   outputs a main-branch Pages deploy publishes). A library tag also packs the
+   release assets.
+2. Assembles a Pages tree: wget-mirrors the live site, then replaces `/demo/`
+   with the demo build (a wget mirror drops `demo/chunks/` because those files
+   are only imported from JavaScript). A library tag also replaces `/taaat/`
+   with the TAAAT build. A webapp tag **adds** `/<tag>/` as an immutable copy.
+   `/taaat/` stays mirrored unless that build emitted `chunks/`, so a demo tag
+   does not replace the live TAAAT tree with the copy committed in git. Writes
    [`versions.json`](https://eriksundvall.github.io/ehrtslib/versions.json).
-3. Deploys Pages and creates a GitHub Release. A library release attaches three
-   sets (see below) and publishes runtime bundles at `/lib/<tag>/`.
+3. Refuses to upload the artifact if `dist-pages/demo/chunks` is missing or
+   empty (and `dist-pages/taaat/chunks` when that build has chunks). Deploys
+   Pages and creates a GitHub Release. A library release attaches three sets
+   (see below) and publishes runtime bundles at `/lib/<tag>/`.
 
 Frozen directories are never overwritten. Releasing `demo-v0.2` while
 `/demo-v0.1/` already exists leaves `demo-v0.1` untouched.
@@ -96,11 +104,11 @@ PAGES_SITE_URL=https://eriksundvall.github.io/ehrtslib \
 
 Assembly tests: `deno test -A --no-check scripts/`.
 
-A library release still refreshes `versions.json` on Pages but **does not** fall
-back to `docs/` if the live site cannot be mirrored, so `/demo/` and `/taaat/`
-cannot be wiped by a library-only tag. Later main-branch deploys wget
-`/lib/<tag>/` back into the Pages tree the same way they keep frozen demo and
-TAAAT directories.
+A library release publishes that commit's demo and TAAAT builds next to
+`/lib/<tag>/`. It still refuses to seed the site from `docs/` when those builds
+are missing, so a pack-only run cannot wipe `/demo/` and `/taaat/`. Later
+main-branch deploys wget `/lib/<tag>/` back into the Pages tree the same way
+they keep frozen demo and TAAAT directories.
 
 ## Library release sets
 

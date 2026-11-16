@@ -60,12 +60,13 @@ jobs:
         if: steps.rel.outputs.package == 'library'
         run: deno run -A scripts/pack_library.ts dist/library-release
 
+      # Bleeding-edge /demo/ and /taaat/ ship with every release, including
+      # library tags. A wget mirror drops demo/chunks (ES module imports), so
+      # build both apps the same way deploy-pages.yml does before assemble.
       - name: Build demo
-        if: steps.rel.outputs.package == 'demo'
         run: deno task build:demo
 
       - name: Build TAAAT
-        if: steps.rel.outputs.package == 'taaat'
         run: deno task build:taaat
 
       - name: Assemble versioned GitHub Pages tree
@@ -75,6 +76,22 @@ jobs:
           "${{ steps.rel.outputs.tag }}"
           "${{ steps.rel.outputs.dist }}"
           dist-pages
+
+      - name: Require bleeding-edge webapp chunks
+        run: |
+          set -euo pipefail
+          require_nonempty_dir() {
+            local dir="$1"
+            if [ ! -d "$dir" ] || [ -z "$(find "$dir" -mindepth 1 -print -quit)" ]; then
+              echo "$dir is missing or empty; refusing to deploy Pages" >&2
+              exit 1
+            fi
+          }
+          require_nonempty_dir dist-pages/demo/chunks
+          # TAAAT has no chunks today. When a build emits them, they must ship.
+          if [ -d docs/taaat/chunks ] || [ -d dist-pages/taaat/chunks ]; then
+            require_nonempty_dir dist-pages/taaat/chunks
+          fi
 
       - uses: actions/configure-pages@v5
 
