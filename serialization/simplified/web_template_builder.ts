@@ -23,7 +23,10 @@ import type {
   WebTemplateInputListItem,
   WebTemplateNode,
 } from "./types.ts";
+import type { CdrProfile } from "./cdr_profiles.ts";
+import { mergeWebTemplateBuilderOptions } from "./cdr_profiles.ts";
 import {
+  archetypeConceptFromHrid,
   joinAqlPath,
   nodeIdToAtCode,
   normalizeWebTemplateId,
@@ -37,6 +40,7 @@ import {
 import {
   type OperationalTemplateWithTermScopes,
   resolveTermEntry,
+  COMPONENT_TERM_DEFINITIONS_KEY,
   TERM_ARCHETYPE_SCOPE_KEY,
   TERM_NAME_FALLBACK_NODE_ID_KEY,
   TERM_OCCURRENCE_SCOPE_KEY,
@@ -99,6 +103,12 @@ export type WebTemplateIdLanguage = "primary" | "original";
 
 export interface WebTemplateBuilderOptions {
   /**
+   * CDR convention bundle (`ferroehr`, `ehrbase`, `better`). Default `ehrbase`.
+   * See `docs/SIMPLIFIED_FORMATS.md` and `serialization/simplified/cdr_profiles.ts`.
+   * Per-field options below override the profile.
+   */
+  cdrProfile?: CdrProfile;
+  /**
    * Languages to include, in order. The first entry is the primary language:
    * it drives labels and, unless `idLanguage` is `"original"`, node ids.
    * Further entries are additional languages for `localizedNames`,
@@ -127,6 +137,32 @@ export interface WebTemplateBuilderOptions {
    * and attach all path annotations to `node.annotations` (default true).
    */
   applyL10nAnnotations?: boolean;
+  /**
+   * Web Template root node id (and default FLAT path prefix). `"archetype"`
+   * (default): composition archetype concept (`encounter` from
+   * `openEHR-EHR-COMPOSITION.encounter.v1`). `"template"`: normalised
+   * template id (historical ehrtslib).
+   */
+  treeRootId?: "archetype" | "template";
+  /**
+   * Omit the SECTION `name` child when the section has a fixed name constraint
+   * (no `dv_text` under `history`, and similar). Default true (FerroEHR,
+   * EHRbase).
+   */
+  omitSectionNameNode?: boolean;
+  /**
+   * Node id for a renamed archetype-root occurrence. `"archetype"` (default):
+   * archetype concept (`symptom_sign` for CLUSTER.symptom_sign). `"label"`:
+   * slug of the renamed label (`tenderness`).
+   */
+  renamedArchetypeRootId?: "archetype" | "label";
+  /**
+   * Node id for an ELEMENT with a coded `name` constraint listing several
+   * terms. `"name_constraint"` (default): slug of the first allowed name term
+   * (`adverse_reaction_substance`). `"term"`: slug of the ELEMENT's own term
+   * (`excluded_concept`).
+   */
+  elementNameId?: "name_constraint" | "term";
 }
 
 const SKIP_RM_TYPES = new Set([
@@ -292,6 +328,20 @@ function rmAttributeIdentity(
 function isRmAttributeValueLeaf(obj: openehr_am.C_COMPLEX_OBJECT): boolean {
   const rmType = obj.rm_type_name ?? "";
   return isDataValueType(rmType);
+}
+
+function firstNameDefiningCodes(
+  element: openehr_am.C_COMPLEX_OBJECT,
+): string[] | undefined {
+  const nameAttr = element.attributes?.find((a) => a.rm_attribute_name === "name");
+  const nameDv = (nameAttr as { children?: openehr_am.C_OBJECT[] })?.children?.[0];
+  if (!(nameDv instanceof openehr_am.C_COMPLEX_OBJECT)) return undefined;
+  const dcAttr = nameDv.attributes?.find((a) =>
+    a.rm_attribute_name === "defining_code"
+  );
+  const phrase = (dcAttr as { children?: openehr_am.C_OBJECT[] })?.children?.[0];
+  const list = (phrase as { code_list?: string[] })?.code_list;
+  return list?.length ? list : undefined;
 }
 
 function singleConstrainedCode(
@@ -494,6 +544,15 @@ function isDataValueType(rmType: string): boolean {
  * Node id used in AQL path predicates and as the WT nodeId: archetype roots
  * are addressed by their archetype id, other nodes by their at-code.
  */
+function archetypeRefOf(obj: openehr_am.C_OBJECT): string | undefined {
+  if (obj instanceof openehr_am.C_ARCHETYPE_ROOT && obj.archetype_ref) {
+    return obj.archetype_ref;
+  }
+  const aid = (obj as { archetype_id?: { value?: string } }).archetype_id?.value;
+  if (typeof aid === "string" && aid.trim()) return aid.trim();
+  return undefined;
+}
+
 function constraintNodeId(obj: openehr_am.C_OBJECT): string | undefined {
   const ref = (obj as openehr_am.C_ARCHETYPE_ROOT).archetype_ref;
   if (obj instanceof openehr_am.C_ARCHETYPE_ROOT && ref) return ref;
@@ -622,6 +681,10 @@ export class WebTemplateBuilder {
   /** Primary language first, then the additional languages the caller included. */
   private selectedLanguages: string[] = [];
   private idLanguage: WebTemplateIdLanguage = "primary";
+  private treeRootId: "archetype" | "template";
+  private omitSectionNameNode: boolean;
+  private renamedArchetypeRootId: "archetype" | "label";
+  private elementNameId: "name_constraint" | "term";
   private bagCache = new Map<
     string,
     { template: TermBag; archetype: Record<string, TermBag> }
@@ -630,12 +693,103 @@ export class WebTemplateBuilder {
   private originalLang = "en";
 
   constructor(options?: WebTemplateBuilderOptions) {
-    this.options = options;
-    this.includeContext = options?.includeContextNodes ?? true;
-    this.applyL10n = options?.applyL10nAnnotations ?? true;
-    this.idLanguage = options?.idLanguage === "original"
-      ? "original"
-      : "primary";
+    const merged = mergeWebTemplateBuilderOptions(options);
+    this.options = merged;
+    this.includeContext = merged.includeContextNodes ?? true;
+    this.applyL10n = merged.applyL10nAnnotations ?? true;
+    this.idLanguage = merged.idLanguage === "original" ? "original" : "primary";
+    this.treeRootId = merged.treeRootId === "template" ? "template" : "archetype";
+    this.omitSectionNameNode = merged.omitSectionNameNode !== false;
+    this.renamedArchetypeRootId = merged.renamedArchetypeRootId === "label"
+      ? "label"
+      : "archetype";
+    this.elementNameId = merged.elementNameId === "term"
+      ? "term"
+      : "name_constraint";
+  }
+
+  private resolveTreeRootId(
+    templateId: string,
+    opt: openehr_am.OPERATIONAL_TEMPLATE,
+  ): string {
+    if (this.treeRootId === "template") {
+      return templateRootId(templateId);
+    }
+    let compositionArchetype: string | undefined;
+    for (const id of Object.keys(
+      termTablesByScope(opt as OperationalTemplateWithTermScopes),
+    )) {
+      if (id.includes("COMPOSITION.")) {
+        compositionArchetype = id;
+        break;
+      }
+    }
+    compositionArchetype ??= archetypeRefOf(opt.definition);
+    const concept = compositionArchetype
+      ? archetypeConceptFromHrid(compositionArchetype)
+      : undefined;
+    return normalizeWebTemplateId(concept ?? templateRootId(templateId));
+  }
+
+  private nodeIdSlug(
+    obj: openehr_am.C_OBJECT,
+    display: TermEntry,
+    idHint: string,
+  ): string {
+    const fixed = fixedNameConstraint(obj);
+    if (fixed && obj.rm_type_name === "SECTION") {
+      return normalizeWebTemplateId(fixed);
+    }
+    if (this.renamedArchetypeRootId === "archetype" && this.inlinedRootUsesArchetypeId(obj)) {
+      const archRef = archetypeRefOf(obj);
+      if (archRef) {
+        const concept = archetypeConceptFromHrid(archRef);
+        if (concept) return normalizeWebTemplateId(concept);
+      }
+    }
+    if (this.elementNameId === "name_constraint" && obj.rm_type_name === "ELEMENT") {
+      const fromName = this.elementNameConstraintSlug(
+        obj as openehr_am.C_COMPLEX_OBJECT,
+      );
+      if (fromName) return fromName;
+    }
+    return normalizeWebTemplateId(this.idText(obj, display, idHint));
+  }
+
+  /**
+   * Template inlined an archetype root but overrode the root term (at0000), so
+   * Ferro/EHRbase keep the archetype concept as the Web Template id.
+   */
+  private inlinedRootUsesArchetypeId(obj: openehr_am.C_OBJECT): boolean {
+    const fixed = fixedNameConstraint(obj);
+    if (fixed) return true;
+    const archRef = archetypeRefOf(obj);
+    if (!archRef) return false;
+    const meta = obj as TermScopeMeta;
+    const local = meta[COMPONENT_TERM_DEFINITIONS_KEY] ??
+      meta.opt_component_term_definitions;
+    const localAt0000 = local?.at0000?.text;
+    if (!localAt0000) return false;
+    for (const lang of this.fallbackLanguages()) {
+      const archAt0000 = this.archetypeTerms[archRef]?.[lang]?.at0000?.text ??
+        this.archetypeTerms[archRef]?.[this.originalLang]?.at0000?.text;
+      if (archAt0000 && localAt0000 !== archAt0000) return true;
+    }
+    return false;
+  }
+
+  private elementNameConstraintSlug(
+    element: openehr_am.C_COMPLEX_OBJECT,
+  ): string | undefined {
+    const codes = firstNameDefiningCodes(element);
+    if (!codes || codes.length < 2) return undefined;
+    const first = codes[0];
+    const scope = termScopeOf(element as TermScopeMeta);
+  for (const lang of this.fallbackLanguages()) {
+      const text = this.textForCode(first, lang, scope)?.text;
+      if (text) return normalizeWebTemplateId(text);
+    }
+    return undefined;
   }
 
   private bags(lang: string): {
@@ -750,7 +904,7 @@ export class WebTemplateBuilder {
     const display = this.displayTerm(obj);
     const maps = this.localizedMaps(obj);
     return {
-      id: normalizeWebTemplateId(this.idText(obj, display, idHint)),
+      id: this.nodeIdSlug(obj, display, idHint),
       name: display.text ?? (nameFallback ? idHint : undefined),
       localizedName: display.text,
       localizedNames: maps.names,
@@ -923,7 +1077,7 @@ export class WebTemplateBuilder {
       throw new Error("Operational template has no definition");
     }
 
-    const rootId = templateRootId(templateId);
+    const rootId = this.resolveTreeRootId(templateId, opt);
     const isComposition = opt.definition.rm_type_name === "COMPOSITION";
     const tree = this.buildFromComplex(
       opt.definition,
@@ -1182,6 +1336,15 @@ export class WebTemplateBuilder {
     for (const attr of obj.attributes ?? []) {
       const attrName = attr.rm_attribute_name;
       if (!attrName) continue;
+
+      if (
+        this.omitSectionNameNode &&
+        rmType === "SECTION" &&
+        attrName === "name" &&
+        fixedNameConstraint(obj)
+      ) {
+        continue;
+      }
 
       if (
         isCompositionRoot && this.includeContext && CONTEXT_ATTRS.has(attrName)
@@ -1634,8 +1797,7 @@ export class WebTemplateBuilder {
    * nodes are added as `inContext` nodes.
    */
   private orderCompositionChildren(children: WebTemplateNode[]): WebTemplateNode[] {
-    const byId = (id: string) =>
-      children.find((c) => c.id === id && (c.inContext || c.rmType === "EVENT_CONTEXT"));
+    const byId = (id: string) => children.find((c) => c.id === id);
     const category = byId("category") ??
       rmContextNode("category", "DV_CODED_TEXT", "/category");
     const context = children.find((c) => c.rmType === "EVENT_CONTEXT" && c.aqlPath === "/context") ??
@@ -1666,7 +1828,16 @@ export class WebTemplateBuilder {
     }
     if (name === "category") {
       const rmType = child?.rm_type_name ?? "DV_CODED_TEXT";
-      return rmContextNode("category", rmType, "/category", this.buildInputs(rmType, child));
+      const { min, max } = attributeExistenceBounds(attr);
+      return this.decorateWithAnnotations({
+        id: "category",
+        name: "Category",
+        rmType,
+        min,
+        max,
+        aqlPath: "/category",
+        inputs: this.buildInputs(rmType, child),
+      });
     }
     // composer, language, territory: added in orderCompositionChildren.
     return undefined;

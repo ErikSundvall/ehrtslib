@@ -19,9 +19,17 @@ import type { WebTemplateNode } from "../../../../serialization/simplified/types
 
 const OPT = new URL("../../../opt14/aql_example.opt", import.meta.url);
 
+const LEGACY_WT = {
+  treeRootId: "template" as const,
+  omitSectionNameNode: false,
+  renamedArchetypeRootId: "label" as const,
+  elementNameId: "term" as const,
+};
+
 function webTemplate(): WebTemplate {
   return buildWebTemplate(
     parseOptXml(Deno.readTextFileSync(OPT)).operationalTemplate!,
+    LEGACY_WT,
   );
 }
 
@@ -66,7 +74,7 @@ Deno.test("webTemplateToOpt: sibling SECTIONs told apart by name get separate na
 
 Deno.test("OPT → WT → OPT → WT keeps name-constrained SECTIONs, names and children", () => {
   const wt = webTemplate();
-  const again = buildWebTemplate(webTemplateToOpt(wt));
+  const again = buildWebTemplate(webTemplateToOpt(wt), LEGACY_WT);
   assertEquals(sections(again), sections(wt));
   assertEquals(nodes(again.tree), nodes(wt.tree));
 });
@@ -79,7 +87,7 @@ Deno.test("webTemplateToOpt reads the short name predicate form [id,'Name']", ()
     n.children?.forEach(rewrite);
   };
   rewrite(short.tree);
-  const again = buildWebTemplate(webTemplateToOpt(short));
+  const again = buildWebTemplate(webTemplateToOpt(short), LEGACY_WT);
   assertEquals(sections(again), sections(wt));
 });
 

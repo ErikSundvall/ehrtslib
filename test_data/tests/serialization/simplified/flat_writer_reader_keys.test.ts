@@ -39,6 +39,7 @@ const BASE: FlatPayload = {
 function webTemplate(): WebTemplate {
   return buildWebTemplate(
     parseOptXml(Deno.readTextFileSync(OPT)).operationalTemplate!,
+    { treeRootId: "template" },
   );
 }
 

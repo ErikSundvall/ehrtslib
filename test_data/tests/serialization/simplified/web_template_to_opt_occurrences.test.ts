@@ -35,8 +35,14 @@ for (const file of ["ips.v0.opt", "Virologischer Befund.opt"]) {
         new URL(`../../../opt14/${file}`, import.meta.url),
       ),
     ).operationalTemplate!;
-    const wt = buildWebTemplate(opt);
-    const back = buildWebTemplate(webTemplateToOpt(wt));
+    const legacyWt = {
+      treeRootId: "template" as const,
+      omitSectionNameNode: false,
+      renamedArchetypeRootId: "label" as const,
+      elementNameId: "term" as const,
+    };
+    const wt = buildWebTemplate(opt, legacyWt);
+    const back = buildWebTemplate(webTemplateToOpt(wt), legacyWt);
     // Sibling order may differ; ids, paths and names must not.
     assertEquals(nodes(back.tree).sort(), nodes(wt.tree).sort());
   });
@@ -48,7 +54,13 @@ Deno.test("webTemplateToOpt gives a renamed reuse its own term scope", () => {
       new URL("../../../opt14/ips.v0.opt", import.meta.url),
     ),
   ).operationalTemplate!;
-  const rebuilt = webTemplateToOpt(buildWebTemplate(opt)) as
+  const legacyWt = {
+    treeRootId: "template" as const,
+    omitSectionNameNode: false,
+    renamedArchetypeRootId: "label" as const,
+    elementNameId: "term" as const,
+  };
+  const rebuilt = webTemplateToOpt(buildWebTemplate(opt, legacyWt)) as
     & typeof opt
     & OperationalTemplateWithTermScopes;
   const occurrence = Object.keys(rebuilt.occurrence_term_definitions ?? {})

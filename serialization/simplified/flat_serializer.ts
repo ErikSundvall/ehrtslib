@@ -3,6 +3,8 @@
  * @see openehr://guides/specs/its-rest-simplified_formats
  */
 
+import type { CdrProfile } from "./cdr_profiles.ts";
+import { mergeFlatSerializerOptions } from "./cdr_profiles.ts";
 import type { FlatPayload, WebTemplate, WebTemplateNode } from "./types.ts";
 import { flatRootId } from "./normalize.ts";
 import {
@@ -36,6 +38,8 @@ import {
 export type { SimplifiedFlavor } from "./flavor.ts";
 
 export interface FlatSerializerOptions {
+  /** CDR convention bundle; see `cdr_profiles.ts`. Default `ehrbase`. */
+  cdrProfile?: CdrProfile;
   prettyPrint?: boolean;
   /**
    * `output` (default): every value at its own path, no `ctx/` keys
@@ -122,11 +126,13 @@ export class FlatSerializer {
   private instance: unknown;
   private policy?: InputFlavorPolicy;
   private covered = new WeakMap<WebTemplateNode, Set<string>>();
+  private options: FlatSerializerOptions;
 
   constructor(
     private webTemplate: WebTemplate,
-    private options: FlatSerializerOptions = {},
+    options: FlatSerializerOptions = {},
   ) {
+    this.options = mergeFlatSerializerOptions(options);
     // CDRs key FLAT paths by the Web Template root id (`tree.id`),
     // for example `encounter/`, not by the template id.
     this.rootId = flatRootId(webTemplate);

@@ -16,6 +16,7 @@ export {
   aqlPathSegments,
   joinAqlPath,
   acceptedFlatRoots,
+  archetypeConceptFromHrid,
   flatRootId,
   nodeIdToAtCode,
   normalizeWebTemplateId,
@@ -37,6 +38,15 @@ export {
 } from "./flat_serializer.ts";
 
 export { type SimplifiedFlavor } from "./flavor.ts";
+
+export {
+  type CdrProfile,
+  DEFAULT_CDR_PROFILE,
+  mergeFlatSerializerOptions,
+  mergeFlatValidatorOptions,
+  mergeWebTemplateBuilderOptions,
+  resolveCdrProfile,
+} from "./cdr_profiles.ts";
 
 export {
   deserializeFromFlat,

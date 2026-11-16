@@ -60,7 +60,7 @@ function actionFlatPrefix(wt: { tree: { id: string; children?: Array<{ rmType?: 
 
 Deno.test("buildWebTemplate — ACTION ISM_TRANSITION uses RM attribute ids", async () => {
   const opt = await loadMinimalActionTemplate();
-  const wt = buildWebTemplate(opt);
+  const wt = buildWebTemplate(opt, { treeRootId: "template" });
   const action = findActionNode(wt.tree);
   assertExists(action);
   const ism = (action.children as Array<{ id: string; rmType: string; children?: Array<{ id: string; min?: number; rmType: string; children?: unknown[] }> }>)
@@ -89,7 +89,7 @@ Deno.test("buildWebTemplate — ACTION ISM_TRANSITION uses RM attribute ids", as
 
 Deno.test("deserializeFromFlat — ACTION ism_transition defaults without ISM keys", async () => {
   const opt = await loadConformanceTemplate();
-  const wt = buildWebTemplate(opt);
+  const wt = buildWebTemplate(opt, { treeRootId: "template" });
   const instance = new RMInstanceGenerator({ mode: "example" }).generate(opt);
   const flat = serializeToFlat(instance, wt);
   for (const key of Object.keys(flat)) {
@@ -138,7 +138,7 @@ Deno.test("deserializeFromFlat — ACTION ism_transition defaults without ISM ke
 
 Deno.test("deserializeFromFlat — careflow_step code-only gets archetype value", async () => {
   const opt = await loadMinimalActionTemplate();
-  const wt = buildWebTemplate(opt);
+  const wt = buildWebTemplate(opt, { treeRootId: "template" });
   const actionPath = actionFlatPrefix(wt);
   const flat = {
     "ctx/category|code": "433",
@@ -173,7 +173,7 @@ Deno.test("deserializeFromFlat — careflow_step code-only gets archetype value"
 
 Deno.test("FLAT round trip — ism_transition careflow_step survives serialize", async () => {
   const opt = await loadMinimalActionTemplate();
-  const wt = buildWebTemplate(opt);
+  const wt = buildWebTemplate(opt, { treeRootId: "template" });
   const actionPath = actionFlatPrefix(wt);
   const flatIn = {
     "ctx/category|code": "433",
@@ -220,7 +220,7 @@ function minimalActionFlat(actionPath: string): Record<string, string> {
 Deno.test("#232 ACTION from FLAT passes strict canonical JSON and strict validation", async () => {
   registerOpenEhrModelTypes();
   const opt = await loadMinimalActionTemplate();
-  const wt = buildWebTemplate(opt);
+  const wt = buildWebTemplate(opt, { treeRootId: "template" });
   const rm = deserializeFromFlat(minimalActionFlat(actionFlatPrefix(wt)), wt);
   const action = (rm.content as Array<Record<string, unknown>>)[0];
   assertEquals("archetype_node_id" in (action.ism_transition as object), false);
@@ -241,7 +241,7 @@ Deno.test("#232 ACTION from FLAT passes strict canonical JSON and strict validat
 
 Deno.test("#232 older RM with ISM_TRANSITION.archetype_node_id is still read", async () => {
   const opt = await loadMinimalActionTemplate();
-  const wt = buildWebTemplate(opt);
+  const wt = buildWebTemplate(opt, { treeRootId: "template" });
   const actionPath = actionFlatPrefix(wt);
   const rm = deserializeFromFlat(minimalActionFlat(actionPath), wt);
   const ism = (rm.content as Array<Record<string, unknown>>)[0]
@@ -261,7 +261,7 @@ Deno.test("#232 older RM with ISM_TRANSITION.archetype_node_id is still read", a
 
 Deno.test("#232 multi-variant ACTION: variant comes from careflow_step, no node id", async () => {
   const opt = await loadConformanceTemplate();
-  const wt = buildWebTemplate(opt);
+  const wt = buildWebTemplate(opt, { treeRootId: "template" });
   const flat = serializeToFlat(
     new RMInstanceGenerator({ mode: "example" }).generate(opt),
     wt,
@@ -309,7 +309,7 @@ function stripIsmKeys(flat: Record<string, unknown>): void {
 
 Deno.test("FLAT ISM — four input shapes (conformance action)", async () => {
   const opt = await loadConformanceTemplate();
-  const wt = buildWebTemplate(opt);
+  const wt = buildWebTemplate(opt, { treeRootId: "template" });
   const fullFlat = serializeToFlat(
     new RMInstanceGenerator({ mode: "example" }).generate(opt),
     wt,
