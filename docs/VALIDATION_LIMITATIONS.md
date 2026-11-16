@@ -8,7 +8,7 @@ Known gaps in `TemplateValidator` and related validators. Capabilities that **do
 
 ## RM specification walk
 
-`RMSpecificationValidator.validateInstance` walks the canonical JSON tree, not only OPT-constrained attributes. That is required because ADL 1.4 OPTs often omit `composer`, `language`, `territory`, and `EVENT_CONTEXT.setting`. The walk applies:
+`RMSpecificationValidator.validateInstance` walks the canonical JSON tree, not only OPT-constrained attributes. `validate(instance)` with one argument does the same walk. `validate(value, rmTypeName, attributeName, path)` still checks a single attribute; any other argument count throws, because a one-argument call used to match no constraint and report the instance valid ([#311](https://github.com/ErikSundvall/ehrtslib/issues/311)). The walk is required because ADL 1.4 OPTs often omit `composer`, `language`, `territory`, and `EVENT_CONTEXT.setting`. It applies:
 
 - openEHR terminology groups (`COMPOSITION.category`, `EVENT_CONTEXT.setting`, …)
 - ISO 639-1 / ISO 3166-1 checks on `language` / `territory`

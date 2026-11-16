@@ -8,6 +8,7 @@ Add an entry under **Unreleased** in every PR that changes user-visible behaviou
 
 ## [Unreleased]
 
+- `RMSpecificationValidator.validate(instance)` with one argument walks the whole instance (`validateInstance`). A call with two or three arguments throws. The four-argument attribute check is unchanged. A one-argument call used to match no constraint and report the instance valid ([#311](https://github.com/ErikSundvall/ehrtslib/issues/311)).
 - `TERM_MAPPING.match` is checked against the openEHR match codes `>`, `=`, `<` and `?` (`Match_valid` / `is_valid_match_code`). `~` and any other code fail `validateInstance`. The invariant used to stay unknown, so an invalid match was reported valid ([#310](https://github.com/ErikSundvall/ehrtslib/issues/310)).
 - **Demo.** Contribution Builder: Enter in single-line fields confirms the value and moves to the next field (never submits); multi-line fields keep Enter for new lines; demo starts with empty mandatory Problem/Diagnosis name so validation marks show immediately; invalid fields get a red outline and warning tooltip ([#303](https://github.com/ErikSundvall/ehrtslib/issues/303)).
 - **Demo.** Contribution Builder: remote narrative edit highlights anchor at wire offsets (no stray single-letter matches); time travel keeps read-only editing until Return to live, full-width scrub bar with moment readout and play/pause replay, historical presence badges and long-text highlights ([#301](https://github.com/ErikSundvall/ehrtslib/issues/301)).
