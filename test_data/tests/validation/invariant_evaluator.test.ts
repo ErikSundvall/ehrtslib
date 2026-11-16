@@ -49,6 +49,32 @@ Deno.test("Path resolver - archetype path with node id", () => {
   );
 });
 
+Deno.test("InvariantEvaluator - omitted invariants returns empty without throwing", () => {
+  const template = buildObservationWithDataRule();
+  const instance = {
+    data: {
+      archetype_node_id: "at0002",
+      value: { magnitude: -3 },
+    },
+  };
+  const msgs = new InvariantEvaluator({
+    definition: template.definition,
+  }).validateInvariants(instance);
+  assertEquals(msgs, []);
+});
+
+Deno.test("InvariantEvaluator - non-array invariants returns empty without throwing", () => {
+  const template = buildObservationWithDataRule();
+  const instance = { data: { value: { magnitude: 1 } } };
+  const msgs = new InvariantEvaluator({
+    definition: template.definition,
+  }).validateInvariants(
+    instance,
+    undefined as unknown as openehr_am.ASSERTION[],
+  );
+  assertEquals(msgs, []);
+});
+
 Deno.test("InvariantEvaluator - passing rule", () => {
   const template = buildObservationWithDataRule();
   const instance = {

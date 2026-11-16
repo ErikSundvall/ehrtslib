@@ -17,6 +17,7 @@ import { UcumService } from "../term/ucum_service.ts";
 import { IntervalValidator } from "./interval_validator.ts";
 import { instanceRmType } from "./rm_type.ts";
 import { RMSpecificationValidator } from "./rm_specification_validator.ts";
+import { collectArchetypeAssertions } from "./archetype_rules.ts";
 import { InvariantEvaluator } from "./invariant_evaluator.ts";
 import {
   isQuantityTupleColumns,
@@ -78,7 +79,7 @@ export interface ValidationConfig {
   useTypeRegistry?: boolean;            // Use TypeRegistry for type resolution
   validateIntervals?: boolean;          // Enable DV_INTERVAL validation
   validateRMSpecification?: boolean;    // Enable RM specification constraints
-  validateInvariants?: boolean;         // Evaluate archetype rules / invariants
+  validateInvariants?: boolean;         // Evaluate archetype rules (not RM invariants)
   /**
    * Attributes that are not in the RM are errors when true, warnings when
    * false (default). Passed to RM specification validation.
@@ -213,15 +214,15 @@ export class TemplateValidator {
       warnings.push(...rmMsgs.filter((m) => m.severity === "warning"));
     }
 
-    if (
-      this.config.validateInvariants &&
-      template.invariants?.length
-    ) {
+    const archetypeRules = this.config.validateInvariants
+      ? collectArchetypeAssertions(template)
+      : [];
+    if (archetypeRules.length) {
       const invariantMsgs = new InvariantEvaluator({
         definition: template.definition,
       }).validateInvariants(
         rmInstance,
-        template.invariants,
+        archetypeRules,
         template.definition,
       );
       errors.push(...invariantMsgs.filter((m) => m.severity === "error"));

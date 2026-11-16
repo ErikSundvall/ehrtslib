@@ -19,6 +19,7 @@ Check these consumers when the public API changes:
 
 ## Unreleased
 
+- **Added.** `collectArchetypeAssertions`, `collectTemplateAssertionSources`, `validateArchetypeRules`, and related helpers in `validation/archetype_rules.ts` for archetype `rules` / `ARCHETYPE.invariants` (not RM class invariants). `InvariantEvaluator.validateInvariants` accepts omitted `invariants` and returns `[]` ([#308](https://github.com/ErikSundvall/ehrtslib/issues/308)).
 - **Behaviour.** `TemplateValidator` accepts a boolean at `DV_BOOLEAN.value` with no value constraint, with `C_BOOLEAN`, or with a `C_STRING` pattern/list of `True`/`False`. A boolean on `DV_TEXT` is still `Expected string, got boolean` ([#314](https://github.com/ErikSundvall/ehrtslib/issues/314)).
 - **Behaviour.** ADL2 `|>=PT0S|` on a duration parses as `Duration`, and OPT 1.4 export writes `C_DURATION`. Unquoted `True` / `False` parses as `C_BOOLEAN` and is exported as `true_valid` / `false_valid`. Duration range checks order ISO 8601 durations by nominal length (`P2W` is inside `|>=PT0S|`) ([#313](https://github.com/ErikSundvall/ehrtslib/issues/313)).
 - **Behaviour.** `serializeToFlat` / `serializeToFlatJson` use `tree.id` as the FLAT root. `FlatSerializerOptions.locatableName` is `"path"` (default, write `/_name` when the name differs) or `"omit"`. `flatRootId` and `acceptedFlatRoots` are exported from `serialization/simplified/mod.ts` ([#312](https://github.com/ErikSundvall/ehrtslib/issues/312)).

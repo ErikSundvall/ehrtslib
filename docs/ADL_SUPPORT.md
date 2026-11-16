@@ -313,7 +313,7 @@ ADL 2.4 (AM 2.4.0, not yet released) has two node coding systems ([ADL2, node id
 
 | Template flattening (`am/util/`) | MVP |
 
-| `TemplateValidator` + invariants | Yes |
+| `TemplateValidator` + archetype rules | Yes (`collectArchetypeAssertions`, `InvariantEvaluator`, `validateArchetypeRules`; not RM invariants — use `RMSpecificationValidator`) |
 
 | Deserializer `validateAgainstTemplate` | JSON / YAML / XML |
 

@@ -238,7 +238,7 @@ See the full project status in [roadmap.md](maintainers/roadmap.md) ([GitHub](ht
 **What's Available:**
 - Complete BASE, RM, LANG, and AM package implementations
 - ADL2/ADL 1.4 parsing, template flattening, and file-based archetype repository
-- Template and archetype validation (`TemplateValidator`, `ArchetypeValidator`, `InvariantEvaluator`)
+- Template and archetype validation (`TemplateValidator`, `ArchetypeValidator`, archetype rules via `validateArchetypeRules` / `InvariantEvaluator`; RM invariants via `RMSpecificationValidator`)
 - Brief property styles with constructor initialization and terse formats ([Brief property styles](user/brief-property-styles.md))
 - Canonical JSON serialization plus FLAT/STRUCTURED simplified formats ([SIMPLIFIED_FORMATS.md](SIMPLIFIED_FORMATS.md))
 - Optional BMM class/attribute specification descriptions and spec URLs ([SPEC_DESCRIPTIONS.md](SPEC_DESCRIPTIONS.md))

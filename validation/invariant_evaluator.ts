@@ -1,5 +1,9 @@
 /**
- * Evaluate archetype `rules` / `ARCHETYPE.invariants` against RM instances.
+ * Evaluate archetype-authored rules (`ARCHETYPE.rules` / `invariants` BEOM
+ * assertions) against RM instances.
+ *
+ * This does **not** evaluate RM or BASE class invariants from the reference
+ * model — use {@link RMSpecificationValidator.validateInstance} for those.
  */
 
 import * as openehr_am from "../am/openehr_am.ts";
@@ -22,21 +26,25 @@ export class InvariantEvaluator {
   }
 
   /**
-   * Evaluate all assertions in order (variable declarations accumulate).
+   * Evaluate archetype rule assertions in order (variable declarations accumulate).
+   *
+   * When `invariants` is omitted or not an array, returns an empty list (no RM
+   * rules are inferred from the instance type).
    */
   validateInvariants(
     rmInstance: unknown,
-    invariants: openehr_am.ASSERTION[],
+    invariants?: openehr_am.ASSERTION[] | null,
     definition?: openehr_am.C_COMPLEX_OBJECT,
   ): ValidationMessage[] {
     if (definition) {
       this.pathResolver = new ArchetypePathResolver({ definition });
     }
 
+    const rules = Array.isArray(invariants) ? invariants : [];
     const messages: ValidationMessage[] = [];
     const env = new Map<string, EvalValue>();
 
-    for (const assertion of invariants) {
+    for (const assertion of rules) {
       this.applyVariableDeclarations(rmInstance, assertion, env);
 
       const expr = assertion.string_expression?.trim();
