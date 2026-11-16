@@ -16,6 +16,7 @@ export {
   aqlPathSegments,
   joinAqlPath,
   acceptedFlatRoots,
+  archetypeConceptFromHrid,
   flatRootId,
   nodeIdToAtCode,
   normalizeWebTemplateId,

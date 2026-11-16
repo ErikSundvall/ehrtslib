@@ -165,13 +165,17 @@ export function validateFlatPayload(
     }
     seenChains.add(chain);
 
-    const lastRaw = rawSegments[rawSegments.length - 1] ?? "";
-    const indexMatch = lastRaw.match(/:(\d+)$/);
-    const instanceIndex = indexMatch ? Number(indexMatch[1]) : 0;
-    const parentRaw = rawSegments.slice(0, -1).join("/");
-    const countKey = `${parentRaw}\n${chain}`;
-    const prev = indexCounts.get(countKey) ?? 0;
-    indexCounts.set(countKey, Math.max(prev, instanceIndex + 1));
+    // Attribute-level indices (`_mapping:0`, `_link:1`, …) are not node
+    // instances of the parent chain node.
+    if (rmAttrIdx === -1) {
+      const lastRaw = rawSegments[rawSegments.length - 1] ?? "";
+      const indexMatch = lastRaw.match(/:(\d+)$/);
+      const instanceIndex = indexMatch ? Number(indexMatch[1]) : 0;
+      const parentRaw = rawSegments.slice(0, -1).join("/");
+      const countKey = `${parentRaw}\n${chain}`;
+      const prev = indexCounts.get(countKey) ?? 0;
+      indexCounts.set(countKey, Math.max(prev, instanceIndex + 1));
+    }
 
     if (rmAttrIdx === -1 && suffix && !knownSuffixes(node).has(suffix)) {
       warnings.push({

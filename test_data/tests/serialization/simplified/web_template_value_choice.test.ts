@@ -27,6 +27,12 @@ function webTemplate(file: string): WebTemplate {
     parseOptXml(
       Deno.readTextFileSync(new URL(`../../../opt14/${file}`, import.meta.url)),
     ).operationalTemplate!,
+    {
+      treeRootId: "template",
+      omitSectionNameNode: false,
+      renamedArchetypeRootId: "label",
+      elementNameId: "term",
+    },
   );
 }
 

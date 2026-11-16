@@ -19,6 +19,8 @@ Check these consumers when the public API changes:
 
 ## Unreleased
 
+- **Behaviour.** `buildWebTemplate` defaults: `treeRootId: "archetype"` (`tree.id` from composition archetype concept), `omitSectionNameNode: true`, `renamedArchetypeRootId: "archetype"` (inlined CLUSTER roots and name-constrained archetype roots), `elementNameId: "name_constraint"`. Set `treeRootId: "template"` for the pre-0.13.1 ehrtslib tree id. `validateFlatPayload` ignores `_mapping:N` (and other RM attribute indices) in cardinality counting ([#316](https://github.com/ErikSundvall/ehrtslib/issues/316), [#317](https://github.com/ErikSundvall/ehrtslib/issues/317)).
+- **Added.** `archetypeConceptFromHrid()` in `serialization/simplified/normalize.ts`.
 - **Added.** `collectArchetypeAssertions`, `collectTemplateAssertionSources`, `validateArchetypeRules`, and related helpers in `validation/archetype_rules.ts` for archetype `rules` / `ARCHETYPE.invariants` (not RM class invariants). `InvariantEvaluator.validateInvariants` accepts omitted `invariants` and returns `[]` ([#308](https://github.com/ErikSundvall/ehrtslib/issues/308)).
 - **Behaviour.** `TemplateValidator` accepts a boolean at `DV_BOOLEAN.value` with no value constraint, with `C_BOOLEAN`, or with a `C_STRING` pattern/list of `True`/`False`. A boolean on `DV_TEXT` is still `Expected string, got boolean` ([#314](https://github.com/ErikSundvall/ehrtslib/issues/314)).
 - **Behaviour.** ADL2 `|>=PT0S|` on a duration parses as `Duration`, and OPT 1.4 export writes `C_DURATION`. Unquoted `True` / `False` parses as `C_BOOLEAN` and is exported as `true_valid` / `false_valid`. Duration range checks order ISO 8601 durations by nominal length (`P2W` is inside `|>=PT0S|`) ([#313](https://github.com/ErikSundvall/ehrtslib/issues/313)).

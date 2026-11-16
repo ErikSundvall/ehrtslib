@@ -10,7 +10,7 @@ Library support for **Web Template**, **FLAT**, and **STRUCTURED** simplified co
 
 | Export | Purpose |
 |--------|---------|
-| `buildWebTemplate(opt, { languages, idLanguage })` | Build Web Template JSON. `languages[0]` is the primary language (labels and, by default, node ids). Further entries are additional languages for localized names and labels. `idLanguage` is `"primary"` (default) or `"original"` |
+| `buildWebTemplate(opt, options)` | Build Web Template JSON. `languages[0]` is the primary language (labels and, by default, node ids). `idLanguage` is `"primary"` (default) or `"original"`. Defaults follow FerroEHR / EHRbase / Better (`treeRootId: "archetype"`, `omitSectionNameNode: true`, `renamedArchetypeRootId: "archetype"`, `elementNameId: "name_constraint"`); see [#316](https://github.com/ErikSundvall/ehrtslib/issues/316) |
 | `parseWebTemplate(json)` | Parse Web Template JSON (EHRBase/Better dialects) |
 | `isWebTemplateJson(value)` | Detect Web Template JSON documents |
 | `webTemplateToOpt(wt)` | Reconstruct approximate `OPERATIONAL_TEMPLATE` from Web Template |
@@ -42,9 +42,9 @@ RM instance  ←→  serializeToFlat / deserializeFromFlat
 ```
 
 1. Parse template input to an `OPERATIONAL_TEMPLATE` (`parseTemplateInput`, `getOperationalTemplateFromInput`).
-2. Build Web Template: `const wt = buildWebTemplate(template)`.
+2. Build Web Template: `const wt = buildWebTemplate(template)` — or fetch the target CDR's Web Template (`Accept: application/openehr.wt+json`) when posting FLAT to that CDR; its node ids match what the server accepts.
 3. Generate or load RM instance (canonical JSON, generator, etc.).
-4. Serialize: `serializeToFlatJson(instance, wt)` or `serializeToStructuredJson(instance, wt)`.
+4. Serialize: `serializeToFlatJson(instance, wt)` or `serializeToStructuredJson(instance, wt)` (use `flavor: "input"` and `locatableName: "omit"` for FerroEHR input FLAT when needed).
 5. Deserialize: `deserializeFromFlatJson(flatJson, wt)` or `deserializeFromStructuredJson(structuredJson, wt)`.
 
 ### Canonical round-trip

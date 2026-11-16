@@ -25,12 +25,25 @@ export function normalizeWebTemplateId(text: string): string {
  * (dots and dashes retained, e.g. "conformance-ehrbase.de.v0").
  *
  * FLAT keys use {@link flatRootId}, which prefers the Web Template's own
- * `tree.id`. ehrtslib's builder sets `tree.id` to this value. A CDR Web
- * Template sets `tree.id` to the root node id (`encounter`), not the
- * template id.
+ * `tree.id`. By default ehrtslib's builder sets `tree.id` to the composition
+ * archetype concept (same as FerroEHR and EHRbase); `treeRootId: "template"`
+ * keeps the normalised template id. CDR Web Templates use the root archetype
+ * concept (`encounter`), not the template id.
  */
 export function templateRootId(templateId: string): string {
   return normalizeWebTemplateId(templateId);
+}
+
+/**
+ * Short concept from an openEHR archetype id (`encounter` from
+ * `openEHR-EHR-COMPOSITION.encounter.v1`).
+ */
+export function archetypeConceptFromHrid(archetypeId: string): string | undefined {
+  const trimmed = archetypeId.trim();
+  if (!trimmed) return undefined;
+  const parts = trimmed.split(".");
+  if (parts.length < 2) return undefined;
+  return parts[parts.length - 2];
 }
 
 /**

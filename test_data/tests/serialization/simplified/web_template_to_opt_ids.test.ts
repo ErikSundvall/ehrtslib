@@ -30,8 +30,14 @@ function roundTrip(file: string): { before: string[]; after: string[] } {
   const opt = parseOptXml(
     Deno.readTextFileSync(new URL(`../../../opt14/${file}`, import.meta.url)),
   ).operationalTemplate!;
-  const wt = buildWebTemplate(opt);
-  const back = buildWebTemplate(webTemplateToOpt(wt));
+  const legacyWt = {
+    treeRootId: "template" as const,
+    omitSectionNameNode: false,
+    renamedArchetypeRootId: "label" as const,
+    elementNameId: "term" as const,
+  };
+  const wt = buildWebTemplate(opt, legacyWt);
+  const back = buildWebTemplate(webTemplateToOpt(wt), legacyWt);
   return { before: chain(wt.tree), after: chain(back.tree) };
 }
 
@@ -61,8 +67,14 @@ Deno.test("webTemplateToOpt keeps ACTION ism_transition min 1", () => {
       new URL("../../../opt14/Test_all_types.opt", import.meta.url),
     ),
   ).operationalTemplate!;
-  const wt = buildWebTemplate(opt);
-  const back = buildWebTemplate(webTemplateToOpt(wt));
+  const legacyWt = {
+    treeRootId: "template" as const,
+    omitSectionNameNode: false,
+    renamedArchetypeRootId: "label" as const,
+    elementNameId: "term" as const,
+  };
+  const wt = buildWebTemplate(opt, legacyWt);
+  const back = buildWebTemplate(webTemplateToOpt(wt), legacyWt);
   const ism = (tree: WebTemplateNode) =>
     nodes(
       tree,

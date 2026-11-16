@@ -25,7 +25,10 @@ const CLOCK = () => "2026-10-30T12:00:00Z";
 async function load(name: string) {
   const xml = await Deno.readTextFile(new URL(name, OPT_DIR));
   const { operationalTemplate } = parseOptXml(xml);
-  return { opt: operationalTemplate, wt: buildWebTemplate(operationalTemplate) };
+  return {
+    opt: operationalTemplate,
+    wt: buildWebTemplate(operationalTemplate, { treeRootId: "template" }),
+  };
 }
 
 const R = "conformance-ehrbase.de.v0";

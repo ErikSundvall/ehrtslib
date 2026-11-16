@@ -8,6 +8,10 @@ Add an entry under **Unreleased** in every PR that changes user-visible behaviou
 
 ## [Unreleased]
 
+- **Behaviour.** `buildWebTemplate` defaults to CDR-aligned node ids: composition archetype concept as `tree.id`, no `dv_text` under name-constrained SECTIONs, archetype concept for renamed archetype roots, first name-constraint term for coded ELEMENT names, and template `category` without `inContext`. Options `treeRootId`, `omitSectionNameNode`, `renamedArchetypeRootId`, and `elementNameId` restore previous shapes ([#316](https://github.com/ErikSundvall/ehrtslib/issues/316)).
+- `validateFlatPayload` no longer counts `_mapping:N` (or other `_`-prefixed RM attribute indices) toward a parent node's instance cardinality ([#317](https://github.com/ErikSundvall/ehrtslib/issues/317)).
+- **Docs.** `SIMPLIFIED_FORMATS.md` notes that a CDR's own Web Template is the safest input to `serializeToFlat` when posting to that CDR.
+
 ## [0.13.0] - 2026-11-16
 
 - **Validation.** `InvariantEvaluator.validateInvariants` no longer throws when `invariants` is omitted; added `collectArchetypeAssertions`, `validateArchetypeRules`, and related helpers for archetype `rules` / `ARCHETYPE.invariants` (not RM class invariants) ([#308](https://github.com/ErikSundvall/ehrtslib/issues/308)).
