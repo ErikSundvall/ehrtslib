@@ -10,9 +10,11 @@ import {
   type DemoClone,
   type DemoSession,
   type Field,
+  isCollabText,
   isLongText,
-  LONG_TEXT_FIELDS,
-  type LongTextField,
+  isNativeText,
+  NATIVE_TEXT_FIELDS,
+  type CollabTextField,
   preparePreview,
   readField,
   receive,
@@ -59,6 +61,8 @@ import {
   initialTimeTravelState,
   isCloneReadOnly,
   refreshTimeline,
+  scrubToEnd,
+  scrubToStart,
   setScrubStep,
   toggleHistoryPlayback,
   toggleTimelinePanel,
@@ -72,6 +76,8 @@ import {
   paintFieldValidation,
 } from "./cb-field-validation-ui.ts";
 import { handleFieldEnterKey } from "./cb-field-enter.ts";
+import { mayApplyFieldEdit } from "./cb-field-edit-guard.ts";
+import type { CollabFieldInput } from "./cb-narrative-ui.ts";
 
 const PRESENCE_FIELDS: Field[] = [
   "diagnosisName",
@@ -142,13 +148,13 @@ let presenceClock = 0;
 let presenceTicker: ReturnType<typeof globalThis.setInterval> | undefined;
 const narrativeViews = new Map<string, NarrativeCollabView>();
 
-function narrativeCollabKey(cloneId: string, field: LongTextField): string {
+function narrativeCollabKey(cloneId: string, field: CollabTextField): string {
   return `${cloneId}:${field}`;
 }
 
 function narrativeView(
   cloneId: string,
-  field: LongTextField,
+  field: CollabTextField,
 ): NarrativeCollabView {
   const key = narrativeCollabKey(cloneId, field);
   let view = narrativeViews.get(key);
@@ -223,8 +229,8 @@ function nowMs(): number {
 }
 function broadcastNarrativeCaret(
   clone: DemoClone,
-  field: LongTextField,
-  input: HTMLTextAreaElement,
+  field: CollabTextField,
+  input: CollabFieldInput,
 ): void {
   const text = input.value;
   const raw = input.selectionEnd ?? input.selectionStart ?? text.length;
@@ -248,7 +254,7 @@ function broadcastNarrativeCaret(
 
 function resolveRemoteCaretOffset(
   clone: DemoClone,
-  field: LongTextField,
+  field: CollabTextField,
   cursor: string,
 ): number | null {
   return resolveNarrativeCaret(
@@ -330,9 +336,9 @@ function startPresenceBeat(clone: DemoClone): void {
     const focus = presenceFocus.get(clone.id);
     if (!focus || busy || sent) return;
     emitPresence(clone, focus.field, focus.state);
-    if (isLongText(focus.field)) {
+    if (isCollabText(focus.field)) {
       const panel = panels.get(clone.id);
-      const input = panel?.querySelector<HTMLTextAreaElement>(
+      const input = panel?.querySelector<CollabFieldInput>(
         `[data-field="${focus.field}"]`,
       );
       if (input && document.activeElement === input) {
@@ -356,11 +362,11 @@ function applyCollab(
   const view = narrativeView(clone.id, message.field);
   view.apply(message);
   const panel = panels.get(clone.id);
-  const textarea = panel?.querySelector<HTMLTextAreaElement>(
+  const input = panel?.querySelector<CollabFieldInput>(
     `[data-field="${message.field}"]`,
   );
-  if (textarea) {
-    paintNarrativeCollab(textarea, view, nowMs(), (caret) =>
+  if (input) {
+    paintNarrativeCollab(input, view, nowMs(), (caret) =>
       resolveRemoteCaretOffset(clone, message.field, caret.cursor)
     );
   }
@@ -398,8 +404,8 @@ function renderNarrativeCollab(clone: DemoClone): void {
   if (!panel) return;
   const travel = timeTravel.get(clone.id);
   const atMs = presenceClock || nowMs();
-  for (const field of LONG_TEXT_FIELDS) {
-    const textarea = panel.querySelector<HTMLTextAreaElement>(
+  for (const field of NATIVE_TEXT_FIELDS) {
+    const textarea = panel.querySelector<CollabFieldInput>(
       `[data-field="${field}"]`,
     );
     if (!textarea) continue;
@@ -466,6 +472,8 @@ function refreshTimeTravel(clone: DemoClone): void {
   const panelEl = $(".time-travel-panel", panel);
   const liveBtn = $(".time-travel-live", panel);
   const playBtn = $<HTMLButtonElement>(".time-travel-play", panel);
+  const skipStart = $<HTMLButtonElement>(".time-travel-skip-start", panel);
+  const skipEnd = $<HTMLButtonElement>(".time-travel-skip-end", panel);
   const banner = $(".time-travel-readonly-banner", panel);
   const chrome = deriveTimeTravelChrome(next, bytes);
   panelEl.hidden = !chrome.panelOpen;
@@ -475,9 +483,21 @@ function refreshTimeTravel(clone: DemoClone): void {
   banner.hidden = !chrome.bannerVisible;
   $(".time-travel-status", panel).textContent = chrome.statusText;
   $(".time-travel-moment", panel).textContent = chrome.timelineCaption;
-  playBtn.hidden = !chrome.panelOpen;
-  playBtn.textContent = chrome.playing ? "Pause" : "Play";
+  for (const btn of [playBtn, skipStart, skipEnd]) {
+    btn.hidden = !chrome.panelOpen;
+  }
+  playBtn.setAttribute("aria-label", chrome.playLabel);
+  playBtn.setAttribute("title", chrome.playTooltip);
   playBtn.setAttribute("aria-pressed", chrome.playing ? "true" : "false");
+  playBtn.classList.toggle("time-travel-play--active", chrome.playing);
+  playBtn.querySelector(".time-travel-icon-play")?.toggleAttribute(
+    "hidden",
+    chrome.playing,
+  );
+  playBtn.querySelector(".time-travel-icon-pause")?.toggleAttribute(
+    "hidden",
+    !chrome.playing,
+  );
   panel.classList.toggle("clone--history-readonly", chrome.bannerVisible);
   syncHistoryPlayback(clone);
   updateCloneInputsDisabled(clone);
@@ -631,9 +651,7 @@ function updateText(
   value: string,
 ): void {
   if (input.value === value) return;
-  if (
-    input instanceof HTMLTextAreaElement && document.activeElement === input
-  ) {
+  if (document.activeElement === input) {
     // Preserve the caret through the one-splice difference of a remote update.
     const old = input.value;
     let at = 0;
@@ -667,7 +685,7 @@ function render(clone: DemoClone): void {
   ) {
     const field = input.dataset.field as Field;
     // A focused whole-value edit retains its base rev and unsubmitted value.
-    if (document.activeElement === input && !isLongText(field)) continue;
+    if (document.activeElement === input && !isNativeText(field)) continue;
     if (composing.has(clone.id) && isLongText(field)) continue;
     updateText(input, String(readFieldForPanel(clone, field)));
     if (!cloneReadOnly(clone)) {
@@ -735,6 +753,30 @@ function setupTimeTravel(clone: DemoClone, panel: HTMLElement): void {
     timeTravel.set(clone.id, next);
     render(clone);
   });
+  $<HTMLButtonElement>(".time-travel-skip-start", panel).addEventListener(
+    "click",
+    () => {
+      const state = timeTravel.get(clone.id)!;
+      timeTravel.set(
+        clone.id,
+        refreshTimeline(clone.caller.adapter.save(), scrubToStart(state)),
+      );
+      scrubPreview.delete(clone.id);
+      render(clone);
+    },
+  );
+  $<HTMLButtonElement>(".time-travel-skip-end", panel).addEventListener(
+    "click",
+    () => {
+      const state = timeTravel.get(clone.id)!;
+      timeTravel.set(
+        clone.id,
+        refreshTimeline(clone.caller.adapter.save(), scrubToEnd(state)),
+      );
+      scrubPreview.delete(clone.id);
+      render(clone);
+    },
+  );
 }
 
 function createPanel(clone: DemoClone): void {
@@ -787,7 +829,7 @@ function createPanel(clone: DemoClone): void {
       if (busy || sent || composing.has(clone.id) || cloneReadOnly(clone)) {
         return;
       }
-      if (!input.reportValidity()) return;
+      if (!mayApplyFieldEdit(input)) return;
       try {
         const before = String(readField(session, clone, field));
         const value =
@@ -799,7 +841,7 @@ function createPanel(clone: DemoClone): void {
           clone,
           field,
           value,
-          isLongText(field)
+          isNativeText(field)
             ? clone.caller.build.logRev()
             : input.dataset.rev,
         );
@@ -816,7 +858,7 @@ function createPanel(clone: DemoClone): void {
             to: after,
             atMs: nowMs(),
           });
-          if (isLongText(field)) {
+          if (isCollabText(field)) {
             const { start, end } = diffRange(before, after);
             const snippet = after.slice(start, end);
             if (snippet) {
@@ -846,29 +888,36 @@ function createPanel(clone: DemoClone): void {
         );
       }
     };
-    if (isLongText(field)) {
+    if (isCollabText(field)) {
       ensureNarrativeShell(input);
-      input.addEventListener("input", () => {
-        emitPresence(clone, field, "editing");
-        startPresenceBeat(clone);
-        broadcastNarrativeCaret(clone, field, input);
-        edit();
-      });
-      const repaintsCollab = () => renderNarrativeCollab(clone);
-      input.addEventListener("scroll", repaintsCollab);
-      globalThis.addEventListener("resize", repaintsCollab);
-      input.addEventListener("keyup", () => {
+      const wireCaret = () => {
         if (cloneReadOnly(clone)) return;
-        broadcastNarrativeCaret(clone, field, input);
-      });
-      input.addEventListener("select", () => {
-        if (cloneReadOnly(clone)) return;
-        broadcastNarrativeCaret(clone, field, input);
-      });
-      input.addEventListener("pointerup", () => {
-        if (cloneReadOnly(clone)) return;
-        broadcastNarrativeCaret(clone, field, input);
-      });
+        broadcastNarrativeCaret(clone, field, input as CollabFieldInput);
+      };
+      if (isLongText(field)) {
+        input.addEventListener("input", () => {
+          emitPresence(clone, field, "editing");
+          startPresenceBeat(clone);
+          wireCaret();
+          edit();
+        });
+        const repaintsCollab = () => renderNarrativeCollab(clone);
+        input.addEventListener("scroll", repaintsCollab);
+        globalThis.addEventListener("resize", repaintsCollab);
+        input.addEventListener("keyup", wireCaret);
+        input.addEventListener("select", wireCaret);
+        input.addEventListener("pointerup", wireCaret);
+      } else {
+        input.addEventListener("input", () => {
+          emitPresence(clone, field, "editing");
+          startPresenceBeat(clone);
+          wireCaret();
+          edit();
+        });
+        input.addEventListener("keyup", wireCaret);
+        input.addEventListener("select", wireCaret);
+        input.addEventListener("pointerup", wireCaret);
+      }
     } else {
       input.addEventListener("change", edit);
     }
@@ -886,6 +935,7 @@ function createPanel(clone: DemoClone): void {
     }
   }
   const form = $("form", panel);
+  form.setAttribute("novalidate", "novalidate");
   form.addEventListener("keydown", (event) => {
     handleFieldEnterKey(event, panel, (input) => {
       input.dispatchEvent(new Event("change", { bubbles: true }));
@@ -938,6 +988,20 @@ function setBusy(value: boolean): void {
 }
 async function commit(clone: DemoClone): Promise<void> {
   if (busy || sent || cloneReadOnly(clone)) return;
+  const validation = session.validator.validate(
+    clone.caller.build,
+    session.draftId,
+    session.template,
+  );
+  if (!validation.valid) {
+    feedback(
+      clone,
+      "Fix validation errors before committing (mandatory fields must be filled).",
+      true,
+    );
+    render(clone);
+    return;
+  }
   const isCdr = $<HTMLSelectElement>("#destination").value === "cdr";
   if (isCdr && (timers.size || inFlight || composing.size)) {
     feedback(

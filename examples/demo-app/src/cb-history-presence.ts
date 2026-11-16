@@ -8,9 +8,12 @@ import {
   formatAbsolute,
   type FieldBadgeView,
   type PresenceBadge,
-  userAccentColor,
   userInitials,
 } from "./cb-presence.ts";
+import {
+  presenceChipForeground,
+  userAccentColor,
+} from "./cb-user-colors.ts";
 
 function fieldForOperation(
   op: CbOperation,
@@ -49,7 +52,10 @@ export function historicalBadgesForField(
     userId: peerId,
     displayName: latest.op.author.name,
     initials: userInitials(latest.op.author.name),
-    accent: userAccentColor(peerId),
+    accent: userAccentColor(latest.op.author.name),
+    foreground: presenceChipForeground(
+      userAccentColor(latest.op.author.name),
+    ),
     kind: "recent-edit",
     activityAtMs: latest.atMs,
     opacity: 1,

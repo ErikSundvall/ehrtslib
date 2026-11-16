@@ -1,5 +1,11 @@
 /// <reference lib="dom" />
 import type { NarrativeCollabView } from "./cb-narrative-collab.ts";
+
+export type CollabFieldInput = HTMLInputElement | HTMLTextAreaElement;
+
+function isSingleLine(input: CollabFieldInput): boolean {
+  return input.tagName === "INPUT";
+}
 import {
   caretLogicalLineRange,
   caretOffsetToCoords,
@@ -7,14 +13,14 @@ import {
 } from "./cb-narrative-layout.ts";
 import type { TextCaretView } from "./cb-narrative-collab.ts";
 
-const mirrorByTextarea = new WeakMap<HTMLTextAreaElement, HTMLDivElement>();
+const mirrorByInput = new WeakMap<CollabFieldInput, HTMLDivElement>();
 
-export function ensureNarrativeShell(textarea: HTMLTextAreaElement): {
+export function ensureNarrativeShell(input: CollabFieldInput): {
   shell: HTMLElement;
   backdrop: HTMLElement;
   caretLayer: HTMLElement;
 } {
-  const existing = textarea.closest(".narrative-shell");
+  const existing = input.closest(".narrative-shell");
   if (existing) {
     return {
       shell: existing as HTMLElement,
@@ -30,9 +36,13 @@ export function ensureNarrativeShell(textarea: HTMLTextAreaElement): {
   const caretLayer = document.createElement("div");
   caretLayer.className = "narrative-carets";
   caretLayer.setAttribute("aria-hidden", "true");
-  textarea.parentElement?.insertBefore(shell, textarea);
-  shell.append(backdrop, caretLayer, textarea);
-  textarea.classList.add("narrative-input");
+  input.parentElement?.insertBefore(shell, input);
+  shell.append(backdrop, caretLayer, input);
+  input.classList.add("narrative-input");
+  if (isSingleLine(input)) {
+    shell.classList.add("narrative-shell--single");
+    input.classList.add("narrative-input--single");
+  }
   return { shell, backdrop, caretLayer };
 }
 
@@ -49,7 +59,7 @@ export type NarrativeCaretOffsetResolver = (
 ) => number | null;
 
 export function paintNarrativeHighlights(
-  textarea: HTMLTextAreaElement,
+  textarea: CollabFieldInput,
   text: string,
   highlights: NarrativeHighlightPaint[],
   carets: ReturnType<NarrativeCollabView["carets"]> = [],
@@ -75,7 +85,7 @@ export function paintNarrativeHighlights(
 }
 
 function syncCaretLayerScroll(
-  textarea: HTMLTextAreaElement,
+  textarea: CollabFieldInput,
   caretLayer: HTMLElement,
 ): void {
   caretLayer.scrollTop = textarea.scrollTop;
@@ -83,7 +93,7 @@ function syncCaretLayerScroll(
 }
 
 export function paintNarrativeCollab(
-  textarea: HTMLTextAreaElement,
+  textarea: CollabFieldInput,
   view: NarrativeCollabView,
   atMs: number,
   resolveCaretOffset: NarrativeCaretOffsetResolver,
@@ -99,7 +109,7 @@ export function paintNarrativeCollab(
 }
 
 function syncMirrorGeometry(
-  textarea: HTMLTextAreaElement,
+  textarea: CollabFieldInput,
   backdrop: HTMLElement,
 ): void {
   const style = getComputedStyle(textarea);
@@ -153,15 +163,15 @@ function renderHighlightLayer(
 }
 
 function layoutMirror(
-  textarea: HTMLTextAreaElement,
+  textarea: CollabFieldInput,
   caretLayer: HTMLElement,
 ): HTMLDivElement {
-  let mirror = mirrorByTextarea.get(textarea);
+  let mirror = mirrorByInput.get(textarea);
   if (!mirror) {
     mirror = document.createElement("div");
     mirror.className = "narrative-layout-mirror";
     mirror.setAttribute("aria-hidden", "true");
-    mirrorByTextarea.set(textarea, mirror);
+    mirrorByInput.set(textarea, mirror);
     caretLayer.append(mirror);
   } else if (mirror.parentElement !== caretLayer) {
     caretLayer.append(mirror);
@@ -174,9 +184,9 @@ function layoutMirror(
   mirror.style.font = style.font;
   mirror.style.lineHeight = style.lineHeight;
   mirror.style.letterSpacing = style.letterSpacing;
-  mirror.style.whiteSpace = "pre-wrap";
-  mirror.style.wordWrap = "break-word";
-  mirror.style.overflowWrap = "break-word";
+  mirror.style.whiteSpace = isSingleLine(textarea) ? "pre" : "pre-wrap";
+  mirror.style.wordWrap = isSingleLine(textarea) ? "normal" : "break-word";
+  mirror.style.overflowWrap = isSingleLine(textarea) ? "normal" : "break-word";
   mirror.style.overflow = "visible";
   mirror.style.width = `${textarea.clientWidth}px`;
   mirror.style.height = "auto";
@@ -187,7 +197,7 @@ function layoutMirror(
 }
 
 export function mirrorCaretCoords(
-  textarea: HTMLTextAreaElement,
+  textarea: CollabFieldInput,
   offset: number,
   caretLayer?: HTMLElement,
 ): { left: number; top: number } {
@@ -225,7 +235,7 @@ export function mirrorCaretCoords(
 
 /** Vertical band (px in caret layer) for the logical line holding `at`. */
 export function verticalLineBand(
-  textarea: HTMLTextAreaElement,
+  textarea: CollabFieldInput,
   text: string,
   at: number,
   caretLayer: HTMLElement,
@@ -246,7 +256,7 @@ export function verticalLineBand(
 
 function caretMarker(
   caret: TextCaretView,
-  textarea: HTMLTextAreaElement,
+  textarea: CollabFieldInput,
   caretLayer: HTMLElement,
   resolveCaretOffset: NarrativeCaretOffsetResolver,
 ): HTMLElement | null {

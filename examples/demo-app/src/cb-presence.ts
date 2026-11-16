@@ -1,5 +1,11 @@
 /** Ephemeral multi-user presence for the Contribution Builder demo (UI layer only). */
 import type { Field } from "./contribution-demo.ts";
+import {
+  presenceChipForeground,
+  userAccentColor,
+} from "./cb-user-colors.ts";
+
+export { userAccentColor } from "./cb-user-colors.ts";
 
 export type LivePresenceState = "focused" | "editing";
 
@@ -46,6 +52,7 @@ export interface PresenceBadge {
   displayName: string;
   initials: string;
   accent: string;
+  foreground: string;
   kind: LivePresenceState | "recent-edit";
   /** When the badge’s activity happened (for sort order). */
   activityAtMs: number;
@@ -166,7 +173,10 @@ export class PresenceView {
       userId: live.peer.userId,
       displayName: live.peer.displayName,
       initials: userInitials(live.peer.displayName),
-      accent: userAccentColor(live.peer.userId),
+      accent: userAccentColor(live.peer.displayName),
+      foreground: presenceChipForeground(
+        userAccentColor(live.peer.displayName),
+      ),
       kind: live.state,
       activityAtMs: live.atMs,
       opacity: 1,
@@ -192,7 +202,10 @@ export class PresenceView {
       userId: edit.peer.userId,
       displayName: edit.peer.displayName,
       initials: userInitials(edit.peer.displayName),
-      accent: userAccentColor(edit.peer.userId),
+      accent: userAccentColor(edit.peer.displayName),
+      foreground: presenceChipForeground(
+        userAccentColor(edit.peer.displayName),
+      ),
       kind: "recent-edit",
       activityAtMs: edit.atMs,
       opacity,
@@ -213,14 +226,6 @@ export function userInitials(name: string): string {
   const compact = name.replace(/[^a-zA-Z0-9\u00C0-\u024F]/g, "");
   if (compact.length >= 2) return compact.slice(0, 2).toUpperCase();
   return (compact.charAt(0) || "?").toUpperCase();
-}
-
-export function userAccentColor(userId: string): string {
-  let hash = 0;
-  for (let i = 0; i < userId.length; i++) {
-    hash = (hash * 31 + userId.charCodeAt(i)) >>> 0;
-  }
-  return `hsl(${hash % 360} 52% 40%)`;
 }
 
 export function formatRelative(atMs: number, nowMs: number): string {
