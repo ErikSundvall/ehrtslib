@@ -30,9 +30,11 @@ In-process tests under `test_data/tests/validation/veredictum_*.test.ts` replay 
 
 `ValidationMessage.archetypePath` is populated with the RM JSON path for now. ADL constraint paths (`/content/data/...`) will be added when path tracking exists on `C_ATTRIBUTE`.
 
-## Rules / invariants
+## Archetype rules / invariants
 
-MVP evaluation is implemented (`InvariantEvaluator`: `for_all`, `there_exists`, and common operators). Remaining work is fuller expression-language coverage and Archie `RMObjectValidator` parity — see [roadmap.md](maintainers/roadmap.md) Phase 6b follow-ups.
+Archetype-authored rules live on `ARCHETYPE.invariants` (ADL2 `rules`). Collect them with `collectArchetypeAssertions` / `validateArchetypeRules` (`validation/archetype_rules.ts`) and evaluate with `InvariantEvaluator`. That is separate from **RM class invariants** enforced by `RMSpecificationValidator.validateInstance` (BMM catalogue).
+
+MVP rule evaluation covers `for_all`, `there_exists`, and common operators. Remaining work is fuller expression-language coverage and Archie `RMObjectValidator` parity — see [roadmap.md](maintainers/roadmap.md) Phase 6b follow-ups.
 
 ## Archie parity
 

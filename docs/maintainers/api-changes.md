@@ -19,6 +19,7 @@ Check these consumers when the public API changes:
 
 ## Unreleased
 
+- **Added.** `collectArchetypeAssertions`, `collectTemplateAssertionSources`, `validateArchetypeRules`, and related helpers in `validation/archetype_rules.ts` for archetype `rules` / `ARCHETYPE.invariants` (not RM class invariants). `InvariantEvaluator.validateInvariants` accepts omitted `invariants` and returns `[]` ([#308](https://github.com/ErikSundvall/ehrtslib/issues/308)).
 - **Removed.** `CLINICAL_MARKDOWN_CONFIG`, `LOSSLESS_ASCIIDOC_CONFIG`. AsciiDoc serialization style `lossless` and demo preset id `clinical`. Use `COMPACT_MARKDOWN_CONFIG` / `COMPACT_ASCIIDOC_CONFIG` for human-readable output and `STRUCTURAL_ASCIIDOC_CONFIG` with `style: 'structural'` for round-trip. Added `WIKILINK_ASCIIDOC_CONFIG`.
 - **Added.** `ARCHETYPE_ID`, `GENERIC_ID`, `TERMINOLOGY_ID`, `TEMPLATE_ID`, `UID_BASED_ID`, and subclasses accept optional init bags and terse strings in their constructors (same coercion as `applyRmInit`).
 - **Changed.** `TypeScriptConstructorSerializer` defaults to nested init-object literals (`useNestedObjectLiterals`); undefined-attribute TODO comments include BMM multiplicity when `includeComments` is on.
