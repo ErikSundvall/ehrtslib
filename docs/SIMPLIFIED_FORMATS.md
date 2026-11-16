@@ -14,7 +14,7 @@ Library support for **Web Template**, **FLAT**, and **STRUCTURED** simplified co
 | `parseWebTemplate(json)` | Parse Web Template JSON (EHRBase/Better dialects) |
 | `isWebTemplateJson(value)` | Detect Web Template JSON documents |
 | `webTemplateToOpt(wt)` | Reconstruct approximate `OPERATIONAL_TEMPLATE` from Web Template |
-| `serializeToFlat(instance, wt, { flavor })` | RM instance → FLAT key/value map (`flavor`: `"output"` default, or `"input"`) |
+| `serializeToFlat(instance, wt, { flavor, locatableName })` | RM instance → FLAT key/value map (`flavor`: `"output"` default, or `"input"`; `locatableName`: `"path"` default, or `"omit"` to drop `/_name`) |
 | `serializeToFlatJson(instance, wt, options)` | Same, JSON string |
 | `deserializeFromFlat(flat, wt, options)` | FLAT → RM instance (plain object with `_type`); throws on error issues |
 | `deserializeFromFlatJson(json, wt, options)` | Same, from JSON string |
@@ -62,7 +62,7 @@ Background: [research note on FLAT/STRUCTURED input and output flavours and `ctx
 
 ## FLAT format
 
-- Keys are fully qualified from the normalised template root id. RM attributes such as `language`, `composer` or `context/start_time` have their own paths. In the input flavour, composition metadata uses the `ctx/` prefix instead (`ctx/language`, `ctx/territory`, `ctx/composer_name`, …).
+- Keys are fully qualified from the Web Template root node id (`tree.id`). ehrtslib's own Web Template sets that id to the normalised template id, so those keys are unchanged. A Web Template from FerroEHR, EHRbase or Better uses the root node id (for example `encounter/`), not the template id (`thumb-pain-encounter.v2/`). The reader and `validateFlatPayload` still accept the normalised template id as an alias. RM attributes such as `language`, `composer` or `context/start_time` have their own paths. In the input flavour, composition metadata uses the `ctx/` prefix instead (`ctx/language`, `ctx/territory`, `ctx/composer_name`, …).
 - HISTORY and a single EVENT with max 1 have no path segment (spec "Level Removal").
 - Repeating nodes use zero-based `:n` indices (`blood_pressure:0/any_event:0/...`).
 - Typed attributes use pipe suffixes on the key (`|magnitude`, `|unit`, `|code`, `|value`, `|terminology`).
@@ -196,7 +196,7 @@ A path segment `_<attr>` addresses an RM attribute of the object at that path (s
 - Multi-valued attributes are singular with `:i`: `_link:0`, `_participation:0`, `_other_participation:0`, `_mapping:0`, `_feeder_audit/originating_system_item_id:0`. `other_reference_ranges` keeps its plural (`_other_reference_ranges:0`), as in the spec. `workflow_id` is `_work_flow_id`.
 - Nested attributes are plain sub-paths: `_feeder_audit/originating_system_audit|system_id`, `dv_quantity/_normal_range/lower|magnitude`.
 - A value is written in the spec's FLAT form for its type: the DV field maps, and the "RM Mappings" tables for LINK (a coded meaning as `|meaning|code`, `|meaning|terminology`, `|meaning|value`, as in the spec's "RM Attributes prefix" example), PARTICIPATION (`|function|mode|name|id|id_scheme|id_namespace`, `/relationship`), FEEDER_AUDIT, FEEDER_AUDIT_DETAILS, OBJECT_REF (`|id|namespace|type|id_scheme`), INSTRUCTION_DETAILS, ISM_TRANSITION, TERM_MAPPING, REFERENCE_RANGE, DV_INTERVAL (`/lower`, `/upper`, `|lower_unbounded` and `|upper_unbounded` only when true, `|lower_included` and `|upper_included` only when false) and INTERVAL_EVENT (`/width`, `/math_function`, `|sample_count`). Anything else is `/_attr` again, down to primitives.
-- RM → FLAT writes every set attribute that no template node, collapsed level or form covers, so RM → FLAT → RM is lossless. `archetype_node_id` and `archetype_details` come from the template and are not written. A LOCATABLE `name` is written as `_name` only when it differs from the template name.
+- RM → FLAT writes every set attribute that no template node, collapsed level or form covers, so RM → FLAT → RM is lossless. `archetype_node_id` and `archetype_details` come from the template and are not written. A LOCATABLE `name` is written as the path segment `/_name` (the DV_TEXT value on that bare key) only when it differs from the template name. It is not a pipe suffix: `|_name` is not a field of the value. FerroEHR 5.5.0 rejects `/_name` (`unknown attribute suffix |_name`) and stores the template name; pass `locatableName: "omit"` when posting there. The default stays `"path"` so a round-trip keeps a renamed node.
 - Abstract node types take the subtype the attributes need: an EVENT with `/width` or `|sample_count` is an INTERVAL_EVENT, a PARTY_PROXY with `/relationship` a PARTY_RELATED.
 - `EVENT.offset` is computed (time − `HISTORY.origin`). It is not written; `_offset` on input is ignored with a warning.
 - ehrtslib conventions for values the spec has no form for: `|_type` when the RM type is not the one the attribute type or the keys imply, and `|raw` (canonical JSON) as a last resort.

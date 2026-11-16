@@ -728,6 +728,11 @@ export interface EncodeOptions {
    * when it differs. Without it, `name` is written like any attribute.
    */
   templateNames?: readonly string[];
+  /**
+   * Never write LOCATABLE `name`. FerroEHR 5.5.0 rejects `/_name`
+   * (`unknown attribute suffix |_name`) and uses the template name.
+   */
+  omitLocatableName?: boolean;
 }
 
 /** Attributes never written at a Web Template node (the template supplies them). */
@@ -791,7 +796,11 @@ export function encodeRmObject(
     if (skip.has(name)) continue;
     const v = rmProp(obj, name);
     if (isEmpty(v)) continue;
-    if (name === "name" && options.templateNames && nameMatches(v, options.templateNames)) continue;
+    if (
+      name === "name" &&
+      (options.omitLocatableName ||
+        (options.templateNames && nameMatches(v, options.templateNames)))
+    ) continue;
     if (covered.has(name) && rmSubset(plainObj[name], decoded[name])) continue;
     encodeChild(tree, `_${flatAttributeName(meta)}`, v, meta.typeName, base, ownParam);
   }

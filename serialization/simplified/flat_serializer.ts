@@ -4,7 +4,7 @@
  */
 
 import type { FlatPayload, WebTemplate, WebTemplateNode } from "./types.ts";
-import { templateRootId } from "./normalize.ts";
+import { flatRootId } from "./normalize.ts";
 import {
   resolveAllValuesAtWebTemplateNode,
   resolveChildWebTemplateNodeValues,
@@ -43,6 +43,16 @@ export interface FlatSerializerOptions {
    * to deserializer defaults left out. Both are accepted on input.
    */
   flavor?: SimplifiedFlavor;
+  /**
+   * LOCATABLE `name` that differs from the Web Template node name.
+   *
+   * `path` (default) writes it as `/_name` (the spec's RM-attribute path;
+   * the DV_TEXT value sits on that bare key). FerroEHR 5.5.0 rejects that
+   * key (`unknown attribute suffix |_name`) and keeps the template name, so
+   * `omit` leaves the name out. There is no pipe-suffix form: `|_name` is
+   * not a field of the value at the path.
+   */
+  locatableName?: "path" | "omit";
 }
 
 /**
@@ -117,7 +127,9 @@ export class FlatSerializer {
     private webTemplate: WebTemplate,
     private options: FlatSerializerOptions = {},
   ) {
-    this.rootId = templateRootId(webTemplate.templateId);
+    // CDRs key FLAT paths by the Web Template root id (`tree.id`),
+    // for example `encounter/`, not by the template id.
+    this.rootId = flatRootId(webTemplate);
   }
 
   serialize(instance: unknown): FlatPayload {
@@ -128,8 +140,8 @@ export class FlatSerializer {
       : undefined;
     this.out = input ? inputContextFields(instance) : {};
 
-    // FLAT keys carry a single root segment (the normalised template id);
-    // the tree root node itself contributes no extra path segment.
+    // FLAT keys carry a single root segment (`tree.id`); the tree root
+    // node itself contributes no extra path segment.
     for (const child of this.webTemplate.tree.children ?? []) {
       const values = resolveAllValuesAtWebTemplateNode(instance, child);
       for (let i = 0; i < values.length; i++) {
@@ -253,7 +265,11 @@ export class FlatSerializer {
       ? new Set([...covered, ...INPUT_CTX_CONTEXT])
       : covered;
     const type = rmTypeOf(data) || node.rmType;
-    const tree = encodeRmObject(data, type, undefined, { skip, templateNames: templateNames(node) });
+    const tree = encodeRmObject(data, type, undefined, {
+      skip,
+      templateNames: templateNames(node),
+      omitLocatableName: this.options.locatableName === "omit",
+    });
     emitFlatTree(base, tree, this.out);
   }
 
@@ -262,6 +278,7 @@ export class FlatSerializer {
     const tree = encodeRmObject(element, "ELEMENT", undefined, {
       skip: ELEMENT_WRITTEN,
       templateNames: templateNames(node),
+      omitLocatableName: this.options.locatableName === "omit",
     });
     emitFlatTree(base, { fields: {}, children: tree.children }, this.out);
   }

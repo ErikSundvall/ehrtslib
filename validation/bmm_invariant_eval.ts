@@ -81,6 +81,7 @@ export function attributeNamesInExpression(expression: string): string[] {
     "is_equal",
     "has_code",
     "has_code_for_group_id",
+    "is_valid_match_code",
   ]);
   for (const match of expression.matchAll(re)) {
     const name = match[0];
@@ -429,6 +430,15 @@ function evalCall(expr: CallExpr, ctx: unknown): Val {
       if (id === UNSUPPORTED) return UNSUPPORTED;
       return { kind: "code_set", id: String(id) };
     }
+    // TERM_MAPPING.Match_valid: is_valid_match_code(match).
+    // BMM postcondition: Result = c is '>', '=', '<' or '?'.
+    // A plain JSON instance has no method, so the call used to stay unknown
+    // and '~' was accepted.
+    if (expr.x.v === "is_valid_match_code" && expr.args.length === 1) {
+      const code = evalExpr(expr.args[0], ctx);
+      if (code === UNSUPPORTED) return UNSUPPORTED;
+      return isValidMatchCode(code);
+    }
     return UNSUPPORTED;
   }
   if (expr.x.t === "member") {
@@ -540,6 +550,23 @@ function findCodeSetByName(
     if (set && (set.name.toLowerCase() === wanted || set.openehr_id === name)) {
       return set;
     }
+  }
+  return undefined;
+}
+
+/** openEHR TERM_MAPPING match codes (ISO 2788/5964 plus '?'). */
+const VALID_MATCH_CODES = new Set([">", "=", "<", "?"]);
+
+function isValidMatchCode(code: unknown): boolean {
+  const text = matchCodeText(code);
+  return text !== undefined && VALID_MATCH_CODES.has(text);
+}
+
+function matchCodeText(value: unknown): string | undefined {
+  if (typeof value === "string") return value;
+  if (value && typeof value === "object" && "value" in value) {
+    const inner = (value as { value?: unknown }).value;
+    if (typeof inner === "string") return inner;
   }
   return undefined;
 }
