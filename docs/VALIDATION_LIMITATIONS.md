@@ -20,7 +20,7 @@ Remaining CONT catalogue gaps (cardinality overlays on CLUSTER/COMPOSITION conte
 
 ## Primitive constraints from OPT XML
 
-Legacy OPT XML wraps `C_INTEGER` / `C_STRING` / `C_BOOLEAN` / temporal types in `C_PRIMITIVE_OBJECT.item`. The OPT mapper now keeps that `item`, and `PrimitiveValidator` unwraps it. `C_INTEGER.list` and range, `C_CODE_PHRASE.code_list`, `C_DV_QUANTITY.list` units, and `C_MULTIPLE_ATTRIBUTE.cardinality` are enforced.
+Legacy OPT XML wraps `C_INTEGER` / `C_STRING` / `C_BOOLEAN` / temporal types in `C_PRIMITIVE_OBJECT.item`. The OPT mapper now keeps that `item`, and `PrimitiveValidator` unwraps it. `C_INTEGER.list` and range, `C_CODE_PHRASE.code_list`, `C_DV_QUANTITY.list` units, and `C_MULTIPLE_ATTRIBUTE.cardinality` are enforced. A `DV_BOOLEAN` value is a boolean whether or not the OPT constrains it. A `C_STRING` pattern `True` or `False` (an older OPT export) is read as that boolean allowance, not as "expected string" ([#314](https://github.com/ErikSundvall/ehrtslib/issues/314)).
 
 ## Veredictum CNF content corpus
 
