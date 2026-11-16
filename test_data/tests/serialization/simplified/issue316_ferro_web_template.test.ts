@@ -37,8 +37,10 @@ function ids(nodes: WebTemplateNode[] | undefined, out = new Set<string>()): Set
   return out;
 }
 
+const FERRO_BUILD = { cdrProfile: "ferroehr" as const };
+
 const opt = parseOptXml(Deno.readTextFileSync(OPT)).operationalTemplate!;
-const wt = buildWebTemplate(opt);
+const wt = buildWebTemplate(opt, FERRO_BUILD);
 const ferro = JSON.parse(Deno.readTextFileSync(FERRO_WT)) as WebTemplate;
 
 Deno.test("#316 tree.id is the composition archetype concept", () => {

@@ -11,6 +11,8 @@
  * so a payload the reader rejects is not valid.
  */
 
+import type { CdrProfile } from "./cdr_profiles.ts";
+import { mergeFlatValidatorOptions } from "./cdr_profiles.ts";
 import type {
   FlatPayload,
   FlatValidationResult,
@@ -88,6 +90,8 @@ const READER_REJECTS = new Set<string>([
 ]);
 
 export interface FlatValidatorOptions {
+  /** CDR convention bundle; see `cdr_profiles.ts`. Default `ehrbase`. */
+  cdrProfile?: CdrProfile;
   /**
    * Treat unknown keys as errors (default `true`, as the FLAT reader does);
    * `false` reports them as warnings.
@@ -100,13 +104,14 @@ export function validateFlatPayload(
   webTemplate: WebTemplate,
   options: FlatValidatorOptions = {},
 ): FlatValidationResult {
+  const merged = mergeFlatValidatorOptions(options);
   const errors: SimplifiedValidationMessage[] = [];
   const warnings: SimplifiedValidationMessage[] = [];
   const rootId = flatRootId(webTemplate);
   const roots = acceptedFlatRoots(webTemplate);
   const chains = buildChainSet(webTemplate);
 
-  const strict = options.strictUnknownKeys ?? true;
+  const strict = merged.strictUnknownKeys ?? true;
   const report = (path: string, message: string) => {
     if (strict) {
       errors.push({ path, message, severity: "error" });

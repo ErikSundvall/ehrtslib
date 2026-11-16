@@ -10,11 +10,11 @@ Library support for **Web Template**, **FLAT**, and **STRUCTURED** simplified co
 
 | Export | Purpose |
 |--------|---------|
-| `buildWebTemplate(opt, options)` | Build Web Template JSON. `languages[0]` is the primary language (labels and, by default, node ids). `idLanguage` is `"primary"` (default) or `"original"`. Defaults follow FerroEHR / EHRbase / Better (`treeRootId: "archetype"`, `omitSectionNameNode: true`, `renamedArchetypeRootId: "archetype"`, `elementNameId: "name_constraint"`); see [#316](https://github.com/ErikSundvall/ehrtslib/issues/316) |
+| `buildWebTemplate(opt, options)` | Build Web Template JSON. `languages[0]` is the primary language (labels and, by default, node ids). `idLanguage` is `"primary"` (default) or `"original"`. **`cdrProfile`**: `"ehrbase"` (default), `"ferroehr"`, or `"better"` sets WT node-id conventions; per-field options override. Evidence and unverified notes: `serialization/simplified/cdr_profiles.ts` ([#316](https://github.com/ErikSundvall/ehrtslib/issues/316)) |
 | `parseWebTemplate(json)` | Parse Web Template JSON (EHRBase/Better dialects) |
 | `isWebTemplateJson(value)` | Detect Web Template JSON documents |
 | `webTemplateToOpt(wt)` | Reconstruct approximate `OPERATIONAL_TEMPLATE` from Web Template |
-| `serializeToFlat(instance, wt, { flavor, locatableName })` | RM instance → FLAT key/value map (`flavor`: `"output"` default, or `"input"`; `locatableName`: `"path"` default, or `"omit"` to drop `/_name`) |
+| `serializeToFlat(instance, wt, options)` | RM instance → FLAT key/value map. `cdrProfile` sets `flavor` (`output` default / EHRbase; `input` for Ferro) and `locatableName` (`path` vs `omit` for FerroEHR) |
 | `serializeToFlatJson(instance, wt, options)` | Same, JSON string |
 | `deserializeFromFlat(flat, wt, options)` | FLAT → RM instance (plain object with `_type`); throws on error issues |
 | `deserializeFromFlatJson(json, wt, options)` | Same, from JSON string |
@@ -44,7 +44,7 @@ RM instance  ←→  serializeToFlat / deserializeFromFlat
 1. Parse template input to an `OPERATIONAL_TEMPLATE` (`parseTemplateInput`, `getOperationalTemplateFromInput`).
 2. Build Web Template: `const wt = buildWebTemplate(template)` — or fetch the target CDR's Web Template (`Accept: application/openehr.wt+json`) when posting FLAT to that CDR; its node ids match what the server accepts.
 3. Generate or load RM instance (canonical JSON, generator, etc.).
-4. Serialize: `serializeToFlatJson(instance, wt)` or `serializeToStructuredJson(instance, wt)` (use `flavor: "input"` and `locatableName: "omit"` for FerroEHR input FLAT when needed).
+4. Serialize: `serializeToFlatJson(instance, wt, { cdrProfile: "ferroehr" })` (or EHRbase/Better defaults) or `serializeToStructuredJson(instance, wt)`.
 5. Deserialize: `deserializeFromFlatJson(flatJson, wt)` or `deserializeFromStructuredJson(structuredJson, wt)`.
 
 ### Canonical round-trip

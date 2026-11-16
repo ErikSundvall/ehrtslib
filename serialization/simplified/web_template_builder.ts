@@ -23,6 +23,8 @@ import type {
   WebTemplateInputListItem,
   WebTemplateNode,
 } from "./types.ts";
+import type { CdrProfile } from "./cdr_profiles.ts";
+import { mergeWebTemplateBuilderOptions } from "./cdr_profiles.ts";
 import {
   archetypeConceptFromHrid,
   joinAqlPath,
@@ -100,6 +102,12 @@ function complexShellFromSlot(
 export type WebTemplateIdLanguage = "primary" | "original";
 
 export interface WebTemplateBuilderOptions {
+  /**
+   * CDR convention bundle (`ferroehr`, `ehrbase`, `better`). Default `ehrbase`.
+   * See `docs/SIMPLIFIED_FORMATS.md` and `serialization/simplified/cdr_profiles.ts`.
+   * Per-field options below override the profile.
+   */
+  cdrProfile?: CdrProfile;
   /**
    * Languages to include, in order. The first entry is the primary language:
    * it drives labels and, unless `idLanguage` is `"original"`, node ids.
@@ -673,10 +681,10 @@ export class WebTemplateBuilder {
   /** Primary language first, then the additional languages the caller included. */
   private selectedLanguages: string[] = [];
   private idLanguage: WebTemplateIdLanguage = "primary";
-  private treeRootId: "archetype" | "template" = "archetype";
-  private omitSectionNameNode = true;
-  private renamedArchetypeRootId: "archetype" | "label" = "archetype";
-  private elementNameId: "name_constraint" | "term" = "name_constraint";
+  private treeRootId: "archetype" | "template";
+  private omitSectionNameNode: boolean;
+  private renamedArchetypeRootId: "archetype" | "label";
+  private elementNameId: "name_constraint" | "term";
   private bagCache = new Map<
     string,
     { template: TermBag; archetype: Record<string, TermBag> }
@@ -685,18 +693,17 @@ export class WebTemplateBuilder {
   private originalLang = "en";
 
   constructor(options?: WebTemplateBuilderOptions) {
-    this.options = options;
-    this.includeContext = options?.includeContextNodes ?? true;
-    this.applyL10n = options?.applyL10nAnnotations ?? true;
-    this.idLanguage = options?.idLanguage === "original"
-      ? "original"
-      : "primary";
-    this.treeRootId = options?.treeRootId === "template" ? "template" : "archetype";
-    this.omitSectionNameNode = options?.omitSectionNameNode !== false;
-    this.renamedArchetypeRootId = options?.renamedArchetypeRootId === "label"
+    const merged = mergeWebTemplateBuilderOptions(options);
+    this.options = merged;
+    this.includeContext = merged.includeContextNodes ?? true;
+    this.applyL10n = merged.applyL10nAnnotations ?? true;
+    this.idLanguage = merged.idLanguage === "original" ? "original" : "primary";
+    this.treeRootId = merged.treeRootId === "template" ? "template" : "archetype";
+    this.omitSectionNameNode = merged.omitSectionNameNode !== false;
+    this.renamedArchetypeRootId = merged.renamedArchetypeRootId === "label"
       ? "label"
       : "archetype";
-    this.elementNameId = options?.elementNameId === "term"
+    this.elementNameId = merged.elementNameId === "term"
       ? "term"
       : "name_constraint";
   }

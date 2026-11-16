@@ -8,7 +8,8 @@ Add an entry under **Unreleased** in every PR that changes user-visible behaviou
 
 ## [Unreleased]
 
-- **Behaviour.** `buildWebTemplate` defaults to CDR-aligned node ids: composition archetype concept as `tree.id`, no `dv_text` under name-constrained SECTIONs, archetype concept for renamed archetype roots, first name-constraint term for coded ELEMENT names, and template `category` without `inContext`. Options `treeRootId`, `omitSectionNameNode`, `renamedArchetypeRootId`, and `elementNameId` restore previous shapes ([#316](https://github.com/ErikSundvall/ehrtslib/issues/316)).
+- **Behaviour.** `cdrProfile` (`"ferroehr"` \| `"ehrbase"` \| `"better"`, default `"ehrbase"`) bundles Web Template and FLAT conventions for `buildWebTemplate`, `serializeToFlat`, and `validateFlatPayload`; per-option overrides unchanged. Ferro/EHRbase/Better evidence is in `serialization/simplified/cdr_profiles.ts` and `SIMPLIFIED_FORMATS.md` ([#316](https://github.com/ErikSundvall/ehrtslib/issues/316), [#318](https://github.com/ErikSundvall/ehrtslib/pull/318)).
+- **Behaviour.** Without `cdrProfile`, `buildWebTemplate` uses the EHRbase-oriented profile (`treeRootId: "archetype"`, `omitSectionNameNode: true`, `renamedArchetypeRootId: "label"`, `elementNameId: "term"`). Set `cdrProfile: "ferroehr"` for FerroEHR posting (archetype root ids, `flavor: "input"`, `locatableName: "omit"`). Legacy per-field options still apply ([#316](https://github.com/ErikSundvall/ehrtslib/issues/316)).
 - `validateFlatPayload` no longer counts `_mapping:N` (or other `_`-prefixed RM attribute indices) toward a parent node's instance cardinality ([#317](https://github.com/ErikSundvall/ehrtslib/issues/317)).
 - **Docs.** `SIMPLIFIED_FORMATS.md` notes that a CDR's own Web Template is the safest input to `serializeToFlat` when posting to that CDR.
 
