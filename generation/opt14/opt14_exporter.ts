@@ -15,6 +15,10 @@
  * affected nodes; with it off, a warning lists what is dropped.
  */
 
+import {
+  isDurationConstraint,
+  parseDurationConstraint,
+} from "../../parser/adl_primitive_literals.ts";
 import { buildAdl14CodeMap, externalCodeOf, idToAtCode } from "../id_to_at_code.ts";
 import { bindingKeyKind, parseTermBinding } from "../term_binding.ts";
 import { attributesFor } from "../../meta/rm_attributes.ts";
@@ -1194,16 +1198,74 @@ function isRealContext(
   return /^(Real|Double)$/.test(meta?.typeName ?? "");
 }
 
+function parentIsBoolean(
+  parent: { rm: string; attr: PAttribute } | undefined,
+): boolean {
+  if (!parent) return false;
+  if (rmBase(parent.rm) === "DV_BOOLEAN" && parent.attr.name === "value") {
+    return true;
+  }
+  const meta = rmAttr(parent.rm, parent.attr.name);
+  return /^(Boolean|BOOLEAN)$/.test(meta?.typeName ?? "");
+}
+
+/** `True` / `False` / `True, False` stored as a string pattern or list. */
+function booleanWords(p: PPrimitive): { trueValid: boolean; falseValid: boolean } | undefined {
+  if (p.type !== "string") return undefined;
+  const raw = [
+    ...(p.list ?? []),
+    ...(p.pattern ? p.pattern.split(/[|,]/) : []),
+  ].map((s) => s.trim()).filter(Boolean);
+  if (!raw.length) return undefined;
+  const tokens = raw.map((s) => s.toLowerCase());
+  if (!tokens.every((t) => t === "true" || t === "false")) return undefined;
+  return {
+    trueValid: tokens.includes("true"),
+    falseValid: tokens.includes("false"),
+  };
+}
+
+function asExportedPrimitive(
+  p: PPrimitive | undefined,
+  parent: { rm: string; attr: PAttribute } | undefined,
+): PPrimitive | undefined {
+  if (!p) return undefined;
+  if (p.type === "interval" && isDurationConstraint(p.expr)) {
+    return { type: "duration", expr: p.expr };
+  }
+  if (p.type === "string" && parentIsBoolean(parent)) {
+    const words = booleanWords(p);
+    if (words) return { type: "boolean", ...words };
+  }
+  return p;
+}
+
 function primRmType(
   p: PPrimitive | undefined,
   parent: { rm: string; attr: PAttribute } | undefined,
 ): string {
-  if (!p) return "STRING";
-  if (p.type === "boolean") return "BOOLEAN";
-  if (p.type === "interval") {
-    return isRealContext(parent, p.expr) ? "REAL" : "INTEGER";
+  const prim = asExportedPrimitive(p, parent);
+  if (!prim) return "STRING";
+  if (prim.type === "boolean") return "BOOLEAN";
+  if (prim.type === "duration") return "DURATION";
+  if (prim.type === "interval") {
+    return isRealContext(parent, prim.expr) ? "REAL" : "INTEGER";
   }
   return "STRING";
+}
+
+function writeDurationRange(
+  x: Xml,
+  range: { lower?: string; upper?: string; lowerIncl: boolean; upperIncl: boolean },
+): void {
+  x.open("range");
+  x.leaf("lower_included", range.lower !== undefined && range.lowerIncl);
+  x.leaf("upper_included", range.upper !== undefined && range.upperIncl);
+  x.leaf("lower_unbounded", range.lower === undefined);
+  x.leaf("upper_unbounded", range.upper === undefined);
+  if (range.lower !== undefined) x.leaf("lower", range.lower);
+  if (range.upper !== undefined) x.leaf("upper", range.upper);
+  x.close("range");
 }
 
 function writePrimitive(
@@ -1211,25 +1273,35 @@ function writePrimitive(
   p: PPrimitive | undefined,
   parent: { rm: string; attr: PAttribute } | undefined,
 ): void {
-  if (!p) return;
-  if (p.type === "boolean") {
+  const prim = asExportedPrimitive(p, parent);
+  if (!prim) return;
+  if (prim.type === "boolean") {
     x.open("item", ' xsi:type="C_BOOLEAN"');
-    x.leaf("true_valid", p.trueValid);
-    x.leaf("false_valid", p.falseValid);
+    x.leaf("true_valid", prim.trueValid);
+    x.leaf("false_valid", prim.falseValid);
     x.close("item");
     return;
   }
-  if (p.type === "interval") {
-    const real = isRealContext(parent, p.expr);
-    const r = parseRange(p.expr);
+  if (prim.type === "duration") {
+    const range = parseDurationConstraint(prim.expr);
+    x.open("item", ' xsi:type="C_DURATION"');
+    if (range) writeDurationRange(x, range);
+    else if (prim.expr) x.leaf("pattern", prim.expr);
+    x.close("item");
+    return;
+  }
+  if (prim.type === "interval") {
+    const real = isRealContext(parent, prim.expr);
+    const r = parseRange(prim.expr);
     x.open("item", ` xsi:type="${real ? "C_REAL" : "C_INTEGER"}"`);
     if (r) writeRange(x, "range", r);
     x.close("item");
     return;
   }
+  if (prim.type !== "string") return;
   x.open("item", ' xsi:type="C_STRING"');
-  if (p.pattern !== undefined) x.leaf("pattern", p.pattern);
-  for (const v of p.list ?? []) x.leaf("list", v);
+  if (prim.pattern !== undefined) x.leaf("pattern", prim.pattern);
+  for (const v of prim.list ?? []) x.leaf("list", v);
   x.close("item");
 }
 

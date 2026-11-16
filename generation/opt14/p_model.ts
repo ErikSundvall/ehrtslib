@@ -5,6 +5,7 @@
  */
 
 import * as openehr_am from "../../am/openehr_am.ts";
+import { isDurationConstraint } from "../../parser/adl_primitive_literals.ts";
 import {
   attributeTuplesFromAom,
   type PAttributeTuple,
@@ -25,7 +26,8 @@ export interface PCardinality {
 export type PPrimitive =
   | { type: "string"; list?: string[]; pattern?: string }
   | { type: "boolean"; trueValid: boolean; falseValid: boolean }
-  | { type: "interval"; expr: string };
+  | { type: "interval"; expr: string }
+  | { type: "duration"; expr: string };
 
 export interface PObject {
   kind: "complex" | "root" | "slot" | "term" | "prim";
@@ -88,6 +90,12 @@ function primitiveFromAom(
     const list = (item as { list?: string[] }).list;
     if (list?.length) return { type: "string", list };
     const pattern = str((item as { pattern?: unknown }).pattern) ?? "";
+    if (
+      rm === "Duration" || rm === "Iso8601_duration" ||
+      isDurationConstraint(pattern)
+    ) {
+      return { type: "duration", expr: pattern };
+    }
     if (rm === "Integer" || rm === "Real") {
       return { type: "interval", expr: pattern };
     }
