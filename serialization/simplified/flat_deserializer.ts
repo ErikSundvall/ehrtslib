@@ -20,9 +20,10 @@ import {
 import { templateAttributes } from "./flat_serializer.ts";
 import type { FlatPayload, WebTemplate, WebTemplateNode } from "./types.ts";
 import {
+  acceptedFlatRoots,
   aqlPathSegments,
+  flatRootId,
   normalizeWebTemplateId,
-  templateRootId,
 } from "./normalize.ts";
 import {
   assignAtAqlPath,
@@ -213,9 +214,9 @@ export class FlatDeserializer {
     private webTemplate: WebTemplate,
     private options: FlatDeserializeOptions = {},
   ) {
-    this.rootId = templateRootId(webTemplate.templateId);
+    this.rootId = flatRootId(webTemplate);
     const tree = webTemplate.tree;
-    this.roots.add(this.rootId);
+    for (const root of acceptedFlatRoots(webTemplate)) this.roots.add(root);
     if (tree.id) this.roots.add(tree.id);
     for (const name of [tree.name, ...Object.values(tree.localizedNames ?? {})]) {
       if (name) this.roots.add(normalizeWebTemplateId(name));

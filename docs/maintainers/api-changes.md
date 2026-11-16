@@ -19,6 +19,7 @@ Check these consumers when the public API changes:
 
 ## Unreleased
 
+- **Behaviour.** `serializeToFlat` / `serializeToFlatJson` use `tree.id` as the FLAT root. `FlatSerializerOptions.locatableName` is `"path"` (default, write `/_name` when the name differs) or `"omit"`. `flatRootId` and `acceptedFlatRoots` are exported from `serialization/simplified/mod.ts` ([#312](https://github.com/ErikSundvall/ehrtslib/issues/312)).
 - **Behaviour.** `RMSpecificationValidator.validate(instance)` delegates to `validateInstance`. `validate` with two or three arguments throws `TypeError`. The four-argument form (`value`, `rmTypeName`, `attributeName`, `path`) is unchanged ([#311](https://github.com/ErikSundvall/ehrtslib/issues/311)).
 - **Behaviour.** `RMSpecificationValidator.validateInstance` fails `TERM_MAPPING.Match_valid` unless `match` is `>`, `=`, `<` or `?`. `~` is not a match code ([#310](https://github.com/ErikSundvall/ehrtslib/issues/310)).
 - **Removed.** `CLINICAL_MARKDOWN_CONFIG`, `LOSSLESS_ASCIIDOC_CONFIG`. AsciiDoc serialization style `lossless` and demo preset id `clinical`. Use `COMPACT_MARKDOWN_CONFIG` / `COMPACT_ASCIIDOC_CONFIG` for human-readable output and `STRUCTURAL_ASCIIDOC_CONFIG` with `style: 'structural'` for round-trip. Added `WIKILINK_ASCIIDOC_CONFIG`.
