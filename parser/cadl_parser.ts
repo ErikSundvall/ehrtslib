@@ -5,6 +5,7 @@
  * Based on cadl.g4 grammar from openEHR/archie.
  */
 
+import { isDurationConstraint } from "./adl_primitive_literals.ts";
 import { Token, TokenType } from "./adl2_tokenizer.ts";
 import * as openehr_am from "../am/openehr_am.ts";
 import * as openehr_base from "../base/openehr_base.ts";
@@ -541,6 +542,12 @@ export class CadlParser {
           this.maybeApplyAssumedValueSuffix(intervalChild);
           continue;
         }
+        const boolChild = this.tryParseBooleanConstraint();
+        if (boolChild) {
+          this.pushAttributeChild(attribute, boolChild);
+          this.maybeApplyAssumedValueSuffix(boolChild);
+          continue;
+        }
         const literalChild = this.tryParseLiteralPrimitiveConstraint();
         if (literalChild) {
           this.pushAttributeChild(attribute, literalChild);
@@ -595,7 +602,10 @@ export class CadlParser {
       return null;
     }
     const next = this.peekAhead(1);
-    if (next && next.type !== TokenType.COMMA && next.type !== TokenType.RBRACE) {
+    if (
+      next && next.type !== TokenType.COMMA && next.type !== TokenType.RBRACE &&
+      next.type !== TokenType.SEMICOLON
+    ) {
       return null;
     }
     const prim = new openehr_am.C_PRIMITIVE_OBJECT();
@@ -742,7 +752,11 @@ export class CadlParser {
     }
     if (this.check(TokenType.PIPE)) this.advance(); // closing |
     const prim = new openehr_am.C_PRIMITIVE_OBJECT();
-    prim.rm_type_name = /\./.test(expr) ? "Real" : "Integer";
+    // `|>=PT0S|` is a duration range, not an integer. A decimal point still
+    // marks a real (`|0.0..1.5|`); `P1.5D` is a duration despite the point.
+    prim.rm_type_name = isDurationConstraint(expr)
+      ? "Duration"
+      : /\./.test(expr) ? "Real" : "Integer";
     const str = new openehr_am.C_STRING();
     str.pattern = expr;
     prim.item = str;

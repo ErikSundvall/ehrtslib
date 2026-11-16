@@ -21,11 +21,40 @@ export function normalizeWebTemplateId(text: string): string {
 }
 
 /**
- * Root path segment for FLAT/STRUCTURED keys: the normalised template id
+ * Root path segment derived from a template id: the normalised template id
  * (dots and dashes retained, e.g. "conformance-ehrbase.de.v0").
+ *
+ * FLAT keys use {@link flatRootId}, which prefers the Web Template's own
+ * `tree.id`. ehrtslib's builder sets `tree.id` to this value. A CDR Web
+ * Template sets `tree.id` to the root node id (`encounter`), not the
+ * template id.
  */
 export function templateRootId(templateId: string): string {
   return normalizeWebTemplateId(templateId);
+}
+
+/**
+ * First segment of a FLAT key: the Web Template root node id (`tree.id`).
+ * Falls back to the normalised template id when the tree has no id.
+ */
+export function flatRootId(
+  webTemplate: { templateId?: string; tree?: { id?: string } },
+): string {
+  const id = webTemplate.tree?.id?.trim();
+  if (id) return id;
+  return templateRootId(webTemplate.templateId ?? "");
+}
+
+/** Roots a FLAT reader or validator should accept for one Web Template. */
+export function acceptedFlatRoots(
+  webTemplate: { templateId?: string; tree?: { id?: string } },
+): Set<string> {
+  const roots = new Set<string>();
+  const canonical = flatRootId(webTemplate);
+  if (canonical) roots.add(canonical);
+  if (webTemplate.tree?.id?.trim()) roots.add(webTemplate.tree.id.trim());
+  if (webTemplate.templateId) roots.add(templateRootId(webTemplate.templateId));
+  return roots;
 }
 
 /** Join AQL path segments without duplicate slashes. */

@@ -36,11 +36,38 @@ export function matchesDurationPattern(
   return true;
 }
 
+/**
+ * Nominal seconds for an ISO 8601 duration. Years are 365.2425 days and
+ * months are a twelfth of that, which is enough to order clinical durations
+ * (`PT0S` before `P2W`). Not a calendar addition.
+ */
+function durationSeconds(value: string): number | undefined {
+  const match =
+    /^(-)?P(?:(\d+(?:\.\d+)?)Y)?(?:(\d+(?:\.\d+)?)M)?(?:(\d+(?:\.\d+)?)W)?(?:(\d+(?:\.\d+)?)D)?(?:T(?:(\d+(?:\.\d+)?)H)?(?:(\d+(?:\.\d+)?)M)?(?:(\d+(?:\.\d+)?)S)?)?$/i
+      .exec(value.trim());
+  if (!match || !/\d/.test(value)) return undefined;
+  if (
+    /T/i.test(value) && match[6] === undefined && match[7] === undefined &&
+    match[8] === undefined
+  ) {
+    return undefined;
+  }
+  const num = (index: number) => match[index] ? Number(match[index]) : 0;
+  const days = (num(2) * 12 + num(3)) * (365.2425 / 12) + num(4) * 7 + num(5);
+  const seconds = (days * 24 + num(6)) * 3600 + num(7) * 60 + num(8);
+  return (match[1] ? -1 : 1) * seconds;
+}
+
 export function compareOrderedIso(a: unknown, b: unknown): number | undefined {
   if (a === undefined || a === null || b === undefined || b === null) {
     return undefined;
   }
   if (typeof a === "number" && typeof b === "number") return a - b;
+  if (typeof a === "string" && typeof b === "string") {
+    const da = durationSeconds(a);
+    const db = durationSeconds(b);
+    if (da !== undefined && db !== undefined) return da - db;
+  }
   const sa = String(a);
   const sb = String(b);
   if (sa === sb) return 0;

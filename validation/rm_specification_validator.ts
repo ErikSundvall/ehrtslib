@@ -382,20 +382,50 @@ export class RMSpecificationValidator {
   }
 
   /**
-   * Validate an RM instance against specification constraints
+   * Validate one attribute, or a whole RM instance.
    *
-   * @param rmValue - The RM instance
-   * @param rmTypeName - The RM type name (e.g., "COMPOSITION")
-   * @param attributeName - The attribute name (e.g., "category")
+   * `validate(instance)` walks the instance the same way as
+   * {@link validateInstance}. That is the call to use when the question is
+   * "is this composition valid?".
+   *
+   * `validate(value, rmTypeName, attributeName, path)` checks one attribute
+   * against `RM_CONSTRAINTS` (for example `COMPOSITION.category`). All four
+   * arguments are required. Two or three arguments throw: a short call used
+   * to build the key `"undefined.undefined"`, find no constraint, and return
+   * no errors.
+   *
+   * @param rmValue - Attribute value, or the whole instance when called with one argument
+   * @param rmTypeName - RM type that owns the attribute (e.g. "COMPOSITION")
+   * @param attributeName - Attribute name (e.g. "category")
    * @param path - Path for error reporting
-   * @returns Array of validation messages
    */
+  validate(rmValue: unknown): ValidationMessage[];
   validate(
-    rmValue: any,
+    rmValue: unknown,
     rmTypeName: string,
     attributeName: string,
     path: string,
+  ): ValidationMessage[];
+  validate(
+    rmValue: unknown,
+    rmTypeName?: string,
+    attributeName?: string,
+    path?: string,
   ): ValidationMessage[] {
+    if (arguments.length === 1) {
+      return this.validateInstance(rmValue);
+    }
+    if (
+      arguments.length !== 4 ||
+      typeof rmTypeName !== "string" ||
+      typeof attributeName !== "string" ||
+      typeof path !== "string"
+    ) {
+      throw new TypeError(
+        "RMSpecificationValidator.validate(value, rmTypeName, attributeName, path) needs four arguments. " +
+          "To validate a whole RM instance, call validate(value) or validateInstance(value).",
+      );
+    }
     if (!this.enabled) {
       return [];
     }

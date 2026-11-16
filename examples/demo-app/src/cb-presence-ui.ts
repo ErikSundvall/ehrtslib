@@ -77,6 +77,7 @@ function badgeEl(badge: PresenceBadge): HTMLElement {
   const extra = badge.heavilyFaded ? " presence-badge--heavily-faded" : "";
   btn.className = `presence-badge presence-badge--${badge.kind}${extra}`;
   btn.style.setProperty("--presence-accent", badge.accent);
+  btn.style.setProperty("--presence-foreground", badge.foreground);
   btn.style.opacity = String(badge.opacity);
   btn.textContent = badge.initials;
   btn.setAttribute("aria-label", tooltipText(badge));

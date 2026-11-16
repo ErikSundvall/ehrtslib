@@ -354,7 +354,9 @@ export class TemplateValidator {
       isPrimitiveConstraint(cObject) &&
       rmNode !== null && rmNode !== undefined
     ) {
-      const msgs = this.primitiveValidator.validate(rmNode, cObject, path);
+      const msgs = this.primitiveValidator.validate(rmNode, cObject, path, {
+        parentRmType,
+      });
       errors.push(...msgs.filter((m) => m.severity === "error"));
       warnings.push(...msgs.filter((m) => m.severity === "warning"));
     }
@@ -745,11 +747,23 @@ export class PrimitiveValidator {
     rmValue: any,
     cObject: unknown,
     path: string,
+    context?: { parentRmType?: string },
   ): ValidationMessage[] {
     const messages: ValidationMessage[] = [];
     const constraint = unwrapPrimitiveConstraint(cObject);
-    if (!constraint) return messages;
     const value = extractPrimitiveValue(rmValue);
+    // DV_BOOLEAN.value is a boolean even when the OPT has no constraint, or
+    // when an older export stored `True` as a C_STRING pattern (#313, #314).
+    if (
+      typeof value === "boolean" &&
+      (isBooleanCarrier(context?.parentRmType) ||
+        isBooleanCarrier((cObject as { rm_type_name?: string }).rm_type_name) ||
+        isBooleanLiteralConstraint(constraint))
+    ) {
+      this.applyBooleanAllowance(value, constraint, path, messages);
+      return messages;
+    }
+    if (!constraint) return messages;
 
     if (constraint instanceof openehr_am.C_STRING) {
       this.validateString(value, constraint, path, messages);
@@ -909,9 +923,56 @@ export class PrimitiveValidator {
       });
       return;
     }
+    this.applyBooleanFlags(
+      value,
+      constraint.true_valid !== false,
+      constraint.false_valid !== false,
+      path,
+      messages,
+    );
+  }
 
-    // Check true_valid and false_valid constraints
-    if (constraint.true_valid === false && value === true) {
+  /**
+   * A boolean on DV_BOOLEAN. C_BOOLEAN flags apply. A C_STRING whose pattern
+   * or list is only True/False (the pre-#313 OPT shape) applies the same
+   * way. Any other constraint, including none, accepts the boolean.
+   */
+  private applyBooleanAllowance(
+    value: boolean,
+    constraint: unknown,
+    path: string,
+    messages: ValidationMessage[],
+  ): void {
+    if (constraint instanceof openehr_am.C_BOOLEAN) {
+      this.applyBooleanFlags(
+        value,
+        constraint.true_valid !== false,
+        constraint.false_valid !== false,
+        path,
+        messages,
+      );
+      return;
+    }
+    const tokens = booleanLiteralTokens(constraint);
+    if (tokens) {
+      this.applyBooleanFlags(
+        value,
+        tokens.includes("true"),
+        tokens.includes("false"),
+        path,
+        messages,
+      );
+    }
+  }
+
+  private applyBooleanFlags(
+    value: boolean,
+    trueValid: boolean,
+    falseValid: boolean,
+    path: string,
+    messages: ValidationMessage[],
+  ): void {
+    if (!trueValid && value === true) {
       messages.push({
         path,
         message: `Boolean value 'true' is not allowed`,
@@ -919,7 +980,7 @@ export class PrimitiveValidator {
         constraintType: "boolean_constraint",
       });
     }
-    if (constraint.false_valid === false && value === false) {
+    if (!falseValid && value === false) {
       messages.push({
         path,
         message: `Boolean value 'false' is not allowed`,
@@ -1186,6 +1247,31 @@ function unwrapPrimitiveConstraint(cObject: unknown): unknown {
     return cObject.item ?? cObject;
   }
   return cObject;
+}
+
+function isBooleanCarrier(rmType: string | undefined): boolean {
+  if (!rmType) return false;
+  const base = rmType.replace(/<.*$/, "").toUpperCase();
+  return base === "DV_BOOLEAN" || base === "BOOLEAN";
+}
+
+function booleanLiteralTokens(constraint: unknown): string[] | undefined {
+  if (!(constraint instanceof openehr_am.C_STRING)) return undefined;
+  const pattern = constraint.pattern;
+  const list = (constraint as { list?: string[] }).list;
+  const raw = [
+    ...(list ?? []),
+    ...(pattern ? pattern.split(/[|,]/) : []),
+  ].map((s) => s.trim()).filter(Boolean);
+  if (!raw.length) return undefined;
+  const tokens = raw.map((s) => s.toLowerCase());
+  if (!tokens.every((t) => t === "true" || t === "false")) return undefined;
+  return tokens;
+}
+
+function isBooleanLiteralConstraint(constraint: unknown): boolean {
+  return constraint instanceof openehr_am.C_BOOLEAN ||
+    booleanLiteralTokens(constraint) !== undefined;
 }
 
 function extractPrimitiveValue(rmValue: unknown): unknown {

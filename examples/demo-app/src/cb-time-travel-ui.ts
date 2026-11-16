@@ -14,6 +14,8 @@ export interface TimeTravelChrome {
   statusText: string;
   timelineCaption: string;
   playing: boolean;
+  playLabel: string;
+  playTooltip: string;
 }
 
 export function deriveTimeTravelChrome(
@@ -39,5 +41,11 @@ export function deriveTimeTravelChrome(
       : panelOpen
       ? "Live editing — scrub the slider to explore history"
       : "",
+    playLabel: chromePlayingLabel(state.playing),
+    playTooltip: chromePlayingLabel(state.playing),
   };
+}
+
+function chromePlayingLabel(playing: boolean): string {
+  return playing ? "Pause history playback" : "Play history";
 }

@@ -18,7 +18,7 @@
     <main>
       <section class="intro">
         <p>One build, independent Automerge clones. Edit both panes before their delayed updates arrive. <strong>Synthetic data only; nothing is saved after reload.</strong></p>
-        <p>Hand-coded fields bound to <a href="contribution-builder/simple-diagnose-and-vitals.opt">the real OPT</a> and <a href="contribution-builder/simple-diagnose-and-vitals.wt.json">Web Template</a> of theme pack <code>simple-diagnose-and-vitals</code> 0.4.0. Long text uses Clinical description and Comment, not the diagnosis name. Each clone’s committer is also the explicit composer of its output.</p>
+        <p>Hand-coded fields bound to <a href="contribution-builder/simple-diagnose-and-vitals.opt">the real OPT</a> and <a href="contribution-builder/simple-diagnose-and-vitals.wt.json">Web Template</a> of theme pack <code>simple-diagnose-and-vitals</code> 0.4.0. Native Automerge text covers diagnosis name and the long narratives. Each clone’s committer is also the explicit composer of its output.</p>
         <div
           class="toolbar"><button id="add-clone" disabled>Add clone</button><button id="sync-now" disabled>Sync all now (bypass delays)</button><span id="build-info"></span></div>
         <p id="status" role="status">Loading template and Automerge…</p>
@@ -59,7 +59,18 @@
                 aria-valuemin="0" aria-valuemax="0" aria-valuetext="Live">
               <span class="time-travel-moment" aria-live="polite"></span>
             </label>
-            <button type="button" class="time-travel-play" hidden aria-pressed="false">Play</button>
+            <div class="time-travel-controls" role="group" aria-label="History playback">
+              <button type="button" class="time-travel-skip-start" hidden title="Skip to start" aria-label="Skip to start">
+                <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg>
+              </button>
+              <button type="button" class="time-travel-play time-travel-icon-btn" hidden aria-pressed="false" title="Play history" aria-label="Play history">
+                <svg class="time-travel-icon-play" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
+                <svg class="time-travel-icon-pause" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false" hidden><path fill="currentColor" d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+              </button>
+              <button type="button" class="time-travel-skip-end" hidden title="Skip to end" aria-label="Skip to end">
+                <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M6 18l8.5-6L6 6v12zm9-12h2v12h-2z"/></svg>
+              </button>
+            </div>
             <button type="button" class="time-travel-live" hidden>Return to live</button>
             <span class="time-travel-status" aria-live="polite"></span>
           </div>
@@ -71,22 +82,22 @@
           <fieldset>
             <legend>Vital signs</legend>
             <div class="vitals">
-              <label class="field-shell"><span class="field-heading field-heading--systolic">Systolic (mmHg)</span><input data-field="systolic" type="number" min="0" max="999" step="1" required></label>
-              <label class="field-shell"><span class="field-heading field-heading--diastolic">Diastolic (mmHg)</span><input data-field="diastolic" type="number" min="0" max="999" step="1" required></label>
-              <label class="field-shell"><span class="field-heading field-heading--pulse">Pulse (/min)</span><input data-field="pulse" type="number" min="0" max="999" step="1" required></label>
-              <label class="field-shell"><span class="field-heading field-heading--respirationRate">Respiration (/min)</span><input data-field="respirationRate" type="number" min="0" max="200" step="1" required></label>
-              <label class="field-shell"><span class="field-heading field-heading--temperature">Temperature (°C)</span><input data-field="temperature" type="number" min="30" max="45" step="0.1" required></label>
-              <label class="field-shell"><span class="field-heading field-heading--spo2">SpO₂ (%)</span><input data-field="spo2" type="number" min="0" max="100" step="0.1" required></label>
+              <label class="field-shell"><span class="field-heading field-heading--systolic">Systolic</span><span class="field-quantity"><input data-field="systolic" type="number" min="0" max="999" step="1"><span class="field-unit" aria-hidden="true">mmHg</span></span></label>
+              <label class="field-shell"><span class="field-heading field-heading--diastolic">Diastolic</span><span class="field-quantity"><input data-field="diastolic" type="number" min="0" max="999" step="1"><span class="field-unit" aria-hidden="true">mmHg</span></span></label>
+              <label class="field-shell"><span class="field-heading field-heading--pulse">Pulse</span><span class="field-quantity"><input data-field="pulse" type="number" min="0" max="999" step="1"><span class="field-unit" aria-hidden="true">/min</span></span></label>
+              <label class="field-shell"><span class="field-heading field-heading--respirationRate">Respiration</span><span class="field-quantity"><input data-field="respirationRate" type="number" min="0" max="200" step="1"><span class="field-unit" aria-hidden="true">/min</span></span></label>
+              <label class="field-shell"><span class="field-heading field-heading--temperature">Temperature</span><span class="field-quantity"><input data-field="temperature" type="number" min="30" max="45" step="0.1"><span class="field-unit" aria-hidden="true">°C</span></span></label>
+              <label class="field-shell"><span class="field-heading field-heading--spo2">SpO₂</span><span class="field-quantity"><input data-field="spo2" type="number" min="0" max="100" step="0.1"><span class="field-unit" aria-hidden="true">%</span></span></label>
             </div>
-            <label class="field-shell"><span class="field-heading field-heading--temperatureComment">Temperature comment</span><textarea data-field="temperatureComment" rows="3" spellcheck="false" required></textarea></label>
+            <label class="field-shell"><span class="field-heading field-heading--temperatureComment">Temperature comment</span><textarea data-field="temperatureComment" rows="3" spellcheck="false"></textarea></label>
           </fieldset>
           <fieldset>
             <legend>Problem / diagnosis</legend>
-            <label class="field-shell"><span class="field-heading field-heading--diagnosisName">Name</span><input data-field="diagnosisName" required maxlength="120"></label>
-            <p class="hint">Problem/Diagnosis name (at0002): a short label. Whole-value edits carry the revision seen on focus. A stale edit is rejected.</p>
-            <label class="field-shell"><span class="field-heading field-heading--clinicalDescription">Clinical description</span><textarea data-field="clinicalDescription" rows="8" spellcheck="false" required></textarea></label>
+            <label class="field-shell"><span class="field-heading field-heading--diagnosisName">Name</span><input data-field="diagnosisName" maxlength="120"></label>
+            <p class="hint">Problem/Diagnosis name (at0002): a short label. Native Automerge text with live presence on this field.</p>
+            <label class="field-shell"><span class="field-heading field-heading--clinicalDescription">Clinical description</span><textarea data-field="clinicalDescription" rows="8" spellcheck="false"></textarea></label>
             <p class="hint">Clinical description (at0009): native Automerge text. Type in both clones during a rural-phone delay to see concurrent inserts merge.</p>
-            <label class="field-shell"><span class="field-heading field-heading--comment">Comment</span><textarea data-field="comment" rows="4" spellcheck="false" required></textarea></label>
+            <label class="field-shell"><span class="field-heading field-heading--comment">Comment</span><textarea data-field="comment" rows="4" spellcheck="false"></textarea></label>
             <p class="hint">Comment (at0069): a separate narrative, not the diagnosis name.</p>
           </fieldset>
           <details>

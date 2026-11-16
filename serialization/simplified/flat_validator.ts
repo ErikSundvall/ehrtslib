@@ -18,7 +18,7 @@ import type {
   WebTemplate,
   WebTemplateNode,
 } from "./types.ts";
-import { templateRootId } from "./normalize.ts";
+import { acceptedFlatRoots, flatRootId } from "./normalize.ts";
 import { getFieldMap } from "./dv_field_maps.ts";
 import { nodeForChain } from "./element_value_choice.ts";
 import { FlatDeserializer } from "./flat_deserializer.ts";
@@ -102,7 +102,8 @@ export function validateFlatPayload(
 ): FlatValidationResult {
   const errors: SimplifiedValidationMessage[] = [];
   const warnings: SimplifiedValidationMessage[] = [];
-  const rootId = templateRootId(webTemplate.templateId);
+  const rootId = flatRootId(webTemplate);
+  const roots = acceptedFlatRoots(webTemplate);
   const chains = buildChainSet(webTemplate);
 
   const strict = options.strictUnknownKeys ?? true;
@@ -134,7 +135,7 @@ export function validateFlatPayload(
 
     const rawSegments = basePath.split("/");
     const segments = rawSegments.map(stripIndex);
-    if (segments[0] !== rootId) {
+    if (!roots.has(segments[0])) {
       report(key, `Key does not start with template root "${rootId}"`);
       continue;
     }

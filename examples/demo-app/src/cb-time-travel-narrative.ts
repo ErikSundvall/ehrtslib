@@ -4,8 +4,14 @@ import {
 } from "../../../contribution_builder/mod.ts";
 import { diffRange } from "./cb-narrative-collab.ts";
 import type { Field, FieldBinding } from "./contribution-demo.ts";
-import { LONG_TEXT_FIELDS, type LongTextField } from "./contribution-demo.ts";
-import { userAccentColor, userInitials } from "./cb-presence.ts";
+import {
+  isCollabText,
+  LONG_TEXT_FIELDS,
+  type CollabTextField,
+  type LongTextField,
+} from "./contribution-demo.ts";
+import { userInitials } from "./cb-presence.ts";
+import { userAccentColor } from "./cb-user-colors.ts";
 import { resolveHighlightRange } from "./cb-narrative-layout.ts";
 
 export interface HistoricalTextHighlight {
@@ -33,7 +39,7 @@ function fieldForOperation(
 
 /** Highlights for long text at a scrubbed step (diff vs previous step text). */
 export function historicalTextHighlights(
-  field: LongTextField,
+  field: CollabTextField,
   before: string,
   after: string,
   op: CbOperation | undefined,
@@ -52,7 +58,7 @@ export function historicalTextHighlights(
     start: range.start,
     end: range.end,
     snippet,
-    accent: userAccentColor(peerId),
+    accent: userAccentColor(op.author.name),
     initials: userInitials(op.author.name),
     opacity: 0.55,
   }];
@@ -62,12 +68,16 @@ export function isLongTextField(field: Field): field is LongTextField {
   return (LONG_TEXT_FIELDS as readonly string[]).includes(field);
 }
 
+export function isCollabTextField(field: Field): field is CollabTextField {
+  return isCollabText(field);
+}
+
 /** Op that appeared between two materialised steps for this long-text field. */
 export function opNewAtStep(
   opsAtStep: readonly CbOperation[],
   opsAtPrev: readonly CbOperation[],
   fields: Record<Field, FieldBinding>,
-  field: LongTextField,
+  field: CollabTextField,
 ): CbOperation | undefined {
   const prev = new Set(opsAtPrev.map(operationRef));
   let hit: CbOperation | undefined;
@@ -83,7 +93,7 @@ export function opNewAtStep(
 export function lastOpForField(
   operations: readonly CbOperation[],
   fields: Record<Field, FieldBinding>,
-  field: LongTextField,
+  field: CollabTextField,
   preferReplica?: string,
 ): CbOperation | undefined {
   let last: CbOperation | undefined;

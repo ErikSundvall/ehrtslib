@@ -40,7 +40,7 @@ export type Field =
   | "temperature"
   | "temperatureComment";
 
-/** DV_TEXT fields edited as native Automerge text, not whole-value replacements. */
+/** Multi-line DV_TEXT fields with narrative UI (Enter keeps newlines). */
 export const LONG_TEXT_FIELDS = [
   "clinicalDescription",
   "comment",
@@ -48,8 +48,24 @@ export const LONG_TEXT_FIELDS = [
 ] as const;
 export type LongTextField = typeof LONG_TEXT_FIELDS[number];
 
+/** Single- and multi-line fields backed by Automerge native text (stable cursors). */
+export const NATIVE_TEXT_FIELDS = [
+  "diagnosisName",
+  ...LONG_TEXT_FIELDS,
+] as const;
+export type NativeTextField = typeof NATIVE_TEXT_FIELDS[number];
+export type CollabTextField = NativeTextField;
+
 export function isLongText(field: Field): field is LongTextField {
   return (LONG_TEXT_FIELDS as readonly string[]).includes(field);
+}
+
+export function isNativeText(field: Field): field is NativeTextField {
+  return (NATIVE_TEXT_FIELDS as readonly string[]).includes(field);
+}
+
+export function isCollabText(field: Field): field is CollabTextField {
+  return isNativeText(field);
 }
 
 const CLINICAL_DESCRIPTION =
@@ -349,7 +365,7 @@ export async function createDemoSession(
     "",
     { rev: build.logRev() },
   );
-  for (const field of LONG_TEXT_FIELDS) {
+  for (const field of NATIVE_TEXT_FIELDS) {
     const f = fields[field];
     clone.caller.adapter.seedText(
       draftId,
@@ -418,7 +434,7 @@ export function writeField(
   const f = session.fields[field];
   if (readField(session, clone, field) === value) return;
   const options = { rev, author: { id: clone.id, name: clone.username } };
-  if (!isLongText(field)) {
+  if (!isNativeText(field)) {
     clone.caller.build.setValue(
       session.draftId,
       f.target,
@@ -454,7 +470,7 @@ export function receive(
 ): boolean {
   mergeCaller(clone.caller, AutomergeOperationLogAdapter.load(bytes));
   let changed = false;
-  for (const field of LONG_TEXT_FIELDS) {
+  for (const field of NATIVE_TEXT_FIELDS) {
     const f = session.fields[field];
     if (recordNativeText(clone.caller, session.draftId, f.target, f.path)) {
       changed = true;
