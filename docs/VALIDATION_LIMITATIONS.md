@@ -8,7 +8,7 @@ Known gaps in `TemplateValidator` and related validators. Capabilities that **do
 
 ## RM specification walk
 
-`RMSpecificationValidator.validateInstance` walks the canonical JSON tree, not only OPT-constrained attributes. That is required because ADL 1.4 OPTs often omit `composer`, `language`, `territory`, and `EVENT_CONTEXT.setting`. The walk applies:
+`RMSpecificationValidator.validateInstance` walks the canonical JSON tree, not only OPT-constrained attributes. `validate(instance)` with one argument does the same walk. `validate(value, rmTypeName, attributeName, path)` still checks a single attribute; any other argument count throws, because a one-argument call used to match no constraint and report the instance valid ([#311](https://github.com/ErikSundvall/ehrtslib/issues/311)). The walk is required because ADL 1.4 OPTs often omit `composer`, `language`, `territory`, and `EVENT_CONTEXT.setting`. It applies:
 
 - openEHR terminology groups (`COMPOSITION.category`, `EVENT_CONTEXT.setting`, …)
 - ISO 639-1 / ISO 3166-1 checks on `language` / `territory`
@@ -20,7 +20,7 @@ Remaining CONT catalogue gaps (cardinality overlays on CLUSTER/COMPOSITION conte
 
 ## Primitive constraints from OPT XML
 
-Legacy OPT XML wraps `C_INTEGER` / `C_STRING` / `C_BOOLEAN` / temporal types in `C_PRIMITIVE_OBJECT.item`. The OPT mapper now keeps that `item`, and `PrimitiveValidator` unwraps it. `C_INTEGER.list` and range, `C_CODE_PHRASE.code_list`, `C_DV_QUANTITY.list` units, and `C_MULTIPLE_ATTRIBUTE.cardinality` are enforced.
+Legacy OPT XML wraps `C_INTEGER` / `C_STRING` / `C_BOOLEAN` / temporal types in `C_PRIMITIVE_OBJECT.item`. The OPT mapper now keeps that `item`, and `PrimitiveValidator` unwraps it. `C_INTEGER.list` and range, `C_CODE_PHRASE.code_list`, `C_DV_QUANTITY.list` units, and `C_MULTIPLE_ATTRIBUTE.cardinality` are enforced. A `DV_BOOLEAN` value is a boolean whether or not the OPT constrains it. A `C_STRING` pattern `True` or `False` (an older OPT export) is read as that boolean allowance, not as "expected string" ([#314](https://github.com/ErikSundvall/ehrtslib/issues/314)).
 
 ## Veredictum CNF content corpus
 
