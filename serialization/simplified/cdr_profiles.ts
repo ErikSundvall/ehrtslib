@@ -14,10 +14,7 @@ import type { WebTemplateBuilderOptions } from "./web_template_builder.ts";
 /** Target CDR family for simplified-format conventions. */
 export type CdrProfile = "ferroehr" | "ehrbase" | "better";
 
-/**
- * Default profile: EHRbase. FLAT defaults to the output flavour (lossless paths);
- * use `cdrProfile: "ferroehr"` when posting input FLAT to FerroEHR.
- */
+/** Default profile: EHRbase (library default FLAT flavour is `output`). */
 export const DEFAULT_CDR_PROFILE: CdrProfile = "ehrbase";
 
 export interface CdrProfileAwareOptions {
@@ -74,8 +71,12 @@ function profileWebTemplate(profile: CdrProfile): WebTemplateOpts {
 function profileFlat(profile: CdrProfile): FlatOpts {
   switch (profile) {
     case "ferroehr":
-      // Evidence: ferro-flat-0N.json (ctx/*, no /_name, encounter/ root).
-      return { flavor: "input", locatableName: "omit" };
+      // Verified: ferro-flat-0N.json uses input-style ctx/ and encounter/ root;
+      // locatableName omit — Ferro 5.5.0 rejects /_name (#312).
+      // Unverified: which FLAT flavour FerroEHR accepts on live POST (input vs output).
+      // Default flavour is `output` (spec lossless form); pass flavor: "input" to
+      // match Ferro export shape when comparing fixtures.
+      return { flavor: "output", locatableName: "omit" };
     case "ehrbase":
       // Evidence: ehrtslib docs/SIMPLIFIED_FORMATS.md § flavours; EHRbase SDK
       // conformance POST uses ctx/ (input), GET uses full paths (output).

@@ -1,10 +1,9 @@
 /**
- * #318: Ferro workbench compositions — canonical RM validation and FLAT diff
- * (ferroehr profile, ehrtslib-built Web Template vs ferro-flat-0N.json).
+ * #318: Ferro workbench — canonical RM check and FLAT diff vs ferro-flat-0N.json
+ * for both FLAT flavours with `cdrProfile: "ferroehr"`.
  *
- * Canonical JSON files from penpad-clinergy-workbench were not available in this
- * environment; compositions are recovered by deserializing Ferro FLAT with
- * Ferro's exported Web Template (same clinical content Ferro accepted).
+ * Workbench canonical JSON was not in-repo; compositions come from Ferro FLAT exports.
+ * No live FerroEHR POST was performed for either flavour.
  */
 import { assertEquals } from "@std/assert";
 import { parseOptXml } from "../../../../parser/mod.ts";
@@ -18,9 +17,9 @@ import {
   serializeToFlat,
   validateFlatPayload,
   type FlatPayload,
+  type SimplifiedFlavor,
 } from "../../../../serialization/simplified/mod.ts";
 import { RMSpecificationValidator } from "../../../../validation/rm_specification_validator.ts";
-import { TemplateValidator } from "../../../../validation/template_validator.ts";
 
 const OPT = new URL(
   "../../../fixtures/ferroehr/thumb-pain-encounter.v2-coded.opt",
@@ -31,45 +30,36 @@ const FERRO_WT_URL = new URL(
   import.meta.url,
 );
 const FERRO_BUILD = { cdrProfile: "ferroehr" as const };
-const FLAT_SERIALIZE = { cdrProfile: "ferroehr" as const };
 
 const opt = parseOptXml(Deno.readTextFileSync(OPT)).operationalTemplate!;
 const ehrtslibWt = buildWebTemplate(opt, FERRO_BUILD);
 const ferroWt = JSON.parse(Deno.readTextFileSync(FERRO_WT_URL));
 
-type FlatDiff = {
-  n: number;
-  onlyFerro: string[];
-  onlyEhrtslib: string[];
-  valueMismatch: { key: string; ferro: unknown; ehrtslib: unknown }[];
-  templateErrors: string[];
-  rmErrors: string[];
-  rmSpecErrors: string[];
-  templateErrorsAfterCanonical: string[];
+type FlavorTotals = {
+  onlyFerro: number;
+  onlyEhrtslib: number;
+  mismatch: number;
 };
 
-function diffFlat(ferro: FlatPayload, ours: FlatPayload): Omit<FlatDiff, "n" | "templateErrors" | "rmErrors"> {
+type DiffRow = FlavorTotals & { n: number; flavor: SimplifiedFlavor };
+
+function diffFlat(ferro: FlatPayload, ours: FlatPayload): FlavorTotals {
   const keys = new Set([...Object.keys(ferro), ...Object.keys(ours)]);
-  const onlyFerro: string[] = [];
-  const onlyEhrtslib: string[] = [];
-  const valueMismatch: FlatDiff["valueMismatch"] = [];
-  for (const key of [...keys].sort()) {
+  let onlyFerro = 0;
+  let onlyEhrtslib = 0;
+  let mismatch = 0;
+  for (const key of keys) {
     const a = ferro[key];
     const b = ours[key];
-    if (b === undefined) onlyFerro.push(key);
-    else if (a === undefined) onlyEhrtslib.push(key);
-    else if (a !== b) valueMismatch.push({ key, ferro: a, ehrtslib: b });
+    if (b === undefined) onlyFerro++;
+    else if (a === undefined) onlyEhrtslib++;
+    else if (a !== b) mismatch++;
   }
-  return { onlyFerro, onlyEhrtslib, valueMismatch };
+  return { onlyFerro, onlyEhrtslib, mismatch };
 }
 
-function analyzeFlat(n: number): FlatDiff {
-  const flatUrl = new URL(
-    `../../../fixtures/ferroehr/ferro-flat/ferro-flat-${String(n).padStart(2, "0")}.json`,
-    import.meta.url,
-  );
-  const ferroFlat = JSON.parse(Deno.readTextFileSync(flatUrl)) as FlatPayload;
-  const { composition: comp, issues } = deserializeFromFlatWithIssues(
+function compositionFromFerroFlat(ferroFlat: FlatPayload): unknown {
+  const { composition, issues } = deserializeFromFlatWithIssues(
     ferroFlat,
     ferroWt,
     {
@@ -78,99 +68,106 @@ function analyzeFlat(n: number): FlatDiff {
       unknownKeys: "warning",
     },
   );
-  const deserializeErrors = issues.filter((i) => i.kind === "unknown-key" && i.severity === "error");
+  const deserializeErrors = issues.filter((i) =>
+    i.kind === "unknown-key" && i.severity === "error"
+  );
   if (deserializeErrors.length) {
     throw new Error(deserializeErrors.map((i) => i.message).join("; "));
   }
-  const validator = new TemplateValidator({ validateUnits: false });
-  const v = validator.validate(comp as never, opt as never);
-  const templateErrorsBefore = v.errors.map((e) => `${e.path}: ${e.message}`);
-
-  const canonical = new JsonCanonicalSerializer().serialize(comp);
-  const round = new JsonCanonicalDeserializer().deserialize(canonical);
-  const v2 = validator.validate(round as never, opt as never);
-  const templateErrorsAfterCanonical = v2.errors.map((e) => `${e.path}: ${e.message}`);
-  const rmSpec = new RMSpecificationValidator(false);
-  const rmSpecErrors = rmSpec.validateInstance(round).map(
-    (e) => `${e.path}: ${e.message}`,
+  return new JsonCanonicalDeserializer().deserialize(
+    new JsonCanonicalSerializer().serialize(composition),
   );
-
-  const ours = serializeToFlat(round, ehrtslibWt, FLAT_SERIALIZE);
-  const { onlyFerro, onlyEhrtslib, valueMismatch } = diffFlat(ferroFlat, ours);
-  const val = validateFlatPayload(ours, ehrtslibWt, FERRO_BUILD);
-  const templateErrors = val.errors.map((e) => `${e.path ?? ""}: ${e.message}`);
-
-  return {
-    n,
-    onlyFerro,
-    onlyEhrtslib,
-    valueMismatch,
-    templateErrors,
-    rmErrors: templateErrorsBefore,
-    rmSpecErrors,
-    templateErrorsAfterCanonical,
-  };
 }
 
-const REPORT: FlatDiff[] = [];
-for (let i = 1; i <= 7; i++) REPORT.push(analyzeFlat(i));
+function analyze(n: number, flavor: SimplifiedFlavor): DiffRow {
+  const flatUrl = new URL(
+    `../../../fixtures/ferroehr/ferro-flat/ferro-flat-${String(n).padStart(2, "0")}.json`,
+    import.meta.url,
+  );
+  const ferroFlat = JSON.parse(Deno.readTextFileSync(flatUrl)) as FlatPayload;
+  const round = compositionFromFerroFlat(ferroFlat);
+  const ours = serializeToFlat(round, ehrtslibWt, {
+    cdrProfile: "ferroehr",
+    flavor,
+  });
+  const d = diffFlat(ferroFlat, ours);
+  const val = validateFlatPayload(ours, ehrtslibWt, FERRO_BUILD);
+  assertEquals(val.errors, [], `comp ${n} ${flavor}: validateFlatPayload`);
+  return { n, flavor, ...d };
+}
+
+const INPUT_ROWS: DiffRow[] = [];
+const OUTPUT_ROWS: DiffRow[] = [];
+for (let i = 1; i <= 7; i++) {
+  INPUT_ROWS.push(analyze(i, "input"));
+  OUTPUT_ROWS.push(analyze(i, "output"));
+}
+
+function sum(rows: DiffRow[]): FlavorTotals {
+  return rows.reduce(
+    (acc, r) => ({
+      onlyFerro: acc.onlyFerro + r.onlyFerro,
+      onlyEhrtslib: acc.onlyEhrtslib + r.onlyEhrtslib,
+      mismatch: acc.mismatch + r.mismatch,
+    }),
+    { onlyFerro: 0, onlyEhrtslib: 0, mismatch: 0 },
+  );
+}
+
+export const FERRO_FLAT_DIFF = {
+  input: sum(INPUT_ROWS),
+  output: sum(OUTPUT_ROWS),
+  inputByComp: INPUT_ROWS,
+  outputByComp: OUTPUT_ROWS,
+};
 
 Deno.test("#318 Ferro compositions: RM spec valid after canonical round-trip", () => {
-  for (const r of REPORT) {
-    assertEquals(
-      r.rmSpecErrors,
-      [],
-      `composition ${r.n}: RM spec errors: ${r.rmSpecErrors.join("; ")}`,
+  const rmSpec = new RMSpecificationValidator(false);
+  for (let i = 1; i <= 7; i++) {
+    const flatUrl = new URL(
+      `../../../fixtures/ferroehr/ferro-flat/ferro-flat-${String(i).padStart(2, "0")}.json`,
+      import.meta.url,
     );
+    const ferroFlat = JSON.parse(Deno.readTextFileSync(flatUrl)) as FlatPayload;
+    const round = compositionFromFerroFlat(ferroFlat);
+    const rmSpecErrors = rmSpec.validateInstance(round).map(
+      (e) => `${e.path}: ${e.message}`,
+    );
+    assertEquals(rmSpecErrors, [], `composition ${i}: ${rmSpecErrors.join("; ")}`);
   }
 });
 
-Deno.test("#318 write Ferro FLAT diff report artifact", () => {
-  const lines: string[] = [
-    "# Ferro workbench FLAT vs ehrtslib (ferroehr profile)",
-    "",
-    "Compositions sourced from Ferro FLAT fixtures (workbench canonical JSON not in repo).",
-    "Pipeline: Ferro WT deserialize → JsonCanonical round-trip → TemplateValidator →",
-    "serializeToFlat with ehrtslib WT + `cdrProfile: ferroehr`.",
-    "",
-  ];
-  let totalOnlyFerro = 0;
-  let totalOnlyEhrtslib = 0;
-  let totalMismatch = 0;
-  for (const r of REPORT) {
-    totalOnlyFerro += r.onlyFerro.length;
-    totalOnlyEhrtslib += r.onlyEhrtslib.length;
-    totalMismatch += r.valueMismatch.length;
-    lines.push(`## Composition ${r.n}`);
-    lines.push(`- keys only in Ferro FLAT: ${r.onlyFerro.length}`);
-    lines.push(`- keys only in ehrtslib FLAT: ${r.onlyEhrtslib.length}`);
-    lines.push(`- value mismatches: ${r.valueMismatch.length}`);
-    lines.push(`- validateFlatPayload errors (ehrtslib WT): ${r.templateErrors.length}`);
-    lines.push(`- template validator after canonical: ${r.templateErrorsAfterCanonical.length}`);
-    lines.push(`- RM spec after canonical: ${r.rmSpecErrors.length}`);
-    if (r.onlyFerro.length) {
-      lines.push("", "Only Ferro:", ...r.onlyFerro.map((k) => `- ${k}`));
-    }
-    if (r.onlyEhrtslib.length) {
-      lines.push("", "Only ehrtslib:", ...r.onlyEhrtslib.map((k) => `- ${k}`));
-    }
-    if (r.valueMismatch.length) {
-      lines.push("", "Value mismatches (first 20):");
-      for (const m of r.valueMismatch.slice(0, 20)) {
-        lines.push(`- ${m.key}: Ferro=${JSON.stringify(m.ferro)} ehrtslib=${JSON.stringify(m.ehrtslib)}`);
-      }
-    }
-    if (r.templateErrors.length) {
-      lines.push("", "Validator errors:", ...r.templateErrors.map((e) => `- ${e}`));
-    }
-    lines.push("");
-  }
-  lines.push("## Totals", `- only Ferro: ${totalOnlyFerro}`, `- only ehrtslib: ${totalOnlyEhrtslib}`, `- mismatches: ${totalMismatch}`);
-  const out = "/opt/cursor/artifacts/ferro-flat-diff-report.md";
+Deno.test("#318 report Ferro FLAT diff totals (input vs output)", () => {
+  console.log("FERRO_FLAT_DIFF", JSON.stringify(FERRO_FLAT_DIFF, null, 2));
   try {
+    const lines = [
+      "# Ferro FLAT diff (ehrtslib WT, cdrProfile: ferroehr)",
+      "",
+      "Ferro export fixtures are input-shaped; no live Ferro POST verified.",
+      "",
+      "## Totals (7 compositions)",
+      "",
+      "| Flavour | Only Ferro keys | Only ehrtslib keys | Value mismatches |",
+      "|---------|----------------:|-------------------:|-----------------:|",
+      `| input | ${FERRO_FLAT_DIFF.input.onlyFerro} | ${FERRO_FLAT_DIFF.input.onlyEhrtslib} | ${FERRO_FLAT_DIFF.input.mismatch} |`,
+      `| output | ${FERRO_FLAT_DIFF.output.onlyFerro} | ${FERRO_FLAT_DIFF.output.onlyEhrtslib} | ${FERRO_FLAT_DIFF.output.mismatch} |`,
+      "",
+    ];
+    for (const flavor of ["input", "output"] as const) {
+      lines.push(`### Per composition (${flavor})`);
+      for (const row of FERRO_FLAT_DIFF[`${flavor}ByComp`]) {
+        lines.push(
+          `- ${row.n}: only Ferro ${row.onlyFerro}, only ehrtslib ${row.onlyEhrtslib}, mismatches ${row.mismatch}`,
+        );
+      }
+      lines.push("");
+    }
     Deno.mkdirSync("/opt/cursor/artifacts", { recursive: true });
-    Deno.writeTextFileSync(out, lines.join("\n"));
-  } catch (e) {
-    console.warn("Could not write artifact:", e);
+    Deno.writeTextFileSync(
+      "/opt/cursor/artifacts/ferro-flat-diff-report.md",
+      lines.join("\n"),
+    );
+  } catch {
+    // artifact dir optional in CI
   }
 });

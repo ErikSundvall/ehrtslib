@@ -8,7 +8,9 @@ Add an entry under **Unreleased** in every PR that changes user-visible behaviou
 
 ## [Unreleased]
 
-- **Behaviour.** `cdrProfile` (`"ferroehr"` \| `"ehrbase"` \| `"better"`, default `"ehrbase"`) bundles Web Template and FLAT conventions for `buildWebTemplate`, `serializeToFlat`, and `validateFlatPayload`; per-option overrides unchanged. Ferro/EHRbase/Better evidence is in `serialization/simplified/cdr_profiles.ts` and `SIMPLIFIED_FORMATS.md` ([#316](https://github.com/ErikSundvall/ehrtslib/issues/316), [#318](https://github.com/ErikSundvall/ehrtslib/pull/318)).
+- **Behaviour.** `cdrProfile` (`"ferroehr"` \| `"ehrbase"` \| `"better"`, default `"ehrbase"`) bundles Web Template and FLAT conventions for `buildWebTemplate`, `serializeToFlat`, and `validateFlatPayload`; per-option overrides unchanged. Evidence and **unverified** notes (including that Ferro live POST was not tested) in `cdr_profiles.ts` and `SIMPLIFIED_FORMATS.md` ([#318](https://github.com/ErikSundvall/ehrtslib/pull/318)).
+- **Behaviour.** FLAT keys must start with `tree.id` only; the normalised `templateId` root alias is removed ([#318](https://github.com/ErikSundvall/ehrtslib/pull/318)).
+- **Behaviour.** Input-flavour `ctx/setting` writes the openEHR setting **code** on the bare key when available (ITS-REST simplified formats; aligns with Ferro export fixtures).
 - **Behaviour.** Without `cdrProfile`, `buildWebTemplate` uses the EHRbase-oriented profile (`treeRootId: "archetype"`, `omitSectionNameNode: true`, `renamedArchetypeRootId: "label"`, `elementNameId: "term"`). Set `cdrProfile: "ferroehr"` for FerroEHR posting (archetype root ids, `flavor: "input"`, `locatableName: "omit"`). Legacy per-field options still apply ([#316](https://github.com/ErikSundvall/ehrtslib/issues/316)).
 - `validateFlatPayload` no longer counts `_mapping:N` (or other `_`-prefixed RM attribute indices) toward a parent node's instance cardinality ([#317](https://github.com/ErikSundvall/ehrtslib/issues/317)).
 - **Docs.** `SIMPLIFIED_FORMATS.md` notes that a CDR's own Web Template is the safest input to `serializeToFlat` when posting to that CDR.
