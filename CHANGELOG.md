@@ -8,6 +8,8 @@ Add an entry under **Unreleased** in every PR that changes user-visible behaviou
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-11-16
+
 - **Validation.** `InvariantEvaluator.validateInvariants` no longer throws when `invariants` is omitted; added `collectArchetypeAssertions`, `validateArchetypeRules`, and related helpers for archetype `rules` / `ARCHETYPE.invariants` (not RM class invariants) ([#308](https://github.com/ErikSundvall/ehrtslib/issues/308)).
 - **Demo.** Contribution Builder round 2 ([#306](https://github.com/ErikSundvall/ehrtslib/issues/306)): ColorBrewer Set3 presence chip colours; compact form with quantity unit suffixes; lower time-travel bar with play/pause and skip-to-start/end icon controls; soft validation while editing (no native `required` blocking); diagnosis name uses native Automerge text with narrative presence/highlights like long fields.
 - Template validation accepts a boolean for `DV_BOOLEAN.value` when the OPT has no value constraint, a `C_BOOLEAN`, or a `C_STRING` pattern `True`/`False`. It no longer reports `Expected string, got boolean` for that value ([#314](https://github.com/ErikSundvall/ehrtslib/issues/314)).
