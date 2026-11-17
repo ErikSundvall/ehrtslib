@@ -28,6 +28,7 @@ import {
   inOrderedRange,
   matchesAdlTemporalPattern,
 } from "./temporal_pattern.ts";
+import { termScopeOf } from "../generation/term_scope.ts";
 
 /**
  * Validation result
@@ -101,6 +102,8 @@ export class TemplateValidator {
   private rmSpecValidator?: RMSpecificationValidator;
   /** Paths already checked for UCUM during the current `validate()` call. */
   private ucumPathsChecked = new Set<string>();
+  /** Active archetype / occurrence scopes for rubric lookup during `validate()`. */
+  private rubricArchetypeStack: string[] = [];
   constructor(config?: ValidationConfig) {
     this.config = {
       failFast: false,
@@ -167,11 +170,18 @@ export class TemplateValidator {
     const errors: ValidationMessage[] = [];
     const warnings: ValidationMessage[] = [];
     this.ucumPathsChecked.clear();
+    this.rubricArchetypeStack = [];
     if (this.terminologyValidator) {
       const language = compositionLanguage(rmInstance, template);
       this.terminologyValidator.setRubricContext({
         language,
-        lookup: (code) => lookupTemplateRubric(template, code, language),
+        lookup: (code) =>
+          lookupTemplateRubric(
+            template,
+            code,
+            language,
+            this.rubricArchetypeStack,
+          ),
       });
     }
     const sourceIndex = options?.jsonSource
@@ -268,6 +278,52 @@ export class TemplateValidator {
   }
 
   private validateNode(
+    rmNode: any,
+    cObject: openehr_am.C_OBJECT,
+    path: string,
+    errors: ValidationMessage[],
+    warnings: ValidationMessage[],
+    depth: number,
+    parentRmType?: string,
+  ): void {
+    const rubricScope = this.pushRubricArchetypeScope(cObject);
+    try {
+      this.validateNodeScoped(
+        rmNode,
+        cObject,
+        path,
+        errors,
+        warnings,
+        depth,
+        parentRmType,
+      );
+    } finally {
+      this.popRubricArchetypeScope(rubricScope);
+    }
+  }
+
+  private pushRubricArchetypeScope(
+    cObject: openehr_am.C_OBJECT,
+  ): string | undefined {
+    if (
+      cObject instanceof openehr_am.C_ARCHETYPE_ROOT &&
+      typeof cObject.archetype_ref === "string" &&
+      cObject.archetype_ref
+    ) {
+      const scope = termScopeOf(cObject) ?? cObject.archetype_ref;
+      this.rubricArchetypeStack.push(scope);
+      return scope;
+    }
+    return undefined;
+  }
+
+  private popRubricArchetypeScope(scope: string | undefined): void {
+    if (!scope) return;
+    const top = this.rubricArchetypeStack[this.rubricArchetypeStack.length - 1];
+    if (top === scope) this.rubricArchetypeStack.pop();
+  }
+
+  private validateNodeScoped(
     rmNode: any,
     cObject: openehr_am.C_OBJECT,
     path: string,
@@ -1395,8 +1451,9 @@ function lookupTemplateRubric(
   template: openehr_am.OPERATIONAL_TEMPLATE | openehr_am.ARCHETYPE,
   code: string,
   language: string,
+  archetypeStack: readonly string[] = [],
 ): string | undefined {
-  const tables = termTablesOf(template);
+  const tables = termTablesForRubricLookup(template, archetypeStack);
   const preferred = rubricInTables(tables, code, language);
   if (preferred) return preferred;
   if (tables.some((table) => tableHasLanguage(table, language))) return undefined;
@@ -1410,23 +1467,30 @@ function lookupTemplateRubric(
   return undefined;
 }
 
-function termTablesOf(
+/** Term tables consulted for rubric lookup (innermost archetype scope first). */
+function termTablesForRubricLookup(
   template: openehr_am.OPERATIONAL_TEMPLATE | openehr_am.ARCHETYPE,
+  archetypeStack: readonly string[],
 ): Array<Record<string, Record<string, unknown>> | undefined> {
   const tables: Array<Record<string, Record<string, unknown>> | undefined> = [];
-  const onto = (template as {
-    ontology?: { term_definitions?: Record<string, Record<string, unknown>> };
-  }).ontology?.term_definitions;
-  tables.push(onto);
-  const scoped = (template as {
+  const scopedTemplate = template as {
     archetype_term_definitions?: Record<
       string,
       Record<string, Record<string, unknown>> | undefined
     >;
-  }).archetype_term_definitions;
-  if (scoped) {
-    for (const bag of Object.values(scoped)) tables.push(bag);
+    occurrence_term_definitions?: Record<
+      string,
+      Record<string, Record<string, unknown>> | undefined
+    >;
+    ontology?: { term_definitions?: Record<string, Record<string, unknown>> };
+  };
+  for (let i = archetypeStack.length - 1; i >= 0; i--) {
+    const key = archetypeStack[i];
+    const bag = scopedTemplate.archetype_term_definitions?.[key] ??
+      scopedTemplate.occurrence_term_definitions?.[key];
+    if (bag) tables.push(bag);
   }
+  tables.push(scopedTemplate.ontology?.term_definitions);
   return tables;
 }
 
