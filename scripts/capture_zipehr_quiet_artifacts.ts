@@ -8,6 +8,8 @@ import {
   ZIP_QUIET_STRUCTURE_CSS,
   buildZipehrPreviewDocument,
 } from "../serialization/zipehr/css/compose_quiet_css.ts";
+import { parseOptXml } from "../parser/legacy/opt_xml_parser.ts";
+import { buildWebTemplate } from "../serialization/simplified/mod.ts";
 import { serializeToHtml5Variant } from "../serialization/zipehr/mod.ts";
 
 const OUT = "/opt/cursor/artifacts";
@@ -32,25 +34,21 @@ async function loadBaseCss(): Promise<string> {
   );
 }
 
-const FERRO_WT = JSON.parse(
-  await Deno.readTextFile(
-    new URL("test_data/fixtures/ferroehr/ferro-flat/wt.json", repo),
-  ),
-);
-const CLINERGY_HIDE = JSON.parse(
+const FERRO_OPT = parseOptXml(
   await Deno.readTextFile(
     new URL(
-      "test_data/fixtures/workbench-ferro/clinergy-hide-on-form-annotations.json",
+      "test_data/fixtures/ferroehr/thumb-pain-encounter.v2-coded.opt",
       repo,
     ),
   ),
-);
+).operationalTemplate;
+const FERRO_WT = buildWebTemplate(FERRO_OPT);
 
 const HTML5_OPTS = {
   layout: "linesaving" as const,
   propertyMode: "comment" as const,
   webTemplate: FERRO_WT,
-  pathAnnotations: CLINERGY_HIDE,
+  operationalTemplate: FERRO_OPT,
 };
 
 async function buildDocs(comp: unknown) {
@@ -136,20 +134,20 @@ await painPage.setContent(painQuiet, { waitUntil: "load" });
 const historySection = painPage.locator("o-se").filter({ hasText: "History" }).first();
 await historySection.scrollIntoViewIfNeeded();
 await historySection.screenshot({
-  path: `${OUT}/zipehr-quiet-hide-on-form-annotation.png`,
+  path: `${OUT}/zipehr-quiet-opt-view-hide.png`,
 });
 const hasHiddenClinergy = await painPage.locator(
-  "o-cl[data-zs-annot-hide-on-form]",
+  '[data-opt-visibility="hide"]',
 ).count();
 const visibleClinergyLabel = await painPage
-  .locator("o-cl[data-zs-annot-hide-on-form]")
+  .locator('[data-opt-visibility="hide"]')
   .first()
   .evaluate((el) => getComputedStyle(el).display)
   .catch(() => "missing");
 await Deno.writeTextFile(
-  `${OUT}/zipehr-hide-on-form-evidence.txt`,
-  `o-cl[data-zs-annot-hide-on-form] count (02-pain-rich): ${hasHiddenClinergy}\n` +
-    `computed display on first marked cluster: ${visibleClinergyLabel}\n`,
+  `${OUT}/zipehr-opt-view-hide-evidence.txt`,
+  `[data-opt-visibility="hide"] count (02-pain-rich + OPT view): ${hasHiddenClinergy}\n` +
+    `computed display on first: ${visibleClinergyLabel}\n`,
 );
 await painPage.close();
 await desktop.screenshot({

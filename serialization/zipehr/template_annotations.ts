@@ -1,146 +1,205 @@
 /**
- * Forward OPT / Web Template UI annotations into ZipEHR HTML5 as `data-zs-annot-*`
- * attributes. Stripped on deserialize (not part of RM).
+ * Forward OPT template metadata (view constraints, rm_visibility, path
+ * annotations) onto ZipEHR HTML5. Ignored on deserialize.
  */
 
 import {
-  annotationsForAqlPath,
-  L10N_ANNOTATION_KEY,
+  flattenOptPathAnnotations,
   type OptPathAnnotationMap,
   stripLeadingArchetypeId,
 } from "../../generation/opt_l10n.ts";
+import {
+  presentationForPath,
+  type OptPresentationByPath,
+  type OptVisibilityToken,
+} from "../../generation/opt_view.ts";
+import * as openehr_am from "../../am/openehr_am.ts";
 import { resolveAllValuesAtPath } from "../simplified/instance_nav.ts";
 import type { WebTemplate, WebTemplateNode } from "../simplified/types.ts";
 
-/** Annotation keys never emitted on composition HTML (metadata / i18n). */
-const DENY_FORWARD_KEYS = new Set([
-  "synthetic_node_id",
-]);
+export const OPT_ANNOTATIONS_ATTR = "data-opt-annotations";
+export const OPT_VISIBILITY_ATTR = "data-opt-visibility";
+export const OPT_ATTR_PREFIX = "data-opt-";
 
-/** HTML attribute prefix for forwarded template annotations. */
-export const ZIP_ANNOT_ATTR_PREFIX = "data-zs-annot-";
-
-/** Whether a template annotation item should be copied to HTML5 output. */
-export function shouldForwardTemplateAnnotationKey(key: string): boolean {
-  const k = key.trim();
-  if (!k) return false;
-  if (DENY_FORWARD_KEYS.has(k)) return false;
-  if (L10N_ANNOTATION_KEY.test(k)) return false;
-  return true;
-}
-
-/** Normalise annotation id to a safe HTML attribute suffix (kebab-case). */
-export function templateAnnotationKeyToAttrSuffix(key: string): string {
-  let k = key.trim();
-  if (k.startsWith("a.")) k = k.slice(2);
-  return k
-    .replace(/_/g, "-")
-    .replace(/[^a-zA-Z0-9.-]+/g, "-")
+export function annotationKeyToSlug(key: string): string {
+  return key
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
     .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "")
-    .toLowerCase();
+    .replace(/^-|-$/g, "");
 }
 
-export function templateAnnotationKeyToAttrName(key: string): string {
-  return ZIP_ANNOT_ATTR_PREFIX + templateAnnotationKeyToAttrSuffix(key);
+export function annotationKeyToAttrName(key: string): string {
+  const slug = annotationKeyToSlug(key);
+  return slug ? `${OPT_ATTR_PREFIX}${slug}` : "";
 }
 
-function stringAnnotationValue(value: unknown): string | undefined {
-  if (value == null) return undefined;
-  if (typeof value === "boolean") return value ? "true" : "false";
-  const s = String(value).trim();
-  return s === "" ? undefined : s;
+export function escapeHtmlAttrJson(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;");
 }
 
-/** Build attribute bags for one node's merged template annotations. */
-export function attrsForTemplateAnnotations(
-  items: Record<string, string> | undefined,
-): Array<{ name: string; value: string } | { name: string; boolean: true }> {
-  if (!items) return [];
-  const out: Array<{ name: string; value: string } | { name: string; boolean: true }> =
-    [];
-  for (const [key, raw] of Object.entries(items)) {
-    if (!shouldForwardTemplateAnnotationKey(key)) continue;
-    const value = stringAnnotationValue(raw);
-    if (value === undefined) continue;
-    const name = templateAnnotationKeyToAttrName(key);
-    if (value === "true") {
-      out.push({ name, boolean: true });
-    } else {
-      out.push({ name, value });
+export type PresentationAttrs = Array<
+  { name: string; value: string } | { name: string; boolean: true }
+>;
+
+export function attrsForPresentation(
+  pres: OptPresentationByPath | undefined,
+): PresentationAttrs {
+  if (!pres) return [];
+  const out: PresentationAttrs = [];
+  if (pres.visibility) {
+    out.push({ name: OPT_VISIBILITY_ATTR, value: pres.visibility });
+  }
+  if (pres.alias) {
+    out.push({ name: `${OPT_ATTR_PREFIX}alias`, value: pres.alias });
+  }
+  const keys = Object.keys(pres.annotations);
+  if (keys.length) {
+    out.push({
+      name: OPT_ANNOTATIONS_ATTR,
+      value: escapeHtmlAttrJson(JSON.stringify(pres.annotations)),
+    });
+    for (const key of keys) {
+      const name = annotationKeyToAttrName(key);
+      if (!name) continue;
+      const raw = pres.annotations[key];
+      if (raw === "true") out.push({ name, boolean: true });
+      else out.push({ name, value: raw });
     }
   }
   return out;
 }
 
-function wtNodeAnnotations(node: WebTemplateNode): Record<string, string> {
-  const raw = node.annotations;
-  if (!raw || typeof raw !== "object") return {};
-  const out: Record<string, string> = {};
-  for (const [key, value] of Object.entries(raw)) {
-    const s = stringAnnotationValue(value);
-    if (s !== undefined) out[key] = s;
-  }
-  return out;
+export type PresentationIndex = WeakMap<object, OptPresentationByPath>;
+
+/** Web Template paths often use `and name/value='X'`; instance_nav expects `,'X'`. */
+function aqlPathForInstanceNav(path: string): string {
+  return path
+    .replace(/\s+and\s+name\/value\s*=\s*'([^']*)'/gi, ",'$1'")
+    .replace(/\s+and\s+name\/value\s*=\s*"([^"]*)"/gi, ",'$1'");
 }
 
-function walkTemplateNode(
+function mergePresentation(
+  prev: OptPresentationByPath | undefined,
+  next: OptPresentationByPath,
+): OptPresentationByPath {
+  if (!prev) return next;
+  return {
+    visibility: next.visibility ?? prev.visibility,
+    alias: next.alias ?? prev.alias,
+    annotations: { ...prev.annotations, ...next.annotations },
+  };
+}
+
+function indexAtPath(
+  compositionRoot: unknown,
+  map: PresentationIndex,
+  opt: openehr_am.OPERATIONAL_TEMPLATE,
+  pathAnnotations: OptPathAnnotationMap,
+  aqlPath: string,
+  nodeName: string | undefined,
+  renderLang: string,
+): void {
+  const pres = presentationForPath(
+    opt,
+    pathAnnotations,
+    aqlPath,
+    nodeName,
+    renderLang,
+  );
+  const hasMeta = pres.visibility || pres.alias ||
+    Object.keys(pres.annotations).length;
+  if (!hasMeta) return;
+  const navPath = aqlPathForInstanceNav(aqlPath);
+  for (const { value } of resolveAllValuesAtPath(compositionRoot, navPath)) {
+    if (value == null || typeof value !== "object" || Array.isArray(value)) {
+      continue;
+    }
+    map.set(value, mergePresentation(map.get(value), pres));
+  }
+}
+
+function walkWebTemplate(
   node: WebTemplateNode,
   compositionRoot: unknown,
-  map: WeakMap<object, Record<string, string>>,
+  map: PresentationIndex,
+  opt: openehr_am.OPERATIONAL_TEMPLATE,
   pathAnnotations: OptPathAnnotationMap,
+  renderLang: string,
 ): void {
   const path = node.aqlPath?.trim();
   if (path && path !== "/") {
-    const lookupPath = stripLeadingArchetypeId(path);
-    const fromOpt = annotationsForAqlPath(
+    indexAtPath(
+      compositionRoot,
+      map,
+      opt,
       pathAnnotations,
-      lookupPath,
+      stripLeadingArchetypeId(path),
       node.name,
+      renderLang,
     );
-    const merged: Record<string, string> = {
-      ...wtNodeAnnotations(node),
-      ...fromOpt,
-    };
-    const forward = Object.fromEntries(
-      Object.entries(merged).filter(([k]) =>
-        shouldForwardTemplateAnnotationKey(k)
-      ),
-    );
-    if (Object.keys(forward).length) {
-      for (const { value } of resolveAllValuesAtPath(compositionRoot, path)) {
-        if (value == null || typeof value !== "object" || Array.isArray(value)) {
-          continue;
+    if (node.annotations && typeof node.annotations === "object") {
+      const extra: Record<string, string> = {};
+      for (const [k, v] of Object.entries(node.annotations)) {
+        if (v == null) continue;
+        extra[k] = String(v);
+      }
+      if (Object.keys(extra).length) {
+        for (const { value } of resolveAllValuesAtPath(
+          compositionRoot,
+          aqlPathForInstanceNav(path),
+        )) {
+          if (value == null || typeof value !== "object" || Array.isArray(value)) {
+            continue;
+          }
+          const prev = map.get(value) ?? {
+            annotations: {},
+          };
+          map.set(value, mergePresentation(prev, {
+            ...prev,
+            annotations: { ...prev.annotations, ...extra },
+          }));
         }
-        const prev = map.get(value) ?? {};
-        map.set(value, { ...prev, ...forward });
       }
     }
   }
   for (const child of node.children ?? []) {
-    walkTemplateNode(child, compositionRoot, map, pathAnnotations);
+    walkWebTemplate(
+      child,
+      compositionRoot,
+      map,
+      opt,
+      pathAnnotations,
+      renderLang,
+    );
   }
 }
 
-/**
- * Map RM object identity → UI annotation items (merged Web Template node
- * annotations and OPT path annotations).
- */
-export function indexTemplateUiAnnotations(
+/** Index RM nodes → presentation metadata (not propagated to descendants). */
+export function indexTemplatePresentation(
   composition: unknown,
   options: {
     webTemplate?: WebTemplate | null;
+    operationalTemplate?: openehr_am.OPERATIONAL_TEMPLATE | null;
     pathAnnotations?: OptPathAnnotationMap;
+    renderLang?: string;
   },
-): WeakMap<object, Record<string, string>> {
-  const map = new WeakMap<object, Record<string, string>>();
+): PresentationIndex {
+  const map: PresentationIndex = new WeakMap();
+  const opt = options.operationalTemplate;
   const tree = options.webTemplate?.tree;
-  if (!tree) return map;
-  walkTemplateNode(
-    tree,
-    composition,
-    map,
-    options.pathAnnotations ?? {},
-  );
+  if (!opt || !tree) return map;
+  const pathAnnotations = options.pathAnnotations ??
+    flattenOptPathAnnotations(opt);
+  const lang = options.renderLang ??
+    options.webTemplate?.defaultLanguage ??
+    "en";
+  walkWebTemplate(tree, composition, map, opt, pathAnnotations, lang);
   return map;
 }
+
+export type { OptVisibilityToken };

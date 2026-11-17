@@ -11,8 +11,15 @@
 o-cph.zipehr-tech-quiet,
 o-cnt.zipehr-tech-quiet,
 o-dt.zipehr-tech-quiet,
-o-cl[data-zs-annot-hide-on-form],
-o-cl[data-zs-annot-hide_on_form] {
+[data-opt-visibility="hide"] {
+  display: none !important;
+}
+
+[data-opt-visibility="pass-through"] {
+  display: contents;
+}
+
+[data-opt-visibility="pass-through"] > .zs-structural-label {
   display: none !important;
 }
 

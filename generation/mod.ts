@@ -85,3 +85,16 @@ export type {
   AnnotationDocumentation,
   OptPathAnnotationMap,
 } from "./opt_l10n.ts";
+
+export {
+  attachOptViewConstraints,
+  getOptViewConstraints,
+  parseOptViewConstraints,
+  presentationForPath,
+  pickPathAnnotationItems,
+} from "./opt_view.ts";
+export type {
+  OptPresentationByPath,
+  OptViewConstraint,
+  OptVisibilityToken,
+} from "./opt_view.ts";

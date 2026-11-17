@@ -1,51 +1,64 @@
-# ZipEHR HTML5 template annotations
+# ZipEHR HTML5: template UI metadata
 
-ZipEHR html5 can forward **template** UI annotations onto composition markup as
-`data-zs-annot-{key}` attributes. They are presentation hints only: the HTML5
-deserializer ignores them, so canonical JSON round-trip stays lossless.
+ZipEHR html5 can forward **template** metadata onto composition markup. The
+HTML5 deserializer ignores these attributes; canonical JSON round-trip stays
+lossless.
 
-## Sources
+There is **no agreed openEHR UI-hint vocabulary**. Real-world sources differ:
 
-| Source | Typical keys | Notes |
-|--------|--------------|--------|
-| **OET overlay** (`<Rule … hide_on_form="true"/>`) | `hide_on_form` | UI metadata; not stored on the RM composition. Export to OPT path annotations or Web Template `node.annotations` for ZipEHR to see them. |
-| **OPT XML** (`<annotations path="…"><items id="hide-on-form">true</items>`) | `hide-on-form`, `L10n.*`, … | Parsed into `RESOURCE_ANNOTATIONS`. `L10n.*` is **not** forwarded (handled as i18n). |
-| **Web Template** (`node.annotations`) | Same item ids as OPT | `buildWebTemplate` copies OPT path items onto nodes. |
-| **Archetype Designer / Better** | `hide-on-form`, `hide_on_form`, custom `a.*` keys | De-facto; no single normative registry. hide-on-form hides structural/helper nodes in forms and read-only views. |
+| Source | Practice |
+|--------|-----------|
+| **Ocean OET** | `<Rule hide_on_form="true"/>` on overlay paths (UI metadata, not AOM). |
+| **OPT 1.4 XML** | `<view><constraints path="…"><items id="pass_through"><value>true</value>` (Ocean → EHRbase; seen in many production OPTs). Optional `<items id="VisibleInView">`. |
+| **ADL2 / AOM2** | Normative `rm_overlay.rm_visibility` (`show` \| `hide`) with optional `alias` (SPECAM-63). |
+| **OPT `<annotations>`** | Project-local, often set-prefixed (`Notes.Comment`, `fhir_mapping`, `L10n.en`). Not a shared UI-hint registry. |
+| **Experimental** | Discourse [#2406](https://discourse.openehr.org/t/agreeing-on-optional-user-interface-hints-in-templates/2406): `a.hide_on_form` with values `input` \| `presentation` — **not standard**. |
 
-## HTML attribute mapping
+ehrtslib does **not** treat invented `<items id="hide-on-form">` as practice.
 
-- Prefix: `data-zs-annot-`
-- Key normalisation: `a.` stripped; `_` → `-`; lowercased (e.g. `hide_on_form` → `data-zs-annot-hide-on-form`).
-- Value `true` is emitted as a boolean attribute (no value).
-- Denylist: `L10n.*`, `synthetic_node_id`.
+## HTML attributes
+
+| Attribute | Meaning |
+|-----------|---------|
+| `data-opt-visibility` | `hide` \| `show` \| `pass-through` (vendor-neutral summary). |
+| `data-opt-annotations` | Escaped JSON of **all** path annotation items for the chosen language. |
+| `data-opt-{slug}` | One attribute per annotation key (`slug` = lowercase, non `[a-z0-9]` → `-`). |
+| `data-opt-alias` | `rm_visibility.alias` when present. |
+
+Visibility mapping (first match wins):
+
+1. `view.pass_through === true` → `pass-through`
+2. `view.pass_through === false` → `hide` (fixture/inverse; Ocean only documents `true`)
+3. `rm_overlay.rm_visibility` → `hide` / `show`
+4. `VisibleInView` item present → `show`
+5. Experimental `a.hide_on_form` / `hide_on_form`: `presentation` or `true` → `hide`; `input` → `show`
+
+Metadata is attached only on nodes matched by Web Template `aqlPath` (not copied
+to descendants; CSS cascades where applicable).
+
+## Quiet-structure CSS
+
+- `data-opt-visibility="hide"` — `display: none`
+- `data-opt-visibility="pass-through"` — `display: contents`; hide `.zs-structural-label` children
+- `data-opt-visibility="show"` — no default quiet override
 
 ## Serializer API
 
 `Html5SerializeOptions`:
 
-- `webTemplate` — index annotations by `aqlPath` via `resolveAllValuesAtPath`.
-- `pathAnnotations` — `OptPathAnnotationMap` from `flattenOptPathAnnotations(opt)` (optional without Web Template if you only use path map + manual indexing later).
+- `operationalTemplate` — parsed OPT (view constraints, rm_overlay, annotations)
+- `webTemplate` — index nodes by `aqlPath`
+- `templateRenderLang` — annotation language preference (`render` → `""` → original)
 
-Quiet-structure CSS (`zipehr-html5-quiet-structure.css`) hides clusters marked
-`hide-on-form` / `hide_on_form`, e.g. Clinergy descriptor helper clusters.
+## Ferro / workbench
 
-## Workbench / Ferro template
+Add Ocean-style **view** constraints on helper clusters (e.g. Clinergy
+descriptor). `thumb-pain-encounter.v2-coded.opt` uses `pass_through` `false` on
+those paths (mapped to `hide` in html5). Prefer production `pass_through true`
+on structural wrappers and `rm_visibility` / experimental `a.hide_on_form` where
+tools emit them.
 
-Do **not** hard-code Clinergy ids in ehrtslib. On the operational template,
-add path annotations for each `clinergy_descriptor` occurrence, for example:
+## Parser
 
-```xml
-<annotations path="/content[…]/items[openEHR-EHR-CLUSTER.clinergy_descriptor.v0]">
-  <items id="hide-on-form">true</items>
-</annotations>
-```
-
-(or equivalent Web Template `annotations` when generating WT). Regenerate the Web
-Template when exporting from OPT so html5 serialization can attach attributes.
-
-## References
-
-- OET `hide_on_form`: `.cursor/skills/openehr-assistant/reference/oet-syntax-reference.md`
-- OPT L10n / path annotations: `docs/ADL_SUPPORT.md` (L10n annotations section)
-- Web Template `node.annotations`: openehr://guides/templates/web-template
+OPT XML: `parser/legacy/opt_xml_parser.ts` calls `attachOptViewConstraints`.
+ADL2 `rm_overlay` is already parsed via `applyRmOverlayOdin`.

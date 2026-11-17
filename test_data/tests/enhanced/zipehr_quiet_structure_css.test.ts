@@ -13,6 +13,8 @@ import {
   ZIP_QUIET_PREVIEW_SCRIPT,
   buildZipehrPreviewDocument,
 } from "../../../serialization/zipehr/css/compose_quiet_css.ts";
+import { parseOptXml } from "../../../parser/legacy/opt_xml_parser.ts";
+import { buildWebTemplate } from "../../../serialization/simplified/mod.ts";
 import { serializeToHtml5Variant } from "../../../serialization/zipehr/mod.ts";
 
 const cssDir = new URL("../../../serialization/zipehr/css/", import.meta.url);
@@ -41,20 +43,14 @@ const GP_VISIT = JSON.parse(
   ),
 ) as Record<string, unknown>;
 
-const FERRO_WT = JSON.parse(
-  await Deno.readTextFile(
-    new URL("../../fixtures/ferroehr/ferro-flat/wt.json", import.meta.url),
+const FERRO_OPT_XML = await Deno.readTextFile(
+  new URL(
+    "../../fixtures/ferroehr/thumb-pain-encounter.v2-coded.opt",
+    import.meta.url,
   ),
 );
-
-const CLINERGY_HIDE_ANNOT = JSON.parse(
-  await Deno.readTextFile(
-    new URL(
-      "../../fixtures/workbench-ferro/clinergy-hide-on-form-annotations.json",
-      import.meta.url,
-    ),
-  ),
-);
+const FERRO_OPT = parseOptXml(FERRO_OPT_XML).operationalTemplate;
+const FERRO_WT = buildWebTemplate(FERRO_OPT);
 
 function openQuietPreview(html: string, css: string): Window {
   const docHtml = buildZipehrPreviewDocument(html, css, {
@@ -168,7 +164,7 @@ Deno.test("quiet preview: archetype names visible, tech clusters hidden, human d
       layout: "linesaving",
       propertyMode: "comment",
       webTemplate: FERRO_WT,
-      pathAnnotations: CLINERGY_HIDE_ANNOT,
+      operationalTemplate: FERRO_OPT,
     },
   );
   const css = await loadComposedQuietCss();
@@ -178,7 +174,7 @@ Deno.test("quiet preview: archetype names visible, tech clusters hidden, human d
   assertStringIncludes(bodyText, "Episode duration");
   assertStringIncludes(bodyText, "3 days");
   const techClusters = win.document.querySelectorAll(
-    "o-cl[data-zs-annot-hide-on-form]",
+    '[data-opt-visibility="hide"]',
   );
   assert(techClusters.length >= 1);
   const displayText = [...win.document.querySelectorAll(".zs-display-value")]
@@ -186,8 +182,8 @@ Deno.test("quiet preview: archetype names visible, tech clusters hidden, human d
     .join(" ");
   assert(!displayText.includes("2021-10-21T14:21:00+01:00"));
   assertStringIncludes(displayText, "2021");
-  const tech = win.document.querySelector("o-cl[data-zs-annot-hide-on-form]");
-  assert(tech, "clinergy descriptor cluster should have hide-on-form annotation");
+  const tech = win.document.querySelector('[data-opt-visibility="hide"]');
+  assert(tech, "clinergy descriptor cluster should have OPT view hide visibility");
 });
 
 Deno.test("quiet preview hides redundant HISTORY.origin when equal to event time", async () => {
