@@ -30,6 +30,36 @@ o-ti .zs-display-value {
   font-variant-numeric: tabular-nums;
 }
 
+o-dt[data-zs-value],
+o-du[data-zs-value],
+o-da[data-zs-value],
+o-ti[data-zs-value] {
+  position: relative;
+  cursor: help;
+}
+
+o-dt[data-zs-value]:hover::after,
+o-du[data-zs-value]:hover::after,
+o-da[data-zs-value]:hover::after,
+o-ti[data-zs-value]:hover::after,
+o-dt[data-zs-value]:focus-within::after,
+o-du[data-zs-value]:focus-within::after {
+  content: attr(data-zs-value);
+  position: absolute;
+  left: 0;
+  top: calc(100% + 3px);
+  padding: 0.3rem 0.5rem;
+  font-size: 0.78rem;
+  font-family: ui-monospace, monospace;
+  color: var(--zs-ink, #1a2a3a);
+  background: #fff8e8;
+  border: 1px solid #c9a227;
+  border-radius: 0.25rem;
+  box-shadow: 0 3px 10px rgba(31, 78, 121, 0.15);
+  white-space: nowrap;
+  z-index: 90;
+}
+
 /* Low-contrast structure hints; full strip on hover/focus/pin only. */
 .zipehr-structure-anchor {
   display: block;

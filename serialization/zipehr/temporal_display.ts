@@ -1,9 +1,89 @@
 /**
  * Human-readable labels for DV_DATE/TIME/DATE_TIME/DURATION in ZipEHR HTML5
  * quiet preview (canonical ISO stays in data-zs-value).
+ *
+ * Wall-clock components are taken from the ISO string; never from the host TZ.
  */
 
-const Temporal = globalThis.Temporal;
+export interface WallDateTimeParts {
+  year: number;
+  month: number;
+  day: number;
+  hour: number;
+  minute: number;
+  second: number;
+  hasTime: boolean;
+}
+
+const EN_MONTHS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+] as const;
+
+const SV_MONTHS = [
+  "jan",
+  "feb",
+  "mar",
+  "apr",
+  "maj",
+  "jun",
+  "jul",
+  "aug",
+  "sep",
+  "okt",
+  "nov",
+  "dec",
+] as const;
+
+/** Parse openEHR-style ISO 8601; wall time is literal in the string (offset not applied). */
+export function parseWallDateTimeFromIso(iso: string): WallDateTimeParts | null {
+  const trimmed = iso.trim();
+  const dateOnly = /^(\d{4})-(\d{2})-(\d{2})$/.exec(trimmed);
+  if (dateOnly) {
+    return {
+      year: Number(dateOnly[1]),
+      month: Number(dateOnly[2]),
+      day: Number(dateOnly[3]),
+      hour: 0,
+      minute: 0,
+      second: 0,
+      hasTime: false,
+    };
+  }
+  const withTime =
+    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{0,2})?$/
+      .exec(trimmed);
+  if (!withTime) return null;
+  return {
+    year: Number(withTime[1]),
+    month: Number(withTime[2]),
+    day: Number(withTime[3]),
+    hour: Number(withTime[4]),
+    minute: Number(withTime[5]),
+    second: Number(withTime[6] ?? 0),
+    hasTime: true,
+  };
+}
+
+function pad2(n: number): string {
+  return String(n).padStart(2, "0");
+}
+
+function monthShort(locale: string, month: number): string {
+  const lang = (locale || "en").split("-")[0];
+  if (lang === "sv") return SV_MONTHS[month - 1] ?? String(month);
+  return EN_MONTHS[month - 1] ?? String(month);
+}
 
 export function formatZsDisplayDateTime(
   iso: string,
@@ -12,32 +92,28 @@ export function formatZsDisplayDateTime(
 ): string {
   if (!iso) return "";
   const loc = locale || "en";
-  try {
-    if (rmType === "DV_DATE") {
-      const plain = iso.length >= 10 ? iso.slice(0, 10) : iso;
-      const d = Temporal.PlainDate.from(plain);
-      return new Intl.DateTimeFormat(loc, { dateStyle: "medium" }).format(
-        new Date(d.year, d.month - 1, d.day),
-      );
-    }
-    if (rmType === "DV_TIME") {
-      const t = Temporal.PlainTime.from(iso.replace(/^.*T/, "") || iso);
-      return new Intl.DateTimeFormat(loc, {
-        hour: "numeric",
-        minute: "2-digit",
-      }).format(new Date(2000, 0, 1, t.hour, t.minute, t.second));
-    }
-    const instant = new Date(iso);
-    if (!Number.isNaN(instant.getTime())) {
-      return new Intl.DateTimeFormat(loc, {
-        dateStyle: "medium",
-        timeStyle: "short",
-      }).format(instant);
-    }
-  } catch {
-    /* fall through */
+  const plain = rmType === "DV_DATE"
+    ? (iso.length >= 10 ? iso.slice(0, 10) : iso)
+  : rmType === "DV_TIME"
+    ? (iso.includes("T") ? iso.split("T")[1] : iso)
+    : iso;
+  const parts = parseWallDateTimeFromIso(
+    rmType === "DV_TIME"
+      ? `2000-01-01T${plain.replace(/Z|[+-].*$/, "")}`
+      : plain,
+  );
+  if (!parts) return iso;
+  const day = parts.day;
+  const mon = monthShort(loc, parts.month);
+  const year = parts.year;
+  const dateSeg = loc.startsWith("sv")
+    ? `${day} ${mon} ${year}`
+    : `${day} ${mon} ${year}`;
+  if (rmType === "DV_DATE" || !parts.hasTime) return dateSeg;
+  if (rmType === "DV_TIME") {
+    return `${pad2(parts.hour)}:${pad2(parts.minute)}`;
   }
-  return iso;
+  return `${dateSeg} ${pad2(parts.hour)}:${pad2(parts.minute)}`;
 }
 
 /** openEHR ISO 8601 duration → short clinical phrase (weeks/days/hours…). */

@@ -16,15 +16,33 @@ const FIXTURE = new URL(
   import.meta.url,
 );
 
+const WALL_CLOCK_ISO = "2021-10-21T14:21:00+01:00";
+
 Deno.test("temporal display: English date-time and duration phrases", () => {
-  const en = formatZsDisplayDateTime(
-    "2021-10-21T14:21:00+01:00",
-    "DV_DATE_TIME",
-    "en",
-  );
-  assert(!en.includes("2021-10-21T14:21"), `expected human form, got ${en}`);
+  const en = formatZsDisplayDateTime(WALL_CLOCK_ISO, "DV_DATE_TIME", "en");
+  assertEquals(en, "21 Oct 2021 14:21");
+  assert(!en.includes("PM") && !en.includes("AM"));
   assertEquals(formatZsDisplayDuration("P3D", "en"), "3 days");
   assertEquals(formatZsDisplayDuration("P2W", "en"), "2 weeks");
+});
+
+Deno.test({
+  name: "temporal display: wall clock unchanged across process TZ",
+  permissions: { env: true },
+  fn() {
+    for (const tz of ["UTC", "America/New_York"] as const) {
+      const prev = Deno.env.get("TZ");
+      Deno.env.set("TZ", tz);
+      try {
+        const en = formatZsDisplayDateTime(WALL_CLOCK_ISO, "DV_DATE_TIME", "en");
+        assertStringIncludes(en, "14:21");
+        assertEquals(en, "21 Oct 2021 14:21");
+      } finally {
+        if (prev === undefined) Deno.env.delete("TZ");
+        else Deno.env.set("TZ", prev);
+      }
+    }
+  },
 });
 
 Deno.test("temporal display: Swedish locale differs from English", () => {
@@ -33,6 +51,9 @@ Deno.test("temporal display: Swedish locale differs from English", () => {
   assert(sv.includes("2") && en.includes("2"));
   assertStringIncludes(sv, "veck");
   assert(!en.includes("veck"));
+  const svDt = formatZsDisplayDateTime(WALL_CLOCK_ISO, "DV_DATE_TIME", "sv");
+  assertStringIncludes(svDt, "14:21");
+  assertStringIncludes(svDt, "okt");
 });
 
 Deno.test("html5 temporal human spans round-trip without leaking display text", async () => {
