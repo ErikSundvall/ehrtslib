@@ -184,3 +184,14 @@ export {
   type OptHydrateMode,
   type OptHydrateOptions,
 } from "./opt_html5_hydrate.ts";
+
+export {
+  composeQuietStructureCss,
+  stripCssImports,
+  ZIP_QUIET_STRUCTURE_CSS,
+  ZIP_QUIET_PREVIEW_SCRIPT,
+  ZIP_QUIET_STRUCTURE_TAGS,
+  ZIP_QUIET_TECH_TAGS,
+  buildZipehrPreviewDocument,
+  type ZipehrPreviewDocumentOptions,
+} from "./css/compose_quiet_css.ts";

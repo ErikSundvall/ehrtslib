@@ -3,7 +3,16 @@
  * it must be layered on the dialect default (inline `<style>` cannot resolve `@import`).
  */
 
-export const ZIP_QUIET_STRUCTURE_CSS = "zipehr-html5-quiet-structure.css";
+export {
+  ZIP_QUIET_STRUCTURE_CSS,
+  buildZipehrPreviewDocument,
+  type ZipehrPreviewDocumentOptions,
+} from "./quiet_structure_preview.ts";
+export {
+  ZIP_QUIET_PREVIEW_SCRIPT,
+  ZIP_QUIET_STRUCTURE_TAGS,
+  ZIP_QUIET_TECH_TAGS,
+} from "./quiet_structure_preview.ts";
 
 export function stripCssImports(css: string): string {
   return css.replace(/@import\s+[^;]+;/g, "").trim();

@@ -1,5 +1,5 @@
 /**
- * Quiet-structure CSS: base + overrides, structural spans in markup, oneliner/linesaving.
+ * Quiet-structure CSS: composed base + overrides, anchor tooltips, DOM hiding.
  */
 import {
   assert,
@@ -10,11 +10,10 @@ import { Window } from "npm:happy-dom@21.0.4";
 import {
   composeQuietStructureCss,
   ZIP_QUIET_STRUCTURE_CSS,
+  ZIP_QUIET_PREVIEW_SCRIPT,
+  buildZipehrPreviewDocument,
 } from "../../../serialization/zipehr/css/compose_quiet_css.ts";
 import { serializeToHtml5Variant } from "../../../serialization/zipehr/mod.ts";
-function buildZipehrDocumentHtml(markup: string, css: string): string {
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>${css}</style></head><body>${markup}</body></html>`;
-}
 
 const cssDir = new URL("../../../serialization/zipehr/css/", import.meta.url);
 const publicCssDir = new URL(
@@ -36,58 +35,99 @@ const DEMO_COMPOSITION = JSON.parse(
   ),
 ) as Record<string, unknown>;
 
+function openQuietPreview(html: string, css: string): Window {
+  const docHtml = buildZipehrPreviewDocument(html, css, {
+    quietStructureTooltips: false,
+  });
+  const win = new Window({ url: "http://127.0.0.1/" });
+  win.document.write(docHtml);
+  win.eval(ZIP_QUIET_PREVIEW_SCRIPT);
+  return win;
+}
+
 Deno.test("quiet CSS compose layers short base (block layout rules present)", async () => {
   const css = await loadComposedQuietCss();
   assertStringIncludes(css, "o-co {");
   assertStringIncludes(css, "display: block");
-  assertStringIncludes(css, ".zs-structural-label");
+  assertStringIncludes(css, ".zipehr-structure-anchor");
   assertEquals(css.includes("@import"), false);
 });
 
 for (const layout of ["linesaving", "oneliner"] as const) {
-  Deno.test(`quiet markup: structural label in span, clinical names visible (${layout})`, async () => {
+  Deno.test(`quiet markup: structural span in source, clinical names in HTML (${layout})`, async () => {
     const html = await serializeToHtml5Variant(
       DEMO_COMPOSITION,
       "zipehr.html5.short",
       { layout, propertyMode: "comment" },
     );
-  assert(html.includes('class="zs-structural-label"'));
-  assert(html.includes('data-zs-quiet-heading'));
-  assertStringIncludes(html, "Story");
-  assertStringIncludes(html, "Symptom/Sign");
-  const spanTree = html.match(
-    /<span class="zs-structural-label">Tree<\/span>/,
-  );
-  assert(spanTree, "Tree must be in structural span");
-  assert(
-    !html.includes(">Tree</o-tr>") && !html.includes(">Tree\n"),
-    "Tree must not be bare leading text on ITEM_TREE",
-  );
+    assert(html.includes('class="zs-structural-label"'));
+    assert(html.includes("data-zs-quiet-heading"));
+    assertStringIncludes(html, "Story");
+    assertStringIncludes(html, "Symptom/Sign");
+    const spanTree = html.match(
+      /<span class="zs-structural-label">Tree<\/span>/,
+    );
+    assert(spanTree, "Tree must be in structural span");
   });
 }
 
-Deno.test("quiet preview DOM: structural span present, hiding CSS applied", async () => {
+Deno.test("quiet preview DOM: anchors present, structural labels hidden, clinical visible", async () => {
   const html = await serializeToHtml5Variant(
     DEMO_COMPOSITION,
     "zipehr.html5.short",
     { layout: "linesaving", propertyMode: "comment" },
   );
   const css = await loadComposedQuietCss();
-  const docHtml = buildZipehrDocumentHtml(html, css);
-  const win = new Window({ url: "http://127.0.0.1/" });
-  win.document.write(docHtml);
-  const labels = win.document.querySelectorAll(".zs-structural-label");
-  assert(labels.length > 0, "expected quiet structural labels");
+  const win = openQuietPreview(html, css);
+
+  const anchors = win.document.querySelectorAll(".zipehr-structure-anchor");
+  assert(anchors.length > 0, "expected structure anchor strips");
+  assertEquals(
+    win.document.querySelectorAll(".zs-structural-label").length,
+    0,
+    "preview script should remove structural spans from DOM",
+  );
+
+  const treeAnchor = [...anchors].find((a) =>
+    a.getAttribute("aria-label") === "Structure: Tree"
+  );
+  assert(treeAnchor, "Tree structure anchor expected");
+
   const clinical = win.document.querySelector("o-e");
   assert(clinical, "expected clinical element");
   assert(
     (clinical?.textContent ?? "").includes("Story"),
-    "clinical label text should remain in document",
+    "clinical label text should remain visible",
   );
-  const style = win.getComputedStyle(labels[0] as Element);
   assert(
-    style.position === "absolute" || style.clip !== "auto" ||
-      style.overflow === "hidden",
-    "structural label should be visually hidden by default",
+    !(clinical?.textContent ?? "").startsWith("Tree"),
+    "structural Tree should not prefix clinical element text",
   );
+
+  const tip = treeAnchor!.querySelector(".zipehr-structure-tip");
+  assert(tip, "tooltip span expected on anchor");
+  assertStringIncludes(tip!.textContent ?? "", "Tree");
+});
+
+Deno.test("quiet preview DOM: hover class opens tooltip; click pins", async () => {
+  const html = await serializeToHtml5Variant(
+    DEMO_COMPOSITION,
+    "zipehr.html5.short",
+    { layout: "linesaving", propertyMode: "comment" },
+  );
+  const css = await loadComposedQuietCss();
+  const win = openQuietPreview(html, css);
+  const anchor = win.document.querySelector(
+    '.zipehr-structure-anchor[aria-label="Structure: Tree"]',
+  ) as HTMLElement;
+  assert(anchor);
+  anchor.dispatchEvent(new win.MouseEvent("mouseenter"));
+  assert(anchor.classList.contains("zipehr-tip-open"));
+  anchor.dispatchEvent(new win.MouseEvent("click", { bubbles: true }));
+  assert(anchor.classList.contains("zipehr-tip-pinned"));
+});
+
+Deno.test("quiet preview script is self-contained IIFE", () => {
+  assertStringIncludes(ZIP_QUIET_PREVIEW_SCRIPT, "zipehr-structure-anchor");
+  assertStringIncludes(ZIP_QUIET_PREVIEW_SCRIPT, "zipehr-tech-quiet");
 });

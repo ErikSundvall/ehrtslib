@@ -13,6 +13,7 @@ import {
 import {
   buildOptDocumentHtml,
   buildZipehrDocumentHtml,
+  isQuietStructureCssSelection,
   getOptCssSession,
   getZipehrCssSession,
   isOptHtml5Variant,
@@ -371,7 +372,11 @@ export async function renderDocumentForFormat(
         state.cssTextarea.value = session.loadedCssText;
       }
       const css = state.cssTextarea?.value ?? session.loadedCssText;
-      docHtml = buildZipehrDocumentHtml(text, css);
+      const quiet = isQuietStructureCssSelection(session.selectValue) ||
+        css.includes(".zipehr-structure-anchor");
+      docHtml = buildZipehrDocumentHtml(text, css, {
+        quietStructureTooltips: quiet,
+      });
     } else if (kind === "html-opt" && isOptHtml5Variant(formatKey)) {
       const session = getOptCssSession();
       await loadOptCssForVariant(formatKey, session);
