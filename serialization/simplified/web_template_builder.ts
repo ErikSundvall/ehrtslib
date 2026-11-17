@@ -138,10 +138,11 @@ export interface WebTemplateBuilderOptions {
    */
   applyL10nAnnotations?: boolean;
   /**
-   * Web Template root node id (and default FLAT path prefix). `"archetype"`
-   * (default): composition archetype concept (`encounter` from
-   * `openEHR-EHR-COMPOSITION.encounter.v1`). `"template"`: normalised
-   * template id (historical ehrtslib).
+   * Web Template root node id (and FLAT path prefix). `"template"` (default
+   * ehrbase profile): normalised template id (`aql_example`). `"archetype"`
+   * (ferroehr profile): composition archetype concept (`encounter` from
+   * `openEHR-EHR-COMPOSITION.encounter.v1`). The template id is the default
+   * so name-constrained sibling FLAT keys keep their prefix.
    */
   treeRootId?: "archetype" | "template";
   /**

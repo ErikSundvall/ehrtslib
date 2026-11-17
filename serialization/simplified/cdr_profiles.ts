@@ -49,11 +49,15 @@ function profileWebTemplate(profile: CdrProfile): WebTemplateOpts {
     case "ehrbase":
       // Evidence: ehrbase/openEHR_SDK OPTParser.buildId(term) for node ids
       // (github.com/ehrbase/openEHR_SDK/.../OPTParser.java); openEHR ITS-REST
-      // simplified formats examples use conformance-ehrbase.de.v0 paths in
-      // docs/vendor/simplified_formats.md; ehrtslib flat_flavours_239 EHRbase
-      // fixtures. SECTION dv_text omission vs Ferro: unverified in SDK source.
+      // simplified formats examples key FLAT paths with the template id
+      // (`conformance-ehrbase.de.v0` in docs/vendor/simplified_formats.md);
+      // ehrtslib flat_flavours_239 EHRbase fixtures. The default profile keeps
+      // that template-id root. `treeRootId: "archetype"` (Ferro's `encounter`
+      // / `report`) moves keys such as `aql_example/measurements/...` and
+      // breaks the name/value sibling SECTION round trip. SECTION dv_text
+      // omission vs Ferro: unverified in SDK source.
       return {
-        treeRootId: "archetype",
+        treeRootId: "template",
         omitSectionNameNode: true,
         renamedArchetypeRootId: "label",
         elementNameId: "term",

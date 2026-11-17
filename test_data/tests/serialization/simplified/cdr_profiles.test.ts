@@ -6,6 +6,7 @@ import {
   mergeFlatSerializerOptions,
   mergeWebTemplateBuilderOptions,
   resolveCdrProfile,
+  type WebTemplateNode,
 } from "../../../../serialization/simplified/mod.ts";
 
 Deno.test("DEFAULT_CDR_PROFILE is ehrbase", () => {
@@ -24,6 +25,9 @@ Deno.test("ferroehr profile sets WT and FLAT conventions", () => {
 
 Deno.test("ehrbase profile sets label/term WT ids and output FLAT", () => {
   const r = resolveCdrProfile({ cdrProfile: "ehrbase" });
+  // Template id, not the composition concept: name/value sibling FLAT keys
+  // stay on `aql_example/...`. Ferro keeps `treeRootId: "archetype"`.
+  assertEquals(r.webTemplate.treeRootId, "template");
   assertEquals(r.webTemplate.renamedArchetypeRootId, "label");
   assertEquals(r.webTemplate.elementNameId, "term");
   assertEquals(r.flat.flavor, "output");
@@ -45,17 +49,36 @@ Deno.test("explicit options override profile", () => {
   assertEquals(flat.locatableName, "omit");
 });
 
+function nodeIds(
+  nodes: WebTemplateNode[] | undefined,
+  out = new Set<string>(),
+): Set<string> {
+  for (const n of nodes ?? []) {
+    out.add(n.id);
+    nodeIds(n.children, out);
+  }
+  return out;
+}
+
 Deno.test("buildWebTemplate ehrbase matches explicit label/term ids", () => {
   const optUrl = new URL(
     "../../../fixtures/ferroehr/thumb-pain-encounter.v2-coded.opt",
     import.meta.url,
   );
   const opt = parseOptXml(Deno.readTextFileSync(optUrl)).operationalTemplate!;
-  const legacy = buildWebTemplate(opt, {
-    treeRootId: "archetype",
-    renamedArchetypeRootId: "label",
-    elementNameId: "term",
-  });
+  const explicit = {
+    treeRootId: "template" as const,
+    omitSectionNameNode: true,
+    renamedArchetypeRootId: "label" as const,
+    elementNameId: "term" as const,
+  };
+  const legacy = buildWebTemplate(opt, explicit);
   const profiled = buildWebTemplate(opt, { cdrProfile: "ehrbase" });
+  assertEquals(profiled.tree.id, "thumb-pain-encounter.v2-coded");
   assertEquals(profiled.tree.id, legacy.tree.id);
+  const ids = nodeIds(profiled.tree.children);
+  assertEquals([...ids].sort(), [...nodeIds(legacy.tree.children)].sort());
+  assertEquals(ids.has("tenderness"), true);
+  assertEquals(ids.has("excluded_concept"), true);
+  assertEquals(ids.has("adverse_reaction_substance"), false);
 });
