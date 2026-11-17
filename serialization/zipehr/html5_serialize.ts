@@ -15,7 +15,6 @@ import {
   formatPropertyComment,
   isLocatableLike,
   isQuietStructuralHeading,
-  isQuietTechnicalCluster,
   isZipehrLeafRmType,
   LANGUAGE_CARRIER_TYPES,
   propertySlotAmbiguous,
@@ -30,6 +29,12 @@ import {
   formatZsDisplayDateTime,
   formatZsDisplayDuration,
 } from "./temporal_display.ts";
+import {
+  attrsForTemplateAnnotations,
+  indexTemplateUiAnnotations,
+} from "./template_annotations.ts";
+import type { OptPathAnnotationMap } from "../../generation/opt_l10n.ts";
+import type { WebTemplate } from "../simplified/types.ts";
 
 export type Html5Dialect = "short" | "full" | "emoji";
 export type { RmPropertyEmitMode };
@@ -56,6 +61,10 @@ export type Html5SerializeOptions = {
    * Default: `omit` (attribute only when the parent slot is ambiguous).
    */
   propertyMode?: RmPropertyEmitMode;
+  /** OPT path annotations (Better/AD `<annotations path="…">` items). */
+  pathAnnotations?: OptPathAnnotationMap;
+  /** When set, UI annotations from the tree and {@link pathAnnotations} are emitted. */
+  webTemplate?: WebTemplate | null;
 };
 
 export const ZIPEHR_HTML5_URI = {
@@ -683,6 +692,7 @@ function buildNode(
     propertyName?: string;
     lang?: string;
     propertyMode: RmPropertyEmitMode;
+    uiAnnotationByObject?: WeakMap<object, Record<string, string>>;
   },
 ): MarkupNode | MarkupNode[] | null {
   if (node == null) return null;
@@ -750,8 +760,9 @@ function buildNode(
   const tag = tagForType(rmType, dialect);
   const attrs = [...extraAttrs, ...locatableAttrs(obj, dialect)];
 
-  if (isQuietTechnicalCluster(obj)) {
-    attrs.push({ name: "data-zs-quiet-tech", boolean: true });
+  const uiItems = options.uiAnnotationByObject?.get(obj);
+  if (uiItems) {
+    attrs.push(...attrsForTemplateAnnotations(uiItems));
   }
 
   // Native HTML `lang` for openEHR language (COMPOSITION and ENTRY subtypes).
@@ -841,6 +852,7 @@ function buildNode(
       propertyName: key,
       propertyMode: options.propertyMode,
       lang: effectiveLang,
+      uiAnnotationByObject: options.uiAnnotationByObject,
     });
     if (built == null) continue;
     if (Array.isArray(built)) children.push(...built);
@@ -975,11 +987,18 @@ export function serializeCanonicalToHtml5(
 ): string {
   const dialect = options.dialect;
   const layout = resolveLayout(dialect, options);
+  const uiAnnotationByObject = (options.webTemplate || options.pathAnnotations)
+    ? indexTemplateUiAnnotations(canonical, {
+      webTemplate: options.webTemplate,
+      pathAnnotations: options.pathAnnotations,
+    })
+    : undefined;
   const built = buildNode(canonical, dialect, {
     omitLocatableNames: options.omitLocatableNames ?? false,
     isRoot: true,
     lang: options.lang,
     propertyMode: options.propertyMode ?? "omit",
+    uiAnnotationByObject,
   });
   if (built == null) return "";
   if (Array.isArray(built)) {

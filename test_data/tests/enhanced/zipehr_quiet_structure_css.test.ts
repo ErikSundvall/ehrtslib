@@ -41,6 +41,21 @@ const GP_VISIT = JSON.parse(
   ),
 ) as Record<string, unknown>;
 
+const FERRO_WT = JSON.parse(
+  await Deno.readTextFile(
+    new URL("../../fixtures/ferroehr/ferro-flat/wt.json", import.meta.url),
+  ),
+);
+
+const CLINERGY_HIDE_ANNOT = JSON.parse(
+  await Deno.readTextFile(
+    new URL(
+      "../../fixtures/workbench-ferro/clinergy-hide-on-form-annotations.json",
+      import.meta.url,
+    ),
+  ),
+);
+
 function openQuietPreview(html: string, css: string): Window {
   const docHtml = buildZipehrPreviewDocument(html, css, {
     quietStructureTooltips: false,
@@ -149,7 +164,12 @@ Deno.test("quiet preview: archetype names visible, tech clusters hidden, human d
   const html = await serializeToHtml5Variant(
     GP_VISIT,
     "zipehr.html5.short",
-    { layout: "linesaving", propertyMode: "comment" },
+    {
+      layout: "linesaving",
+      propertyMode: "comment",
+      webTemplate: FERRO_WT,
+      pathAnnotations: CLINERGY_HIDE_ANNOT,
+    },
   );
   const css = await loadComposedQuietCss();
   const win = openQuietPreview(html, css);
@@ -157,15 +177,17 @@ Deno.test("quiet preview: archetype names visible, tech clusters hidden, human d
   assertStringIncludes(bodyText, "Encounter");
   assertStringIncludes(bodyText, "Episode duration");
   assertStringIncludes(bodyText, "3 days");
-  const techClusters = win.document.querySelectorAll("o-cl[data-zs-quiet-tech]");
+  const techClusters = win.document.querySelectorAll(
+    "o-cl[data-zs-annot-hide-on-form]",
+  );
   assert(techClusters.length >= 1);
   const displayText = [...win.document.querySelectorAll(".zs-display-value")]
     .map((n) => n.textContent ?? "")
     .join(" ");
   assert(!displayText.includes("2021-10-21T14:21:00+01:00"));
   assertStringIncludes(displayText, "2021");
-  const tech = win.document.querySelector("o-cl[data-zs-quiet-tech]");
-  assert(tech, "clinergy descriptor cluster should be marked quiet-tech");
+  const tech = win.document.querySelector("o-cl[data-zs-annot-hide-on-form]");
+  assert(tech, "clinergy descriptor cluster should have hide-on-form annotation");
 });
 
 Deno.test("quiet preview hides redundant HISTORY.origin when equal to event time", async () => {

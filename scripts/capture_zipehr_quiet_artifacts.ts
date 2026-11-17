@@ -32,11 +32,32 @@ async function loadBaseCss(): Promise<string> {
   );
 }
 
+const FERRO_WT = JSON.parse(
+  await Deno.readTextFile(
+    new URL("test_data/fixtures/ferroehr/ferro-flat/wt.json", repo),
+  ),
+);
+const CLINERGY_HIDE = JSON.parse(
+  await Deno.readTextFile(
+    new URL(
+      "test_data/fixtures/workbench-ferro/clinergy-hide-on-form-annotations.json",
+      repo,
+    ),
+  ),
+);
+
+const HTML5_OPTS = {
+  layout: "linesaving" as const,
+  propertyMode: "comment" as const,
+  webTemplate: FERRO_WT,
+  pathAnnotations: CLINERGY_HIDE,
+};
+
 async function buildDocs(comp: unknown) {
   const html = await serializeToHtml5Variant(
     comp,
     "zipehr.html5.short",
-    { layout: "linesaving", propertyMode: "comment" },
+    HTML5_OPTS,
   );
   const composed = await loadComposedQuietCss();
   const baseOnly = await loadBaseCss();
@@ -104,6 +125,19 @@ await desktop.screenshot({
   path: `${OUT}/zipehr-gp-visit-after-quiet.png`,
   fullPage: true,
 });
+const historySection = desktop.locator("o-se").filter({ hasText: "History" }).first();
+await historySection.scrollIntoViewIfNeeded();
+await historySection.screenshot({
+  path: `${OUT}/zipehr-quiet-hide-on-form-annotation.png`,
+});
+const hasHiddenClinergy = await desktop.locator(
+  "o-cl[data-zs-annot-hide-on-form]",
+).count();
+await Deno.writeTextFile(
+  `${OUT}/zipehr-hide-on-form-evidence.txt`,
+  `o-cl[data-zs-annot-hide-on-form] count in quiet GP visit: ${hasHiddenClinergy}\n` +
+    "Clinergy descriptor cluster is present in HTML but display:none via quiet CSS.\n",
+);
 await desktop.screenshot({
   path: `${OUT}/zipehr-quiet-structure-normal.png`,
   fullPage: true,
