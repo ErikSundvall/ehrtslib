@@ -10,7 +10,7 @@ export {
 } from "./quiet_structure_preview.ts";
 export {
   ZIP_QUIET_PREVIEW_SCRIPT,
-  ZIP_QUIET_STRUCTURE_TAGS,
+  ZIP_QUIET_CONTAINER_TAGS,
   ZIP_QUIET_TECH_TAGS,
 } from "./quiet_structure_preview.ts";
 

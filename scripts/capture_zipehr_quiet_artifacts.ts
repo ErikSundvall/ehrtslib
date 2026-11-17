@@ -54,14 +54,14 @@ await desktop.screenshot({
   fullPage: true,
 });
 
-const history = desktop.locator(
-  'button.zipehr-structure-anchor[aria-label="Structure: History"]',
+const tree = desktop.locator(
+  'button.zipehr-structure-anchor[aria-label*="Tree"]',
 ).first();
-await history.scrollIntoViewIfNeeded();
-await history.hover();
+await tree.scrollIntoViewIfNeeded();
+await tree.hover();
 await desktop.waitForFunction(() => {
   const tip = document.querySelector(
-    'button.zipehr-structure-anchor[aria-label="Structure: History"] .zipehr-structure-tip',
+    'button.zipehr-structure-anchor[aria-label*="Tree"] .zipehr-structure-tip',
   );
   if (!tip) return false;
   return getComputedStyle(tip).display !== "none";
@@ -77,14 +77,14 @@ const mobile = await browser.newPage({
   hasTouch: true,
 });
 await mobile.setContent(doc, { waitUntil: "load" });
-const tree = mobile.locator(
-  'button.zipehr-structure-anchor[aria-label="Structure: Tree"]',
+const mobileTree = mobile.locator(
+  'button.zipehr-structure-anchor[aria-label*="Tree"]',
 ).first();
-await tree.scrollIntoViewIfNeeded();
-await tree.click();
+await mobileTree.scrollIntoViewIfNeeded();
+await mobileTree.click();
 await mobile.waitForFunction(() =>
   document.querySelector(
-    'button.zipehr-structure-anchor[aria-label="Structure: Tree"].zipehr-tip-pinned',
+    'button.zipehr-structure-anchor[aria-label*="Tree"].zipehr-tip-pinned',
   )
 );
 await mobile.screenshot({

@@ -5,16 +5,16 @@
 
 export const ZIP_QUIET_STRUCTURE_CSS = "zipehr-html5-quiet-structure.css";
 
-/** RM containers whose leading text label is structural (not clinical). */
-export const ZIP_QUIET_STRUCTURE_TAGS = [
-  "o-co",
-  "o-se",
-  "o-ob",
+/**
+ * Data-structure RM tags that may carry a leading generic label stripped only
+ * when the serializer did not already mark `data-zs-quiet-heading`.
+ * Archetype roots (COMPOSITION, SECTION, OBSERVATION, CLUSTER, …) stay visible.
+ */
+export const ZIP_QUIET_CONTAINER_TAGS = [
   "o-hi",
   "o-pe",
   "o-ie",
   "o-tr",
-  "o-cl",
   "o-il",
   "o-is",
   "o-ta",
@@ -28,7 +28,7 @@ export const ZIP_QUIET_TECH_TAGS = ["o-cph", "o-cnt"] as const;
  * quiet structure node; hide encoding/territory noise.
  */
 export const ZIP_QUIET_PREVIEW_SCRIPT = `(() => {
-  const structureTags = ${JSON.stringify(ZIP_QUIET_STRUCTURE_TAGS)};
+  const containerTags = ${JSON.stringify(ZIP_QUIET_CONTAINER_TAGS)};
   const techTags = ${JSON.stringify(ZIP_QUIET_TECH_TAGS)};
 
   function attachAnchor(el, label) {
@@ -55,6 +55,42 @@ export const ZIP_QUIET_PREVIEW_SCRIPT = `(() => {
     });
   }
 
+  function appendLabel(anchor, extra) {
+    if (!extra) return;
+    const prev = anchor.getAttribute("aria-label") || "";
+    const merged = prev ? prev + " · " + extra : "Structure: " + extra;
+    anchor.setAttribute("aria-label", merged);
+    const tip = anchor.querySelector(".zipehr-structure-tip");
+    if (tip) tip.textContent = merged;
+  }
+
+  function collapseNestedQuietAnchors() {
+  for (const el of document.querySelectorAll(".zipehr-struct-quiet")) {
+    const parent = el.parentElement?.closest(".zipehr-struct-quiet");
+    if (!parent) continue;
+    const childAnchor = el.querySelector(":scope > .zipehr-structure-anchor");
+    const parentAnchor = parent.querySelector(":scope > .zipehr-structure-anchor");
+    if (!childAnchor || !parentAnchor) continue;
+    const childLabel = (childAnchor.getAttribute("aria-label") || "").replace("Structure: ", "");
+    appendLabel(parentAnchor, childLabel);
+    childAnchor.remove();
+    el.classList.remove("zipehr-struct-quiet");
+  }
+  }
+
+  function mergeConsecutiveAnchors() {
+    let prev = null;
+    for (const anchor of document.querySelectorAll(".zipehr-structure-anchor")) {
+      if (prev && prev.parentElement === anchor.parentElement && prev.nextElementSibling === anchor) {
+        const lbl = (anchor.getAttribute("aria-label") || "").replace("Structure: ", "");
+        appendLabel(prev, lbl);
+        anchor.remove();
+        continue;
+      }
+      prev = anchor;
+    }
+  }
+
   for (const el of document.querySelectorAll("[data-zs-quiet-heading]")) {
     const span = el.querySelector(":scope > .zs-structural-label");
     const label = (span?.textContent || el.getAttribute("title") || "").trim();
@@ -62,7 +98,7 @@ export const ZIP_QUIET_PREVIEW_SCRIPT = `(() => {
     attachAnchor(el, label);
   }
 
-  for (const tag of structureTags) {
+  for (const tag of containerTags) {
     for (const el of document.querySelectorAll(tag)) {
       if (el.hasAttribute("data-zs-quiet-heading")) continue;
       if (el.querySelector(":scope > .zipehr-structure-anchor")) continue;
@@ -79,6 +115,9 @@ export const ZIP_QUIET_PREVIEW_SCRIPT = `(() => {
     }
   }
 
+  collapseNestedQuietAnchors();
+  mergeConsecutiveAnchors();
+
   for (const tag of techTags) {
     for (const el of document.querySelectorAll(tag)) {
       const text = (el.textContent || "").trim();
@@ -87,6 +126,27 @@ export const ZIP_QUIET_PREVIEW_SCRIPT = `(() => {
       el.setAttribute("aria-hidden", "true");
     }
   }
+
+  function hideRedundantHistoryOrigin() {
+    for (const hi of document.querySelectorAll("o-hi")) {
+      const originEl = hi.querySelector(':scope > o-dt[p="origin"]');
+      if (!originEl) continue;
+      const origin = (originEl.textContent || "").trim();
+      const times = [];
+      for (const t of hi.querySelectorAll('o-pe > o-dt[p="time"], o-ie > o-dt[p="time"]')) {
+        const val = (t.textContent || "").trim();
+        if (val) times.push(val);
+      }
+      let anchor = "";
+      if (times.length === 1) anchor = times[0];
+      else if (times.length) anchor = times.slice().sort()[0];
+      if (origin && anchor && origin === anchor) {
+        originEl.classList.add("zipehr-tech-quiet");
+        originEl.setAttribute("aria-hidden", "true");
+      }
+    }
+  }
+  hideRedundantHistoryOrigin();
 })();`;
 
 export type ZipehrPreviewDocumentOptions = {

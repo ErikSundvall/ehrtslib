@@ -89,9 +89,16 @@ Deno.test("quiet preview DOM: anchors present, structural labels hidden, clinica
   );
 
   const treeAnchor = [...anchors].find((a) =>
-    a.getAttribute("aria-label") === "Structure: Tree"
+    (a.getAttribute("aria-label") ?? "").includes("Tree")
   );
   assert(treeAnchor, "Tree structure anchor expected");
+
+  const bodyText = win.document.body.textContent ?? "";
+  assertStringIncludes(bodyText, "Encounter");
+  assertStringIncludes(bodyText, "History");
+  assertStringIncludes(bodyText, "Story/History");
+  assertStringIncludes(bodyText, "Symptom/Sign");
+  assertStringIncludes(bodyText, "Anatomical location");
 
   const clinical = win.document.querySelector("o-e");
   assert(clinical, "expected clinical element");
@@ -100,8 +107,8 @@ Deno.test("quiet preview DOM: anchors present, structural labels hidden, clinica
     "clinical label text should remain visible",
   );
   assert(
-    !(clinical?.textContent ?? "").startsWith("Tree"),
-    "structural Tree should not prefix clinical element text",
+    !bodyText.includes("TreeAny event") && !/^\\s*Tree\\s*$/m.test(bodyText),
+    "generic Tree label should not appear as visible heading text",
   );
 
   const tip = treeAnchor!.querySelector(".zipehr-structure-tip");
@@ -118,7 +125,7 @@ Deno.test("quiet preview DOM: hover class opens tooltip; click pins", async () =
   const css = await loadComposedQuietCss();
   const win = openQuietPreview(html, css);
   const anchor = win.document.querySelector(
-    '.zipehr-structure-anchor[aria-label="Structure: Tree"]',
+    '.zipehr-structure-anchor[aria-label*="Tree"]',
   ) as HTMLElement;
   assert(anchor);
   anchor.dispatchEvent(new win.MouseEvent("mouseenter"));
@@ -130,4 +137,22 @@ Deno.test("quiet preview DOM: hover class opens tooltip; click pins", async () =
 Deno.test("quiet preview script is self-contained IIFE", () => {
   assertStringIncludes(ZIP_QUIET_PREVIEW_SCRIPT, "zipehr-structure-anchor");
   assertStringIncludes(ZIP_QUIET_PREVIEW_SCRIPT, "zipehr-tech-quiet");
+});
+
+Deno.test("quiet preview hides redundant HISTORY.origin when equal to event time", async () => {
+  const html = await serializeToHtml5Variant(
+    DEMO_COMPOSITION,
+    "zipehr.html5.short",
+    { layout: "linesaving", propertyMode: "comment" },
+  );
+  const css = await loadComposedQuietCss();
+  const win = openQuietPreview(html, css);
+  const hiddenOrigin = win.document.querySelector(
+    'o-hi > o-dt[p="origin"].zipehr-tech-quiet',
+  );
+  assert(hiddenOrigin, "redundant origin should be hidden in quiet preview");
+  const visibleTimes = [
+    ...win.document.querySelectorAll('o-pe o-dt[p="time"]:not(.zipehr-tech-quiet)'),
+  ];
+  assert(visibleTimes.length >= 1, "event time should remain visible");
 });
