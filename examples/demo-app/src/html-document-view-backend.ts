@@ -3,6 +3,10 @@
  */
 
 import {
+  composeQuietStructureCss,
+  ZIP_QUIET_STRUCTURE_CSS,
+} from "../../../serialization/zipehr/css/compose_quiet_css.ts";
+import {
   wrapOptHtml5PreviewDocument,
   type OptHydrateMode,
 } from "../../../serialization/zipehr/opt_html5_hydrate.ts";
@@ -99,6 +103,15 @@ export async function loadZipehrCssForVariant(
   if (!file) {
     session.loadedCssText = "";
     return "";
+  }
+  if (file === ZIP_QUIET_STRUCTURE_CSS) {
+    const baseName = ZIP_DEFAULT_CSS[variant] ?? "zipehr-html5-short.css";
+    const [base, quiet] = await Promise.all([
+      fetchCssFile(baseName),
+      fetchCssFile(file),
+    ]);
+    session.loadedCssText = composeQuietStructureCss(base, quiet);
+    return session.loadedCssText;
   }
   session.loadedCssText = await fetchCssFile(file);
   return session.loadedCssText;

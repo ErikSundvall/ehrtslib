@@ -735,7 +735,9 @@ function buildNode(
           continue;
         }
       }
-      if (dialect !== "short") {
+      if (dialect === "short") {
+        attrs.push({ name: field === "territory" ? "ter" : "enc", value: cp.code });
+      } else {
         attrs.push({ name: field, value: cp.code });
       }
     }
@@ -767,7 +769,7 @@ function buildNode(
         return false;
       }
       if (
-        rmType === "COMPOSITION" && dialect !== "short" &&
+        rmType === "COMPOSITION" &&
         (k === "territory" || k === "encoding") &&
         unwrapCodePhrase(obj[k]).code
       ) {
@@ -776,7 +778,15 @@ function buildNode(
       return true;
     });
 
-  const children: MarkupNode[] = [];
+  const quietStructural = isQuietStructuralHeading(rmType, nodeId) && !!quietLabel;
+  const children: MarkupNode[] = quietStructural
+    ? [
+      markup("span", [{ name: "class", value: "zs-structural-label" }], {
+        textContent: quietLabel,
+      }),
+    ]
+    : [];
+
   for (const key of childKeys) {
     const child = obj[key];
     const built = buildNode(child, dialect, {
@@ -792,7 +802,7 @@ function buildNode(
   }
 
   return markup(tag, attrs, {
-    leadingText: nameText,
+    leadingText: quietStructural ? "" : nameText,
     children,
     propertyComment: propertyCommentName,
   });

@@ -188,8 +188,18 @@ function normalizeOrderedElement(
 function leadingText(node: Html5Element): string {
   const parts: string[] = [];
   for (const child of node.children) {
-    if (isText(child)) parts.push(child.text);
-    else break;
+    if (isText(child)) {
+      parts.push(child.text);
+      continue;
+    }
+    if (
+      isElement(child) &&
+      child.tag === "span" &&
+      child.attrs.class === "zs-structural-label"
+    ) {
+      return elementText(child);
+    }
+    break;
   }
   return parts.join("").trim();
 }
@@ -730,13 +740,14 @@ function deserializeElement(
 
   // COMPOSITION territory / encoding promotions (emoji + full attr names)
   if (rmType === "COMPOSITION") {
-    for (const { field, prefix, emoji } of [
-      { field: "territory", prefix: "ISO_3166-1", emoji: "🌐" },
-      { field: "encoding", prefix: "IANA_character-sets", emoji: "🔤" },
+    for (const { field, prefix, emoji, short } of [
+      { field: "territory", prefix: "ISO_3166-1", emoji: "🌐", short: "ter" },
+      { field: "encoding", prefix: "IANA_character-sets", emoji: "🔤", short: "enc" },
     ]) {
       const fromEmoji = node.attrs[emoji];
       const fromName = node.attrs[field];
-      const code = fromEmoji ?? fromName;
+      const fromShort = node.attrs[short];
+      const code = fromEmoji ?? fromName ?? fromShort;
       if (code != null) {
         out[field] = {
           _type: "CODE_PHRASE",
@@ -756,6 +767,7 @@ function deserializeElement(
   if (out.territory != null) used.add("territory");
   if (out.encoding != null) used.add("encoding");
   for (const child of childElements(node)) {
+    if (child.tag === "span") continue;
     // Skip quantity/proportion nested value tags that aren't o-*
     if (!child.tag.startsWith("o-") && !child.tag.includes("-")) {
       // Could be mag/unit etc. under wrong parent — ignore at structure level
