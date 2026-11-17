@@ -93,6 +93,11 @@ async function screenshotHoverClip(
   });
 }
 
+const painRich = JSON.parse(
+  await Deno.readTextFile(
+    new URL("test_data/fixtures/workbench-ferro/02-pain-rich.json", repo),
+  ),
+);
 const gpEn = JSON.parse(
   await Deno.readTextFile(
     new URL("test_data/fixtures/workbench-ferro/gp-visit-full-en.json", repo),
@@ -125,19 +130,28 @@ await desktop.screenshot({
   path: `${OUT}/zipehr-gp-visit-after-quiet.png`,
   fullPage: true,
 });
-const historySection = desktop.locator("o-se").filter({ hasText: "History" }).first();
+const { quietDoc: painQuiet } = await buildDocs(painRich);
+const painPage = await browser.newPage({ viewport: { width: 960, height: 800 } });
+await painPage.setContent(painQuiet, { waitUntil: "load" });
+const historySection = painPage.locator("o-se").filter({ hasText: "History" }).first();
 await historySection.scrollIntoViewIfNeeded();
 await historySection.screenshot({
   path: `${OUT}/zipehr-quiet-hide-on-form-annotation.png`,
 });
-const hasHiddenClinergy = await desktop.locator(
+const hasHiddenClinergy = await painPage.locator(
   "o-cl[data-zs-annot-hide-on-form]",
 ).count();
+const visibleClinergyLabel = await painPage
+  .locator("o-cl[data-zs-annot-hide-on-form]")
+  .first()
+  .evaluate((el) => getComputedStyle(el).display)
+  .catch(() => "missing");
 await Deno.writeTextFile(
   `${OUT}/zipehr-hide-on-form-evidence.txt`,
-  `o-cl[data-zs-annot-hide-on-form] count in quiet GP visit: ${hasHiddenClinergy}\n` +
-    "Clinergy descriptor cluster is present in HTML but display:none via quiet CSS.\n",
+  `o-cl[data-zs-annot-hide-on-form] count (02-pain-rich): ${hasHiddenClinergy}\n` +
+    `computed display on first marked cluster: ${visibleClinergyLabel}\n`,
 );
+await painPage.close();
 await desktop.screenshot({
   path: `${OUT}/zipehr-quiet-structure-normal.png`,
   fullPage: true,
