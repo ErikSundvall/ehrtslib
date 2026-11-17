@@ -25,10 +25,11 @@ export function normalizeWebTemplateId(text: string): string {
  * (dots and dashes retained, e.g. "conformance-ehrbase.de.v0").
  *
  * FLAT keys use {@link flatRootId}, which prefers the Web Template's own
- * `tree.id`. By default ehrtslib's builder sets `tree.id` to the composition
- * archetype concept (same as FerroEHR and EHRbase); `treeRootId: "template"`
- * keeps the normalised template id. CDR Web Templates use the root archetype
- * concept (`encounter`), not the template id.
+ * `tree.id`. The default (ehrbase) profile sets `tree.id` to this normalised
+ * template id, so name-constrained sibling FLAT keys stay on that prefix.
+ * `cdrProfile: "ferroehr"` or `treeRootId: "archetype"` uses the composition
+ * archetype concept (`encounter`, `report`), which is what a Ferro Web
+ * Template puts in `tree.id`.
  */
 export function templateRootId(templateId: string): string {
   return normalizeWebTemplateId(templateId);
