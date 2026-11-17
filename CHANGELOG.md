@@ -8,6 +8,8 @@ Add an entry under **Unreleased** in every PR that changes user-visible behaviou
 
 ## [Unreleased]
 
+- **Behaviour.** ZipEHR `zipehr.html5/short` lossless round-trip fixes (ordered XML parse, comment-mode `p`, PARTY_IDENTIFIED `name`, coded LOCATABLE names) and optional `zipehr-html5-quiet-structure.css` for template-default container labels ([#322](https://github.com/ErikSundvall/ehrtslib/pull/322)).
+- **Behaviour.** ITS-XML: repeating list tags via parser `isArray`, `parseTagValue: false`, ELEMENT `DV_BOOLEAN` as text value (workbench parity) ([#322](https://github.com/ErikSundvall/ehrtslib/pull/322)).
 - **Behaviour.** `cdrProfile` (`"ferroehr"` \| `"ehrbase"` \| `"better"`, default `"ehrbase"`) bundles Web Template and FLAT conventions for `buildWebTemplate`, `serializeToFlat`, and `validateFlatPayload`; per-option overrides unchanged. Evidence and **unverified** notes (including that Ferro live POST was not tested) in `cdr_profiles.ts` and `SIMPLIFIED_FORMATS.md` ([#318](https://github.com/ErikSundvall/ehrtslib/pull/318)).
 - **Behaviour.** FLAT keys must start with `tree.id` only; the normalised `templateId` root alias is removed ([#318](https://github.com/ErikSundvall/ehrtslib/pull/318)).
 - **Behaviour.** Input-flavour `ctx/setting` writes the openEHR setting **code** on the bare key when available (ITS-REST simplified formats; aligns with Ferro export fixtures).

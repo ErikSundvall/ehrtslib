@@ -55,7 +55,7 @@ export function shouldEmitPropertyAttribute(
   mode: RmPropertyEmitMode,
   ambiguous: boolean,
 ): boolean {
-  if (mode === "attribute") return true;
+  if (mode === "attribute" || mode === "comment") return true;
   return ambiguous;
 }
 
@@ -100,6 +100,32 @@ export function propertySlotAmbiguous(
 /** Whether `rmType` is a LOCATABLE (or subtype). */
 export function isLocatableLike(rmType: string): boolean {
   return TypeInferenceEngine.isLocatableLike(rmType);
+}
+
+/**
+ * Standard openEHR template `at` node ids for RM container slots (language-neutral).
+ * Used by quiet-structure CSS to hide default labels while keeping them for a11y/tooltip.
+ */
+export function isQuietStructuralHeading(
+  rmType: string,
+  archetypeNodeId: string | undefined,
+): boolean {
+  if (!archetypeNodeId || !/^at\d{4}$/.test(archetypeNodeId)) return false;
+  switch (rmType) {
+    case "HISTORY":
+      return archetypeNodeId === "at0001";
+    case "POINT_EVENT":
+    case "INTERVAL_EVENT":
+      return archetypeNodeId === "at0002" || archetypeNodeId === "at0003";
+    case "ITEM_TREE":
+      return archetypeNodeId === "at0001" ||
+        archetypeNodeId === "at0003" ||
+        archetypeNodeId === "at0004";
+    case "ITEM_LIST":
+      return archetypeNodeId === "at0001" || archetypeNodeId === "at0002";
+    default:
+      return false;
+  }
 }
 
 /**

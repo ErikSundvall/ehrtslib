@@ -176,6 +176,10 @@ export function zipehrCssSelectOptions(): { value: string; label: string }[] {
     { value: "zipehr-html5-short.css", label: "zipehr-html5-short.css" },
     { value: "zipehr-html5-full.css", label: "zipehr-html5-full.css" },
     { value: "zipehr-html5-emoji.css", label: "zipehr-html5-emoji.css" },
+    {
+      value: "zipehr-html5-quiet-structure.css",
+      label: "zipehr-html5-quiet-structure.css",
+    },
     { value: "none", label: "None" },
     { value: "custom", label: "Custom" },
   ];

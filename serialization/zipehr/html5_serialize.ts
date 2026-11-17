@@ -14,6 +14,7 @@ import {
 import {
   formatPropertyComment,
   isLocatableLike,
+  isQuietStructuralHeading,
   isZipehrLeafRmType,
   LANGUAGE_CARRIER_TYPES,
   propertySlotAmbiguous,
@@ -278,6 +279,24 @@ function extractNameValue(obj: Record<string, unknown>): string {
     if (n.value != null) return String(n.value);
   }
   return "";
+}
+
+/** Plain string / DV_TEXT names use leading text; coded or machine names become child nodes. */
+function shouldSerializeNameAsChild(name: unknown): boolean {
+  if (name == null) return false;
+  if (typeof name === "string") return false;
+  if (typeof name !== "object" || Array.isArray(name)) return false;
+  const n = name as Record<string, unknown>;
+  const t = String(n._type ?? "DV_TEXT");
+  if (t === "DV_CODED_TEXT") return true;
+  if (t === "DV_TEXT") {
+    return n.formatting != null ||
+      n.hyperlink != null ||
+      n.mappings != null ||
+      n.encoding != null ||
+      n.language != null;
+  }
+  return true;
 }
 
 function extractArchetypeDetails(obj: Record<string, unknown>): {
@@ -595,19 +614,6 @@ function renderDvLeaf(
   return markup(tag, attrs, { textContent: text || undefined });
 }
 
-function orderedKeys(
-  parentType: string | undefined,
-  keys: string[],
-): string[] {
-  if (!parentType) return keys;
-  const preferred = propertyTypesFor(parentType);
-  const order = Object.keys(preferred);
-  if (order.length === 0) return keys;
-  const inOrder = order.filter((k) => keys.includes(k));
-  const rest = keys.filter((k) => !order.includes(k));
-  return [...inOrder, ...rest];
-}
-
 function propertyAttrName(dialect: Html5Dialect): string {
   return dialect === "full" ? "property" : "p";
 }
@@ -735,10 +741,24 @@ function buildNode(
     }
   }
 
-  const nameText = options.omitLocatableNames ? "" : extractNameValue(obj);
-  const childKeys = orderedKeys(
-    rmType,
-    Object.keys(obj).filter((k) => {
+  const nameText = options.omitLocatableNames ||
+      shouldSerializeNameAsChild(obj.name)
+    ? ""
+    : extractNameValue(obj);
+
+  const nodeId = obj.archetype_node_id != null
+    ? String(obj.archetype_node_id)
+    : undefined;
+  const quietLabel = options.omitLocatableNames ? "" : extractNameValue(obj);
+  if (isQuietStructuralHeading(rmType, nodeId) && quietLabel) {
+    attrs.push({ name: "title", value: quietLabel });
+    attrs.push({ name: "data-zs-quiet-heading", boolean: true });
+    attrs.push({ name: "tabindex", value: "0" });
+  }
+
+  // Preserve canonical JSON key order (lossless html5 round-trip); do not RM-reorder.
+  const childKeys = Object.keys(obj).filter((k) => {
+      if (k === "name" && shouldSerializeNameAsChild(obj.name)) return true;
       if (SKIP_PROPS.has(k)) return false;
       if (
         LANGUAGE_CARRIER_TYPES.has(rmType) && k === "language" &&
@@ -754,8 +774,7 @@ function buildNode(
         return false;
       }
       return true;
-    }),
-  );
+    });
 
   const children: MarkupNode[] = [];
   for (const key of childKeys) {

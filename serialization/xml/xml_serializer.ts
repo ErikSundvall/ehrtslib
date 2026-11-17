@@ -141,12 +141,12 @@ export class XmlSerializer {
 
       // Handle nested objects and primitives
       if (typeof value === "object" && !Array.isArray(value)) {
-        rootContent[key] = this.convertNestedObject(value, config);
+        rootContent[key] = this.convertNestedObject(value, config, key);
       } else if (Array.isArray(value)) {
         // For arrays, create multiple elements with the same name
         rootContent[key] = value.map((item) =>
           typeof item === "object"
-            ? this.convertNestedObject(item, config)
+            ? this.convertNestedObject(item, config, key)
             : (typeof item === "number" ? this.formatNumber(item) : item)
         );
       } else {
@@ -183,6 +183,7 @@ export class XmlSerializer {
   private convertNestedObject(
     obj: any,
     config: Required<XmlSerializationConfig>,
+    parentPropertyKey?: string,
   ): any {
     if (obj === null || obj === undefined) {
       return null;
@@ -193,13 +194,23 @@ export class XmlSerializer {
     }
 
     if (Array.isArray(obj)) {
-      return obj.map((item) => this.convertNestedObject(item, config));
+      return obj.map((item) => this.convertNestedObject(item, config, parentPropertyKey));
+    }
+
+    const typeName = TypeRegistry.getTypeNameFromInstance(obj);
+
+    // ITS-XML: ELEMENT `value` with DV_BOOLEAN uses element text, not nested `<value>`.
+    if (parentPropertyKey === "value" && typeName === "DV_BOOLEAN") {
+      const wire: any = { "@_xsi:type": "DV_BOOLEAN" };
+      if (obj.value !== undefined && obj.value !== null) {
+        wire["#text"] = obj.value === true || obj.value === "true" ? "true" : "false";
+      }
+      return wire;
     }
 
     const result: any = {};
 
     // Add xsi:type for polymorphic types
-    const typeName = TypeRegistry.getTypeNameFromInstance(obj);
     if (typeName) {
       result["@_xsi:type"] = typeName;
     }
@@ -225,11 +236,11 @@ export class XmlSerializer {
       if (Array.isArray(value)) {
         result[key] = value.map((item) =>
           typeof item === "object"
-            ? this.convertNestedObject(item, config)
+            ? this.convertNestedObject(item, config, key)
             : (typeof item === "number" ? this.formatNumber(item) : item)
         );
       } else if (typeof value === "object") {
-        result[key] = this.convertNestedObject(value, config);
+        result[key] = this.convertNestedObject(value, config, key);
       } else {
         result[key] = typeof value === "number"
           ? this.formatNumber(value)

@@ -127,67 +127,62 @@ function parseFragment(text: string): Html5Element {
     trimValues: false,
     parseTagValue: false,
     allowBooleanAttributes: true,
-    // Preserve order / unicode tag names
-    isArray: () => false,
+    preserveOrder: true,
   });
   const parsed = parser.parse(trimmed);
-  if (!parsed || typeof parsed !== "object") {
+  if (!Array.isArray(parsed) || parsed.length !== 1) {
     throw new Error("Unable to parse ZipEHR HTML5 fragment");
   }
-  const record = parsed as Record<string, unknown>;
-  const rootKey = Object.keys(record).find((k) =>
-    !k.startsWith("?") && k !== "#text"
-  );
-  if (!rootKey) throw new Error("ZipEHR HTML5 fragment has no root element");
-  return normalizeNode(rootKey, record[rootKey]);
+  const rootRecord = parsed[0];
+  if (!rootRecord || typeof rootRecord !== "object") {
+    throw new Error("ZipEHR HTML5 fragment has no root element");
+  }
+  return normalizeOrderedElement(rootRecord as Record<string, unknown>);
 }
 
-function normalizeNode(tag: string, raw: unknown): Html5Element {
-  const attrs: Record<string, string> = {};
-  const children: Html5Node[] = [];
+/** fast-xml-parser `preserveOrder` shape: `{ tag: childNodes[], ":@": attrs }`. */
+function normalizeOrderedChild(raw: unknown): Html5Node {
+  if (!raw || typeof raw !== "object") {
+    throw new Error("Invalid ZipEHR HTML5 child node");
+  }
+  const obj = raw as Record<string, unknown>;
+  if ("#text" in obj) {
+    const text = String(obj["#text"] ?? "");
+    if (!text) throw new Error("Empty #text node in ZipEHR HTML5");
+    return { kind: "text", text };
+  }
+  return normalizeOrderedElement(obj);
+}
 
-  if (raw && typeof raw === "object" && !Array.isArray(raw)) {
-    const obj = raw as Record<string, unknown>;
-    for (const [key, value] of Object.entries(obj)) {
+function normalizeOrderedElement(
+  item: Record<string, unknown>,
+): Html5Element {
+  const attrs: Record<string, string> = {};
+  const attrBag = item[":@"];
+  if (attrBag && typeof attrBag === "object") {
+    for (const [key, value] of Object.entries(
+      attrBag as Record<string, unknown>,
+    )) {
       if (key.startsWith("@_")) {
         attrs[key.slice(2)] = String(value ?? "");
-        continue;
-      }
-      if (key === "#text") {
-        const text = String(value);
-        if (text) children.push({ kind: "text", text });
-        continue;
-      }
-      appendChildNodes(children, key, value);
-    }
-  } else if (Array.isArray(raw)) {
-    for (const item of raw) {
-      if (item && typeof item === "object") {
-        const obj = item as Record<string, unknown>;
-        const childTag = Object.keys(obj).find((k) =>
-          !k.startsWith("@_") && k !== "#text"
-        );
-        if (childTag) appendChildNodes(children, childTag, obj[childTag]);
       }
     }
-  } else if (raw != null && raw !== "") {
-    children.push({ kind: "text", text: String(raw) });
+  }
+
+  const tag = Object.keys(item).find((k) => k !== ":@" && k !== "#text");
+  if (!tag) throw new Error("ZipEHR HTML5 element has no tag name");
+
+  const children: Html5Node[] = [];
+  const content = item[tag];
+  if (Array.isArray(content)) {
+    for (const child of content) {
+      children.push(normalizeOrderedChild(child));
+    }
+  } else if (content != null && content !== "") {
+    children.push({ kind: "text", text: String(content) });
   }
 
   return { tag, attrs, children };
-}
-
-function appendChildNodes(
-  out: Html5Node[],
-  tag: string,
-  raw: unknown,
-): void {
-  if (raw == null) return;
-  if (Array.isArray(raw)) {
-    for (const item of raw) out.push(normalizeNode(tag, item));
-    return;
-  }
-  out.push(normalizeNode(tag, raw));
 }
 
 function leadingText(node: Html5Element): string {
@@ -449,10 +444,10 @@ function canonicalCodePhrase(
 ): Record<string, unknown> | undefined {
   if (!code && !terminology) return undefined;
   const out: Record<string, unknown> = { _type: "CODE_PHRASE" };
-  if (code) out.code_string = code;
   if (terminology) {
     out.terminology_id = { _type: "TERMINOLOGY_ID", value: terminology };
   }
+  if (code) out.code_string = code;
   return out;
 }
 
@@ -698,9 +693,14 @@ function deserializeElement(
   }
 
   const out: Record<string, unknown> = { _type: rmType };
-  const name = leadingText(node);
-  if (name) {
-    out.name = { _type: "DV_TEXT", value: name };
+  const nameLeading = leadingText(node);
+  if (nameLeading) {
+    // openEHR RM: PARTY_* `name` is `String`, LOCATABLE uses `DV_TEXT`.
+    if (rmType === "PARTY_IDENTIFIED" || rmType === "PARTY_RELATED") {
+      out.name = nameLeading;
+    } else {
+      out.name = { _type: "DV_TEXT", value: nameLeading };
+    }
   }
 
   const meta = readLocatableMeta(node.attrs, dialect);
@@ -748,15 +748,13 @@ function deserializeElement(
   }
 
   const used = new Set<string>([
-    "name",
     "archetype_node_id",
     "archetype_details",
   ]);
+  if (out.name != null) used.add("name");
   if (out.language != null) used.add("language");
   if (out.territory != null) used.add("territory");
   if (out.encoding != null) used.add("encoding");
-  const propAttr = node.attrs.p ?? node.attrs.property;
-
   for (const child of childElements(node)) {
     // Skip quantity/proportion nested value tags that aren't o-*
     if (!child.tag.startsWith("o-") && !child.tag.includes("-")) {
@@ -777,7 +775,7 @@ function deserializeElement(
     >;
     childType = String(childObj._type ?? childType);
 
-    const explicit = child.attrs.p ?? child.attrs.property ?? propAttr;
+    const explicit = child.attrs.p ?? child.attrs.property;
     const prop = inferProperty(rmType, childType, explicit, used);
     if (!prop) {
       // Fall back: stash under a synthetic key only if needed
@@ -801,7 +799,26 @@ function deserializeElement(
     }
   }
 
+  if (isLocatableLike(rmType)) {
+    return finalizeLocatableKeyOrder(out);
+  }
   return out;
+}
+
+/** Match canonical JSON: LOCATABLE `name` before `archetype_node_id` / `archetype_details`. */
+function finalizeLocatableKeyOrder(
+  out: Record<string, unknown>,
+): Record<string, unknown> {
+  const ordered: Record<string, unknown> = { _type: out._type };
+  const head = ["name", "archetype_node_id", "archetype_details"] as const;
+  for (const k of head) {
+    if (out[k] != null) ordered[k] = out[k];
+  }
+  for (const [k, v] of Object.entries(out)) {
+    if (k === "_type" || (head as readonly string[]).includes(k)) continue;
+    ordered[k] = v;
+  }
+  return ordered;
 }
 
 /** Detect HTML5 dialect from markup (`fmt` attr or tag shape). */

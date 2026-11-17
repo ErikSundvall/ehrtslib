@@ -146,6 +146,7 @@ Default browser stylesheets for readable clinical display live in [`css/`](css/)
 | `html5/short` | [`css/zipehr-html5-short.css`](css/zipehr-html5-short.css) |
 | `html5/full` | [`css/zipehr-html5-full.css`](css/zipehr-html5-full.css) |
 | `html5/emoji` | [`css/zipehr-html5-emoji.css`](css/zipehr-html5-emoji.css) |
+| `html5` quiet structure | [`css/zipehr-html5-quiet-structure.css`](css/zipehr-html5-quiet-structure.css) — hides default RM container labels (at-coded HISTORY / EVENT / ITEM_TREE / ITEM_LIST slots); native `title` + hover/`focus-within` reveal; `tabindex="0"` for touch |
 | `opt.html5/short` | [`css/opt-html5-short.css`](css/opt-html5-short.css) |
 | `opt.html5/full` | [`css/opt-html5-full.css`](css/opt-html5-full.css) |
 | `opt.html5/emoji` | [`css/opt-html5-emoji.css`](css/opt-html5-emoji.css) |

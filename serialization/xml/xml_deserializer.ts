@@ -2,8 +2,9 @@ import { XMLParser } from "fast-xml-parser";
 import { TypeRegistry } from "../common/type_registry.ts";
 import { DeserializationError, TypeNotFoundError } from "../common/errors.ts";
 import {
+  DEFAULT_XML_DESERIALIZATION_CONFIG,
+  itsXmlTagIsRepeatingList,
   XmlDeserializationConfig,
-  DEFAULT_XML_DESERIALIZATION_CONFIG
 } from "./xml_config.ts";
 import { validateDeserializedInstance } from "../common/post_deserialize_validation.ts";
 
@@ -38,12 +39,10 @@ export class XmlDeserializer {
         ignoreAttributes: this.config.ignoreAttributes,
         attributeNamePrefix: "@_",
         parseAttributeValue: false,
-        parseTagValue: true,
+        parseTagValue: false,
         trimValues: true,
-        isArray: (name, jpath, isLeafNode, isAttribute) => {
-          // Arrays are handled during reconstruction
-          return false;
-        }
+        isArray: (name, _jpath, _isLeafNode, isAttribute) =>
+          !isAttribute && itsXmlTagIsRepeatingList(name),
       });
       
       const parsed = parser.parse(xml);
@@ -75,8 +74,10 @@ export class XmlDeserializer {
         ignoreAttributes: this.config.ignoreAttributes,
         attributeNamePrefix: "@_",
         parseAttributeValue: false,
-        parseTagValue: true,
-        trimValues: true
+        parseTagValue: false,
+        trimValues: true,
+        isArray: (name, _jpath, _isLeafNode, isAttribute) =>
+          !isAttribute && itsXmlTagIsRepeatingList(name),
       });
       
       const parsed = parser.parse(xml);
@@ -150,6 +151,18 @@ export class XmlDeserializer {
       return this.reconstructPlainObject(data);
     }
     
+    if (typeName === "DV_BOOLEAN") {
+      const instance = new Constructor();
+      const raw = typeof data === "object" && data !== null && !Array.isArray(data)
+        ? (data as Record<string, unknown>).value ?? (data as Record<string, unknown>)["#text"]
+        : data;
+      if (typeof raw === "boolean") instance.value = raw;
+      else if (typeof raw === "string") {
+        instance.value = raw.trim().toLowerCase() === "true";
+      }
+      return instance;
+    }
+
     // Create instance
     const instance = new Constructor();
     
@@ -176,7 +189,8 @@ export class XmlDeserializer {
               : item
           );
         } else {
-          instance[key] = this.reconstructObject(value, key);
+          const nested = this.reconstructObject(value, key);
+          instance[key] = itsXmlTagIsRepeatingList(key) ? [nested] : nested;
         }
       } else {
         instance[key] = value;
@@ -206,7 +220,10 @@ export class XmlDeserializer {
         const propName = key.substring(2);
         result[propName] = value;
       } else if (typeof value === 'object') {
-        result[key] = this.reconstructPlainObject(value);
+        const nested = this.reconstructPlainObject(value);
+        result[key] = itsXmlTagIsRepeatingList(key)
+          ? Array.isArray(nested) ? nested : [nested]
+          : nested;
       } else {
         result[key] = value;
       }
