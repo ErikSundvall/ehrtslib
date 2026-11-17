@@ -30,7 +30,7 @@ import {
   formatZsDisplayDuration,
 } from "./temporal_display.ts";
 import {
-  attrsForPresentation,
+  applyPresentationAttrs,
   indexTemplatePresentation,
 } from "./template_annotations.ts";
 import type { OptPathAnnotationMap } from "../../generation/opt_l10n.ts";
@@ -764,11 +764,6 @@ function buildNode(
   const tag = tagForType(rmType, dialect);
   const attrs = [...extraAttrs, ...locatableAttrs(obj, dialect)];
 
-  const presentation = options.presentationByObject?.get(obj);
-  if (presentation) {
-    attrs.push(...attrsForPresentation(presentation));
-  }
-
   // Native HTML `lang` for openEHR language (COMPOSITION and ENTRY subtypes).
   if (LANGUAGE_CARRIER_TYPES.has(rmType)) {
     const langCode = unwrapCodePhrase(obj.language).code ??
@@ -816,6 +811,11 @@ function buildNode(
     attrs.push({ name: "title", value: quietLabel });
     attrs.push({ name: "data-zs-quiet-heading", boolean: true });
     attrs.push({ name: "tabindex", value: "0" });
+  }
+
+  const presentation = options.presentationByObject?.get(obj);
+  if (presentation) {
+    applyPresentationAttrs(attrs, presentation, dialect);
   }
 
   // Preserve canonical JSON key order (lossless html5 round-trip); do not RM-reorder.

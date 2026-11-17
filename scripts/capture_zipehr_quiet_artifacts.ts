@@ -134,19 +134,19 @@ await painPage.setContent(painQuiet, { waitUntil: "load" });
 const historySection = painPage.locator("o-se").filter({ hasText: "History" }).first();
 await historySection.scrollIntoViewIfNeeded();
 await historySection.screenshot({
-  path: `${OUT}/zipehr-quiet-opt-view-hide.png`,
+  path: `${OUT}/zipehr-quiet-html-passthrough-hide.png`,
 });
 const hasHiddenClinergy = await painPage.locator(
-  '[data-opt-visibility="hide"]',
+  '[data-hide-on-form="true"]',
 ).count();
 const visibleClinergyLabel = await painPage
-  .locator('[data-opt-visibility="hide"]')
+  .locator('[data-hide-on-form="true"]')
   .first()
   .evaluate((el) => getComputedStyle(el).display)
   .catch(() => "missing");
 await Deno.writeTextFile(
-  `${OUT}/zipehr-opt-view-hide-evidence.txt`,
-  `[data-opt-visibility="hide"] count (02-pain-rich + OPT view): ${hasHiddenClinergy}\n` +
+  `${OUT}/zipehr-html-passthrough-hide-evidence.txt`,
+  `[data-hide-on-form="true"] count (02-pain-rich + OPT html: annotation): ${hasHiddenClinergy}\n` +
     `computed display on first: ${visibleClinergyLabel}\n`,
 );
 await painPage.close();

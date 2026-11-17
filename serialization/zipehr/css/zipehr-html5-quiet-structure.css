@@ -11,7 +11,8 @@
 o-cph.zipehr-tech-quiet,
 o-cnt.zipehr-tech-quiet,
 o-dt.zipehr-tech-quiet,
-/* OPT view / rm_visibility / experimental a.hide_on_form → data-opt-visibility */
+/* OPT `html:` pass-through (viewer-owned) and view / rm_visibility summary */
+[data-hide-on-form="true"],
 [data-opt-visibility="hide"] {
   display: none !important;
 }

@@ -1,6 +1,7 @@
 /**
- * Forward OPT template metadata (view constraints, rm_visibility, path
- * annotations) onto ZipEHR HTML5. Ignored on deserialize.
+ * Forward OPT template metadata onto ZipEHR HTML5: view constraints →
+ * `data-opt-visibility`, and `html:` annotation pass-through.
+ * Ignored on deserialize.
  */
 
 import {
@@ -15,63 +16,182 @@ import {
 } from "../../generation/opt_view.ts";
 import * as openehr_am from "../../am/openehr_am.ts";
 import { resolveAllValuesAtPath } from "../simplified/instance_nav.ts";
+import type { Html5Dialect } from "./html5_serialize.ts";
 import type { WebTemplate, WebTemplateNode } from "../simplified/types.ts";
 
-export const OPT_ANNOTATIONS_ATTR = "data-opt-annotations";
+/** Template annotation keys with this prefix copy verbatim to HTML attributes. */
+export const HTML_ANNOTATION_PREFIX = "html:";
+
 export const OPT_VISIBILITY_ATTR = "data-opt-visibility";
-export const OPT_ATTR_PREFIX = "data-opt-";
+const OPT_ALIAS_ATTR = "data-opt-alias";
 
-export function annotationKeyToSlug(key: string): string {
-  return key
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
+const RESERVED_ATTR_PREFIXES = ["data-zs-", "data-opt-"];
+
+type AttrBag = { name: string; value?: string; boolean?: boolean };
+
+/** Attributes the html5 serializer owns for canonical round-trip (short dialect). */
+const RESERVED_SHORT = new Set([
+  "fmt",
+  "n",
+  "a",
+  "tp",
+  "rm",
+  "lang",
+  "ter",
+  "enc",
+  "p",
+  "tabindex",
+  "title",
+]);
+
+const RESERVED_FULL = new Set([
+  "fmt",
+  "archetype-node-id",
+  "archetype-id",
+  "template-id",
+  "rm-version",
+  "lang",
+  "territory",
+  "encoding",
+  "property",
+  "tabindex",
+  "title",
+]);
+
+export function isValidHtmlAttributeName(name: string): boolean {
+  const n = name.trim();
+  if (!n) return false;
+  return /^[^\x00-\x20\x22\x27\x3C\x3E\x2F\x3D]+$/u.test(n);
 }
 
-export function annotationKeyToAttrName(key: string): string {
-  const slug = annotationKeyToSlug(key);
-  return slug ? `${OPT_ATTR_PREFIX}${slug}` : "";
+export function htmlAttributeNameFromAnnotationKey(key: string): string | null {
+  if (!key.startsWith(HTML_ANNOTATION_PREFIX)) return null;
+  const name = key.slice(HTML_ANNOTATION_PREFIX.length).trim();
+  return isValidHtmlAttributeName(name) ? name : null;
 }
 
-export function escapeHtmlAttrJson(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/"/g, "&quot;")
-    .replace(/</g, "&lt;");
-}
-
-export type PresentationAttrs = Array<
-  { name: string; value: string } | { name: string; boolean: true }
->;
-
-export function attrsForPresentation(
-  pres: OptPresentationByPath | undefined,
-): PresentationAttrs {
-  if (!pres) return [];
-  const out: PresentationAttrs = [];
-  if (pres.visibility) {
-    out.push({ name: OPT_VISIBILITY_ATTR, value: pres.visibility });
+export function isReservedSerializerAttr(
+  name: string,
+  dialect: Html5Dialect,
+): boolean {
+  const lower = name.toLowerCase();
+  if (RESERVED_ATTR_PREFIXES.some((p) => lower.startsWith(p))) {
+    return true;
   }
-  if (pres.alias) {
-    out.push({ name: `${OPT_ATTR_PREFIX}alias`, value: pres.alias });
+  if (dialect === "short") return RESERVED_SHORT.has(lower);
+  if (dialect === "full") return RESERVED_FULL.has(lower);
+  if (lower === "fmt" || lower === "lang" || lower === "tabindex") return true;
+  return false;
+}
+
+export function assertSafePassthroughValue(
+  attrName: string,
+  value: string,
+): void {
+  const lower = attrName.toLowerCase();
+  if (lower.startsWith("on")) {
+    throw new Error(
+      `ZipEHR template html:${attrName} rejected (event handler attribute names)`,
+    );
   }
-  const keys = Object.keys(pres.annotations);
-  if (keys.length) {
-    out.push({
-      name: OPT_ANNOTATIONS_ATTR,
-      value: escapeHtmlAttrJson(JSON.stringify(pres.annotations)),
-    });
-    for (const key of keys) {
-      const name = annotationKeyToAttrName(key);
-      if (!name) continue;
-      const raw = pres.annotations[key];
-      if (raw === "true") out.push({ name, boolean: true });
-      else out.push({ name, value: raw });
+  if (/javascript:/i.test(value)) {
+    throw new Error(
+      `ZipEHR template html:${attrName} rejected (javascript: URL)`,
+    );
+  }
+}
+
+export function passthroughAttrsFromAnnotations(
+  annotations: Record<string, string>,
+  dialect: Html5Dialect,
+): AttrBag[] {
+  const out: AttrBag[] = [];
+  for (const [key, raw] of Object.entries(annotations)) {
+    const attrName = htmlAttributeNameFromAnnotationKey(key);
+    if (!attrName) continue;
+    if (!isValidHtmlAttributeName(attrName)) {
+      throw new Error(
+        `ZipEHR template ${key} is not a valid HTML attribute name`,
+      );
+    }
+    if (isReservedSerializerAttr(attrName, dialect)) {
+      throw new Error(
+        `ZipEHR template ${key} would overwrite serializer attribute ${attrName}`,
+      );
+    }
+    const value = String(raw ?? "");
+    assertSafePassthroughValue(attrName, value);
+    if (value === "true" && attrName.startsWith("data-")) {
+      out.push({ name: attrName, value: "true" });
+    } else if (value === "true" || value === "") {
+      out.push({ name: attrName, boolean: true });
+    } else {
+      out.push({ name: attrName, value });
     }
   }
   return out;
+}
+
+function indexOfAttr(attrs: AttrBag[], name: string): number {
+  const lower = name.toLowerCase();
+  return attrs.findIndex((a) => a.name.toLowerCase() === lower);
+}
+
+function mergeClassAttr(attrs: AttrBag[], extra: string): void {
+  const add = extra.split(/\s+/).map((t) => t.trim()).filter(Boolean);
+  const i = indexOfAttr(attrs, "class");
+  if (i < 0) {
+    attrs.push({ name: "class", value: add.join(" ") });
+    return;
+  }
+  const cur = attrs[i]!;
+  const existing = (cur.value ?? "").split(/\s+/).filter(Boolean);
+  const seen = new Set(existing);
+  for (const t of add) {
+    if (!seen.has(t)) {
+      existing.push(t);
+      seen.add(t);
+    }
+  }
+  cur.value = existing.join(" ");
+  cur.boolean = undefined;
+}
+
+/**
+ * Apply view metadata and `html:` pass-through onto serializer attrs.
+ * Throws when pass-through would clobber a reserved name or existing attr.
+ */
+export function applyPresentationAttrs(
+  attrs: AttrBag[],
+  presentation: OptPresentationByPath,
+  dialect: Html5Dialect,
+): void {
+  if (presentation.visibility) {
+    attrs.push({
+      name: OPT_VISIBILITY_ATTR,
+      value: presentation.visibility,
+    });
+  }
+  if (presentation.alias) {
+    attrs.push({ name: OPT_ALIAS_ATTR, value: presentation.alias });
+  }
+
+  const passthrough = passthroughAttrsFromAnnotations(
+    presentation.annotations,
+    dialect,
+  );
+  for (const p of passthrough) {
+    if (p.name.toLowerCase() === "class") {
+      mergeClassAttr(attrs, p.value ?? "");
+      continue;
+    }
+    if (indexOfAttr(attrs, p.name) >= 0) {
+      throw new Error(
+        `ZipEHR template html:${p.name} would overwrite existing attribute`,
+      );
+    }
+    attrs.push(p);
+  }
 }
 
 export type PresentationIndex = WeakMap<object, OptPresentationByPath>;

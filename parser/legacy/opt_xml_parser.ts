@@ -149,8 +149,12 @@ function parseOptAnnotations(
       if (!it || typeof it !== "object") continue;
       const item = it as Record<string, unknown>;
       const id = String(item["@_id"] ?? item.id ?? "").trim();
-      const val = textValue(item);
-      if (!id || !val) continue;
+      const rawVal = item.value ?? textValue(item);
+      if (!id || rawVal === undefined || rawVal === null) continue;
+      const val = typeof rawVal === "boolean"
+        ? (rawVal ? "true" : "false")
+        : String(rawVal).trim();
+      if (!val) continue;
       items[id] = val;
     }
     setOptPathAnnotationItems(opt, path, items);

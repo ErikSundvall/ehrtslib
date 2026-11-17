@@ -23,12 +23,13 @@ Deno.test("OPT XML: parse view pass_through constraints", async () => {
   assertEquals(view[0]?.passThrough, true);
 });
 
-Deno.test("OPT thumb-pain: clinergy paths map pass_through false to hide", async () => {
+Deno.test("OPT thumb-pain: clinergy uses html: pass-through annotation", async () => {
   const xml = await Deno.readTextFile(THUMB);
   const { operationalTemplate: opt } = parseOptXml(xml);
   const paths = flattenOptPathAnnotations(opt);
   const clinergy =
     "/content[openEHR-EHR-SECTION.adhoc.v1 and name/value='History']/items[openEHR-EHR-OBSERVATION.story.v1]/data[at0001]/events[at0002]/data[at0003]/items[openEHR-EHR-CLUSTER.symptom_sign.v2]/items[openEHR-EHR-CLUSTER.clinergy_descriptor.v0]";
   const pres = presentationForPath(opt, paths, clinergy, undefined, "en");
-  assertEquals(pres.visibility, "hide");
+  assertEquals(pres.annotations["html:data-hide-on-form"], "true");
+  assertEquals(pres.visibility, undefined);
 });
