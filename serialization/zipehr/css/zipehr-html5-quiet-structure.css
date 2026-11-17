@@ -10,8 +10,25 @@
 /* Hide technical RM noise (encoding, territory context leaves). */
 o-cph.zipehr-tech-quiet,
 o-cnt.zipehr-tech-quiet,
-o-dt.zipehr-tech-quiet {
+o-dt.zipehr-tech-quiet,
+o-cl[data-zs-quiet-tech] {
   display: none !important;
+}
+
+/* Human temporal/duration labels in quiet view; ISO in title/tooltip */
+o-dt .zs-canonical-value,
+o-du .zs-canonical-value,
+o-da .zs-canonical-value,
+o-ti .zs-canonical-value {
+  display: none !important;
+}
+
+o-dt .zs-display-value,
+o-du .zs-display-value,
+o-da .zs-display-value,
+o-ti .zs-display-value {
+  display: inline;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Low-contrast structure hints; full strip on hover/focus/pin only. */

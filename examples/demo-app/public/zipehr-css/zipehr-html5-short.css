@@ -240,6 +240,20 @@ o-u:empty,
   cursor: help;
 }
 
+o-dt .zs-display-value,
+o-du .zs-display-value,
+o-da .zs-display-value,
+o-ti .zs-display-value {
+  display: none;
+}
+
+o-dt .zs-canonical-value,
+o-du .zs-canonical-value,
+o-da .zs-canonical-value,
+o-ti .zs-canonical-value {
+  display: inline;
+}
+
 @media (max-width: 560px) {
   o-e {
     grid-template-columns: 1fr;

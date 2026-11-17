@@ -129,13 +129,22 @@ export const ZIP_QUIET_PREVIEW_SCRIPT = `(() => {
 
   function hideRedundantHistoryOrigin() {
     for (const hi of document.querySelectorAll("o-hi")) {
-      const originEl = hi.querySelector(':scope > o-dt[p="origin"]');
+      let originEl = null;
+      for (const dt of hi.querySelectorAll("o-dt")) {
+        if (dt.getAttribute("p") === "origin") {
+          originEl = dt;
+          break;
+        }
+      }
       if (!originEl) continue;
-      const origin = (originEl.textContent || "").trim();
+      const origin = (originEl.getAttribute("data-zs-value") || originEl.textContent || "").trim();
       const times = [];
-      for (const t of hi.querySelectorAll('o-pe > o-dt[p="time"], o-ie > o-dt[p="time"]')) {
-        const val = (t.textContent || "").trim();
-        if (val) times.push(val);
+      for (const ev of hi.querySelectorAll("o-pe, o-ie")) {
+        for (const dt of ev.querySelectorAll("o-dt")) {
+          if (dt.getAttribute("p") !== "time") continue;
+          const val = (dt.getAttribute("data-zs-value") || dt.textContent || "").trim();
+          if (val) times.push(val);
+        }
       }
       let anchor = "";
       if (times.length === 1) anchor = times[0];

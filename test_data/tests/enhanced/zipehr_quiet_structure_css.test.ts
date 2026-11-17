@@ -35,6 +35,12 @@ const DEMO_COMPOSITION = JSON.parse(
   ),
 ) as Record<string, unknown>;
 
+const GP_VISIT = JSON.parse(
+  await Deno.readTextFile(
+    new URL("../../fixtures/workbench-ferro/02-pain-rich.json", import.meta.url),
+  ),
+) as Record<string, unknown>;
+
 function openQuietPreview(html: string, css: string): Window {
   const docHtml = buildZipehrPreviewDocument(html, css, {
     quietStructureTooltips: false,
@@ -137,6 +143,29 @@ Deno.test("quiet preview DOM: hover class opens tooltip; click pins", async () =
 Deno.test("quiet preview script is self-contained IIFE", () => {
   assertStringIncludes(ZIP_QUIET_PREVIEW_SCRIPT, "zipehr-structure-anchor");
   assertStringIncludes(ZIP_QUIET_PREVIEW_SCRIPT, "zipehr-tech-quiet");
+});
+
+Deno.test("quiet preview: archetype names visible, tech clusters hidden, human dates", async () => {
+  const html = await serializeToHtml5Variant(
+    GP_VISIT,
+    "zipehr.html5.short",
+    { layout: "linesaving", propertyMode: "comment" },
+  );
+  const css = await loadComposedQuietCss();
+  const win = openQuietPreview(html, css);
+  const bodyText = win.document.body.textContent ?? "";
+  assertStringIncludes(bodyText, "Encounter");
+  assertStringIncludes(bodyText, "Episode duration");
+  assertStringIncludes(bodyText, "3 days");
+  const techClusters = win.document.querySelectorAll("o-cl[data-zs-quiet-tech]");
+  assert(techClusters.length >= 1);
+  const displayText = [...win.document.querySelectorAll(".zs-display-value")]
+    .map((n) => n.textContent ?? "")
+    .join(" ");
+  assert(!displayText.includes("2021-10-21T14:21:00+01:00"));
+  assertStringIncludes(displayText, "2021");
+  const tech = win.document.querySelector("o-cl[data-zs-quiet-tech]");
+  assert(tech, "clinergy descriptor cluster should be marked quiet-tech");
 });
 
 Deno.test("quiet preview hides redundant HISTORY.origin when equal to event time", async () => {

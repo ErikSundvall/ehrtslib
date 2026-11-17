@@ -106,6 +106,18 @@ export function isLocatableLike(rmType: string): boolean {
  * Standard openEHR template `at` node ids for RM container slots (language-neutral).
  * Used by quiet-structure CSS to hide default labels while keeping them for a11y/tooltip.
  */
+/** Meta-archetype clusters hidden in quiet preview (encoding/helpers). */
+export function isQuietTechnicalCluster(obj: Record<string, unknown>): boolean {
+  const nodeId = obj.archetype_node_id != null
+    ? String(obj.archetype_node_id)
+    : "";
+  if (nodeId.includes("clinergy_descriptor")) return true;
+  const arch = (obj.archetype_details as {
+    archetype_id?: { value?: string };
+  } | undefined)?.archetype_id?.value;
+  return !!arch && arch.includes("clinergy_descriptor");
+}
+
 export function isQuietStructuralHeading(
   rmType: string,
   archetypeNodeId: string | undefined,

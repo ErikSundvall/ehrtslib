@@ -15,6 +15,7 @@ import {
   formatPropertyComment,
   isLocatableLike,
   isQuietStructuralHeading,
+  isQuietTechnicalCluster,
   isZipehrLeafRmType,
   LANGUAGE_CARRIER_TYPES,
   propertySlotAmbiguous,
@@ -25,6 +26,10 @@ import {
   shouldEmitPropertyComment,
   TECHNICAL_ID_TYPES,
 } from "./shared.ts";
+import {
+  formatZsDisplayDateTime,
+  formatZsDisplayDuration,
+} from "./temporal_display.ts";
 
 export type Html5Dialect = "short" | "full" | "emoji";
 export type { RmPropertyEmitMode };
@@ -527,11 +532,36 @@ function renderDvQuantity(
   });
 }
 
+function renderTemporalLeaf(
+  rmType: string,
+  iso: string,
+  tag: string,
+  attrs: AttrBag[],
+  locale: string,
+): MarkupNode {
+  attrs.push({ name: "data-zs-value", value: iso });
+  attrs.push({ name: "title", value: iso });
+  const display = rmType === "DV_DURATION"
+    ? formatZsDisplayDuration(iso, locale)
+    : formatZsDisplayDateTime(iso, rmType, locale);
+  return markup(tag, attrs, {
+    children: [
+      markup("span", [{ name: "class", value: "zs-canonical-value" }], {
+        textContent: iso,
+      }),
+      markup("span", [{ name: "class", value: "zs-display-value" }], {
+        textContent: display,
+      }),
+    ],
+  });
+}
+
 function renderDvLeaf(
   rmType: string,
   obj: Record<string, unknown>,
   dialect: Html5Dialect,
   extraAttrs: AttrBag[],
+  locale: string,
 ): MarkupNode {
   if (rmType === "DV_QUANTITY") {
     return renderDvQuantity(obj, dialect, extraAttrs);
@@ -576,7 +606,13 @@ function renderDvLeaf(
     case "DV_DATE":
     case "DV_TIME":
     case "DV_DATE_TIME":
-    case "DV_DURATION":
+    case "DV_DURATION": {
+      const iso = obj.value != null ? String(obj.value) : "";
+      if (iso) {
+        return renderTemporalLeaf(rmType, iso, tag, attrs, locale);
+      }
+      return markup(tag, attrs);
+    }
     case "DV_URI":
     case "DV_EHR_URI":
       text = obj.value != null ? String(obj.value) : "";
@@ -701,13 +737,22 @@ function buildNode(
   );
 
   if (isZipehrLeafRmType(rmType) && !isLocatableLike(rmType)) {
-    const leaf = renderDvLeaf(rmType, obj, dialect, extraAttrs);
+    const leaf = renderDvLeaf(rmType, obj, dialect, extraAttrs, options.lang ?? "en");
     if (propertyCommentName) leaf.propertyComment = propertyCommentName;
     return leaf;
   }
 
+  let effectiveLang = options.lang;
+  if (LANGUAGE_CARRIER_TYPES.has(rmType)) {
+    effectiveLang = unwrapCodePhrase(obj.language).code ?? effectiveLang;
+  }
+
   const tag = tagForType(rmType, dialect);
   const attrs = [...extraAttrs, ...locatableAttrs(obj, dialect)];
+
+  if (isQuietTechnicalCluster(obj)) {
+    attrs.push({ name: "data-zs-quiet-tech", boolean: true });
+  }
 
   // Native HTML `lang` for openEHR language (COMPOSITION and ENTRY subtypes).
   if (LANGUAGE_CARRIER_TYPES.has(rmType)) {
@@ -795,6 +840,7 @@ function buildNode(
       parentType: rmType,
       propertyName: key,
       propertyMode: options.propertyMode,
+      lang: effectiveLang,
     });
     if (built == null) continue;
     if (Array.isArray(built)) children.push(...built);

@@ -1,6 +1,6 @@
 /**
  * ZipEHR quiet-structure walkthrough screenshots for PR evidence.
- * deno run --allow-read --allow-write --allow-env scripts/capture_zipehr_quiet_artifacts.ts
+ * deno run --allow-read --allow-write --allow-env --allow-ffi --allow-net --allow-sys --allow-run scripts/capture_zipehr_quiet_artifacts.ts
  */
 import { chromium } from "npm:playwright@1.50.1";
 import {
@@ -26,9 +26,15 @@ async function loadComposedQuietCss(): Promise<string> {
   return composeQuietStructureCss(base, quiet);
 }
 
+async function loadBaseCss(): Promise<string> {
+  return await Deno.readTextFile(
+    new URL("serialization/zipehr/css/zipehr-html5-short.css", repo),
+  );
+}
+
 const comp = JSON.parse(
   await Deno.readTextFile(
-    new URL("test_data/fixtures/workbench-ferro/01-demo-1998.json", repo),
+    new URL("test_data/fixtures/workbench-ferro/02-pain-rich.json", repo),
   ),
 );
 const html = await serializeToHtml5Variant(
@@ -36,36 +42,45 @@ const html = await serializeToHtml5Variant(
   "zipehr.html5.short",
   { layout: "linesaving", propertyMode: "comment" },
 );
-const css = await loadComposedQuietCss();
-const doc = buildZipehrPreviewDocument(html, css, {
+const composed = await loadComposedQuietCss();
+const baseOnly = await loadBaseCss();
+const quietDoc = buildZipehrPreviewDocument(html, composed, {
   quietStructureTooltips: true,
 });
-await Deno.writeTextFile(`${OUT}/zipehr-quiet-preview.html`, doc);
+const beforeDoc = buildZipehrPreviewDocument(html, baseOnly, {
+  quietStructureTooltips: false,
+});
+await Deno.writeTextFile(`${OUT}/zipehr-quiet-preview.html`, quietDoc);
 
 const browser = await chromium.launch();
+
+const beforePage = await browser.newPage({
+  viewport: { width: 1200, height: 1000 },
+});
+await beforePage.setContent(beforeDoc, { waitUntil: "load" });
+await beforePage.screenshot({
+  path: `${OUT}/zipehr-gp-visit-before-quiet.png`,
+  fullPage: true,
+});
 
 const desktop = await browser.newPage({
   viewport: { width: 1200, height: 1000 },
 });
-await desktop.setContent(doc, { waitUntil: "load" });
-await desktop.locator("button.zipehr-structure-anchor").first().waitFor();
+await desktop.setContent(quietDoc, { waitUntil: "load" });
+await desktop.locator("o-co").waitFor();
 await desktop.screenshot({
   path: `${OUT}/zipehr-quiet-structure-normal.png`,
   fullPage: true,
 });
-
-const tree = desktop.locator(
-  'button.zipehr-structure-anchor[aria-label*="Tree"]',
-).first();
-await tree.scrollIntoViewIfNeeded();
-await tree.hover();
-await desktop.waitForFunction(() => {
-  const tip = document.querySelector(
-    'button.zipehr-structure-anchor[aria-label*="Tree"] .zipehr-structure-tip',
-  );
-  if (!tip) return false;
-  return getComputedStyle(tip).display !== "none";
+await desktop.screenshot({
+  path: `${OUT}/zipehr-gp-visit-after-quiet.png`,
+  fullPage: true,
 });
+
+const dateLeaf = desktop.locator('o-dt[data-zs-value*="2021-10-21"]').first();
+await dateLeaf.scrollIntoViewIfNeeded();
+await dateLeaf.hover();
+await desktop.waitForTimeout(250);
 await desktop.screenshot({
   path: `${OUT}/zipehr-quiet-structure-hover.png`,
   fullPage: true,
@@ -76,17 +91,11 @@ const mobile = await browser.newPage({
   isMobile: true,
   hasTouch: true,
 });
-await mobile.setContent(doc, { waitUntil: "load" });
-const mobileTree = mobile.locator(
-  'button.zipehr-structure-anchor[aria-label*="Tree"]',
-).first();
-await mobileTree.scrollIntoViewIfNeeded();
-await mobileTree.click();
-await mobile.waitForFunction(() =>
-  document.querySelector(
-    'button.zipehr-structure-anchor[aria-label*="Tree"].zipehr-tip-pinned',
-  )
-);
+await mobile.setContent(quietDoc, { waitUntil: "load" });
+const mobileDate = mobile.locator('o-dt[data-zs-value*="2021-10-21"]').first();
+await mobileDate.scrollIntoViewIfNeeded();
+await mobileDate.click();
+await mobile.waitForTimeout(250);
 await mobile.screenshot({
   path: `${OUT}/zipehr-quiet-structure-mobile-tap.png`,
   fullPage: true,

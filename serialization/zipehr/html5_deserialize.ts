@@ -219,9 +219,28 @@ function findChildByLocalNames(
   });
 }
 
+function canonicalLeafValue(node: Html5Element): string | undefined {
+  const fromAttr = node.attrs["data-zs-value"]?.trim();
+  if (fromAttr) return fromAttr;
+  for (const child of node.children) {
+    if (isText(child)) continue;
+    const el = child as Html5Element;
+    if (el.attrs.class === "zs-canonical-value") {
+      const t = elementText(el);
+      if (t) return t;
+    }
+  }
+  return undefined;
+}
+
 function elementText(node: Html5Element): string {
   return node.children
-    .map((c) => (isText(c) ? c.text : elementText(c)))
+    .map((c) => {
+      if (isText(c)) return c.text;
+      const el = c as Html5Element;
+      if (el.attrs.class === "zs-display-value") return "";
+      return elementText(el);
+    })
     .join("")
     .trim();
 }
@@ -614,7 +633,8 @@ function deserializeDvLeaf(
 ): Record<string, unknown> {
   if (rmType === "DV_QUANTITY") return deserializeDvQuantity(node, dialect);
 
-  const text = elementText(node);
+  const canonical = canonicalLeafValue(node);
+  const text = canonical ?? elementText(node);
   const out: Record<string, unknown> = { _type: rmType };
 
   if (TECHNICAL_ID_TYPES.has(rmType)) {
