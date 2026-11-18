@@ -24,7 +24,7 @@ Deno.test("OPT XML: parse view pass_through constraints", async () => {
   assertEquals(view[0]?.passThrough, true);
 });
 
-Deno.test("OPT thumb-pain: clinergy uses hide-on-form annotation", async () => {
+Deno.test("OPT fixture: cluster path uses hide-on-form annotation", async () => {
   const xml = await Deno.readTextFile(THUMB);
   const { operationalTemplate: opt } = parseOptXml(xml);
   const paths = flattenOptPathAnnotations(opt);

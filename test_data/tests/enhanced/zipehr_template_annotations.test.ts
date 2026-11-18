@@ -159,7 +159,7 @@ Deno.test("data-antn: applyPresentationAttrs rejects duplicate antn attrs", () =
   );
 });
 
-Deno.test("template presentation: data-antn-hide-on-form on clinergy", async () => {
+Deno.test("template presentation: data-antn-hide-on-form on annotated cluster", async () => {
   const html = await serializeToHtml5Variant(
     PAIN,
     "zipehr.html5.short",
@@ -226,7 +226,7 @@ Deno.test("template presentation: quiet CSS hides data-antn-hide-on-form", async
   const win = new Window({ url: "https://example.test/" });
   win.document.write(doc);
   const hidden = win.document.querySelector('[data-antn-hide-on-form="true"]');
-  assert(hidden, "clinergy cluster should have data-antn hide hint");
+  assert(hidden, "cluster with hide-on-form annotation should have data-antn hint");
   assertEquals(win.getComputedStyle(hidden as Element).display, "none");
 });
 

@@ -177,7 +177,7 @@ Deno.test("quiet preview: archetype names visible, tech clusters hidden, human d
   assert(!displayText.includes("2021-10-21T14:21:00+01:00"));
   assertStringIncludes(displayText, "2021");
   const tech = win.document.querySelector('[data-antn-hide-on-form="true"]');
-  assert(tech, "clinergy descriptor cluster should have data-antn hide hint");
+  assert(tech, "cluster with hide-on-form path annotation should have data-antn hint");
 });
 
 Deno.test("quiet preview hides redundant HISTORY.origin when equal to event time", async () => {
