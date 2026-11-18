@@ -14,6 +14,13 @@ import {
   getRmOverlayVisibility,
 } from "../parser/aom_odin_sections.ts";
 import { asArray, textValue } from "../parser/legacy/xml_aom_mapper.ts";
+import { languageCode } from "./term_codes.ts";
+import {
+  archetypeTermBagsForLanguage,
+  lookupTermEntryInBag,
+  selectTermBag,
+  type TermBag,
+} from "./term_scope.ts";
 
 export type OptVisibilityToken = "hide" | "show" | "pass-through";
 
@@ -135,10 +142,29 @@ function pickVisibility(
   return undefined;
 }
 
-function pickAlias(rmVis?: Record<string, string>): string | undefined {
+/** `rm_visibility.alias` is an at-code; emit terminology text when resolvable. */
+function pickAlias(
+  opt: openehr_am.OPERATIONAL_TEMPLATE,
+  rmVis: Record<string, string> | undefined,
+  renderLang: string,
+): string | undefined {
   const a = rmVis?.alias;
-  if (typeof a === "string" && a.trim()) return a.trim();
-  return undefined;
+  if (typeof a !== "string" || !a.trim()) return undefined;
+  const code = a.trim();
+  const orig = languageCode(opt.original_language) ?? "en";
+  const lang = renderLang || orig;
+  const termTables = (opt.ontology as { term_definitions?: Record<string, TermBag> })
+    ?.term_definitions;
+  const templateTerms = selectTermBag(termTables, lang, orig);
+  const fromTemplate = lookupTermEntryInBag(templateTerms, code)?.text;
+  if (fromTemplate) return fromTemplate;
+  for (const bag of Object.values(
+    archetypeTermBagsForLanguage(opt, lang, orig),
+  )) {
+    const text = lookupTermEntryInBag(bag, code)?.text;
+    if (text) return text;
+  }
+  return code;
 }
 
 /** Pick merged path annotation items (render lang → `""` → original). */
@@ -195,6 +221,6 @@ export function presentationForPath(
     renderLang,
   );
   const visibility = pickVisibility(view, rmVis, annotations);
-  const alias = pickAlias(rmVis);
+  const alias = pickAlias(opt, rmVis, renderLang);
   return { visibility, alias, annotations };
 }

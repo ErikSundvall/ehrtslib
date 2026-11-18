@@ -80,3 +80,54 @@ Clinergy descriptor paths (→ `data-antn-hide-on-form` in html5).
 ## Parser
 
 OPT XML: path annotations and `attachOptViewConstraints` in `opt_xml_parser.ts`.
+
+## Future-proofing (AM Release 2.3.0 review)
+
+This ZIP emitter is a **viewer convenience**. Treat the attributes below as
+**non-normative** unless and until openEHR standardises UI hints for templates.
+
+### `data-opt-visibility` / OPT 1.4 `<view>` (not ADL2 / OPT2)
+
+Values `hide`, `show`, and `pass-through` on `data-opt-visibility` can come from:
+
+| Source | Future-proof? |
+|--------|----------------|
+| OPT 1.4 `<view><constraints>` items `pass_through` and `VisibleInView` | **No** — Ocean / EHRbase tool practice; ITS-XML Release 1.4 `Template.xsd` `T_VIEW` (ids not spec-defined). No ADL2 / AOM2 / OPT2 equivalent. |
+| Annotation keys such as experimental `a.hide_on_form` / Ferro `hide-on-form` (→ `data-antn-*`) | **No** — community / vendor conventions, not ADL2 annotation groups. |
+| ADL2 `rm_overlay.rm_visibility` `visibility` | **Yes (within scope)** — normative ADL2 §7.12 / §7.12.1; AOM2 §6.3.1–§6.3.3 `VISIBILITY_TYPE`. Applies to **non-archetyped RM attributes** on overlay paths; aimed at tools, not clinical semantics. |
+
+`data-opt-alias` from OPT-only sources has the same limitation as `<view>`.
+
+### `data-antn-*` (path annotations)
+
+All path annotations are forwarded with a **lossy slug** (`data-antn-{slug}`).
+That is a ZipEHR encoding choice, not an openEHR interchange format.
+
+- ADL2 §7.14 defines only the **`documentation`** annotation group on paths.
+  A proposed UI / technical group is tracked as [SPECPR-469](https://specifications.openehr.org/tickets/SPECPR-469) (open).
+- **OPT2 §4.1** allows profiled operational templates to **strip annotations**;
+  consumers must not rely on annotation keys surviving publication profiles.
+
+### Normative mapping path (ADL2 templates)
+
+When the serializer input is an **ADL2** operational template (or OPT carrying
+the same `rm_overlay` / `annotations` parsed by the library):
+
+1. Map `rm_overlay.rm_visibility.visibility` (`show` / `hide` / `hiding` / …) →
+   `data-opt-visibility` (`show` / `hide`; `pass-through` only when explicitly
+   encoded elsewhere, e.g. documentation / legacy `<view>`).
+2. Map `rm_overlay.rm_visibility.alias` → `data-opt-alias`: the alias is an
+   **at-code**; ehrtslib resolves it to **terminology text** via template /
+   archetype `term_definitions` when possible (`generation/opt_view.ts`).
+
+Do **not** treat OPT 1.4 `<view>` or arbitrary annotation keys as interchangeable
+with ADL2 overlay visibility.
+
+### Follow-up
+
+- Prefer ADL2 `rm_visibility` (+ resolved alias) over OPT 1.4 `<view>` when both
+  are present on the same path (precedence is implementation-defined today;
+  tighten when OPT2 overlay rules land).
+- Explicit `template` serializer option and annotation `RegExp` filter (see PR
+  follow-ups).
+- Demo: pass template metadata into `serializeToHtml5Variant`.
