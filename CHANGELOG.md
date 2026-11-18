@@ -8,6 +8,10 @@ Add an entry under **Unreleased** in every PR that changes user-visible behaviou
 
 ## [Unreleased]
 
+## [0.14.0] - 2026-11-18
+
+- **Release.** Library tags now build the demo and TAAAT and refuse to deploy Pages without `demo/chunks`, so demos no longer break after a library release ([#319](https://github.com/ErikSundvall/ehrtslib/issues/319), [#320](https://github.com/ErikSundvall/ehrtslib/pull/320)).
+
 - **Validation.** `TemplateValidator` rubric warnings with `validateTerminology: true` resolve `local::at*` codes from the active archetype's term table (stacked `C_ARCHETYPE_ROOT` scopes), not the first flat-ontology hit when the same code is reused across archetypes ([#322](https://github.com/ErikSundvall/ehrtslib/pull/322)).
 - **Behaviour.** ZipEHR quiet preview: composed short CSS + `ZIP_QUIET_PREVIEW_SCRIPT` anchor tooltips (hover/focus/tap-to-pin), tech-noise hiding; keeps archetype/entry headings visible, hides RM container labels only; hides redundant `HISTORY.origin` when it matches the event time; exported from `serialization/zipehr` for workbench reuse ([#322](https://github.com/ErikSundvall/ehrtslib/pull/322)).
 - **Behaviour.** ZipEHR html5 short: all path annotations → `data-antn-{slug}` (first-wins slug collisions, no `-key` companions); OPT 1.4 `<view>` only → `data-opt-*`; ADL2 `rm_visibility` → `data-rm-*`; optional `template` + `templateAnnotationFilter` on `Html5SerializeOptions`; presentation attrs ignored on html5→canonical deserialize ([#322](https://github.com/ErikSundvall/ehrtslib/pull/322)).
