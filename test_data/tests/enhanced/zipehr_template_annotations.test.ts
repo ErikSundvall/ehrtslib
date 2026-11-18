@@ -13,12 +13,15 @@ import {
 } from "../../../serialization/zipehr/mod.ts";
 import {
   DATA_ANTN_PREFIX,
+  RM_ALIAS_ATTR,
+  RM_VISIBILITY_ATTR,
   annotationsFromDataAntnAttrs,
   applyPresentationAttrs,
   dataAntnAttrName,
   dataAntnAttrsFromAnnotations,
   dataAntnKeyCompanionAttrName,
   isSelfDescribingAnnotationKey,
+  isZipEhrTemplatePresentationHtmlAttr,
   normalizeAnnotationKeySlug,
   planDataAntnAttrs,
 } from "../../../serialization/zipehr/template_annotations.ts";
@@ -105,25 +108,26 @@ Deno.test("data-antn: empty key slug fails loudly", () => {
 
 Deno.test("data-antn: applyPresentationAttrs rejects duplicate antn attrs", () => {
   const attrs: { name: string; value: string }[] = [
-    { name: dataAntnAttrName("hide-on-form"), value: "false" },
+    { name: dataAntnAttrName("notes-comment"), value: "false" },
   ];
   assertThrows(
     () =>
       applyPresentationAttrs(attrs, {
-        annotations: { "hide-on-form": "true" },
+        annotations: { "Notes.Comment": "true" },
       }),
     Error,
     "overwrite",
   );
 });
 
-Deno.test("template presentation: data-antn-hide-on-form on clinergy", async () => {
+Deno.test("template presentation: data-opt-visibility hide on clinergy", async () => {
   const html = await serializeToHtml5Variant(
     PAIN,
     "zipehr.html5.short",
     SERIALIZE_OPTS,
   );
-  assertStringIncludes(html, 'data-antn-hide-on-form="true"');
+  assertStringIncludes(html, 'data-opt-visibility="hide"');
+  assert(!html.includes('data-antn-hide-on-form="true"'));
   assert(!html.includes("data-hide-on-form="));
   assert(!html.includes("html:data"));
   assert(!html.includes(`${DATA_ANTN_PREFIX}html`));
@@ -136,7 +140,7 @@ Deno.test("template presentation: data-antn-hide-on-form on clinergy", async () 
   assertEquals(back, backPlain);
 });
 
-Deno.test("template presentation: quiet CSS hides data-antn-hide-on-form", async () => {
+Deno.test("template presentation: quiet CSS hides data-opt-visibility hide", async () => {
   const html = await serializeToHtml5Variant(
     PAIN,
     "zipehr.html5.short",
@@ -151,9 +155,27 @@ Deno.test("template presentation: quiet CSS hides data-antn-hide-on-form", async
   const doc = `<!DOCTYPE html><html><head><style>${quiet}</style></head><body>${html}</body></html>`;
   const win = new Window({ url: "https://example.test/" });
   win.document.write(doc);
-  const hidden = win.document.querySelector('[data-antn-hide-on-form="true"]');
-  assert(hidden, "clinergy cluster should have data-antn hide hint");
+  const hidden = win.document.querySelector('[data-opt-visibility="hide"]');
+  assert(hidden, "clinergy cluster should have data-opt hide hint");
   assertEquals(win.getComputedStyle(hidden as Element).display, "none");
+});
+
+Deno.test("presentation attrs: separate data-rm-* from data-opt-*", () => {
+  const attrs: { name: string; value?: string }[] = [];
+  applyPresentationAttrs(attrs, {
+    optVisibility: "pass-through",
+    rmVisibility: "hide",
+    rmAlias: "Composer label",
+    annotations: { "L10n.en": "x" },
+  });
+  const names = attrs.map((a) => a.name);
+  assert(names.includes("data-opt-visibility"));
+  assert(names.includes(RM_VISIBILITY_ATTR));
+  assert(names.includes(RM_ALIAS_ATTR));
+  assertEquals(
+  isZipEhrTemplatePresentationHtmlAttr("data-rm-visibility"),
+    true,
+  );
 });
 
 Deno.test("template presentation: L10n annotations emit data-antn with key companion", async () => {

@@ -31,8 +31,9 @@ Deno.test("OPT thumb-pain: clinergy uses hide-on-form annotation", async () => {
   const clinergy =
     "/content[openEHR-EHR-SECTION.adhoc.v1 and name/value='History']/items[openEHR-EHR-OBSERVATION.story.v1]/data[at0001]/events[at0002]/data[at0003]/items[openEHR-EHR-CLUSTER.symptom_sign.v2]/items[openEHR-EHR-CLUSTER.clinergy_descriptor.v0]";
   const pres = presentationForPath(opt, paths, clinergy, undefined, "en");
-  assertEquals(pres.annotations["hide-on-form"], "true");
-  assertEquals(pres.visibility, undefined);
+  assertEquals(pres.annotations["hide-on-form"], undefined);
+  assertEquals(pres.optVisibility, "hide");
+  assertEquals(pres.rmVisibility, undefined);
 });
 
 Deno.test("rm_visibility alias resolves at-code to terminology text", () => {
@@ -62,6 +63,7 @@ Deno.test("rm_visibility alias resolves at-code to terminology text", () => {
     undefined,
     "en",
   );
-  assertEquals(pres.visibility, "hide");
-  assertEquals(pres.alias, "Display label");
+  assertEquals(pres.rmVisibility, "hide");
+  assertEquals(pres.rmAlias, "Display label");
+  assertEquals(pres.optVisibility, undefined);
 });

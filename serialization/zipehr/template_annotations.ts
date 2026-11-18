@@ -1,7 +1,7 @@
 /**
- * Forward OPT template metadata onto ZipEHR HTML5: view constraints →
- * `data-opt-visibility`, and path annotations → `data-antn-*` (ignored on
- * canonical html5 deserialize).
+ * Forward template metadata onto ZipEHR HTML5 (ignored on canonical html5
+ * deserialize): `data-antn-*` (path annotations), `data-opt-*` (OPT 1.4 view /
+ * hide-on-form), `data-rm-*` (ADL2 rm_visibility).
  */
 
 import {
@@ -10,6 +10,8 @@ import {
   stripLeadingArchetypeId,
 } from "../../generation/opt_l10n.ts";
 import {
+  optVisibilityFromConventionKeys,
+  pathAnnotationsForDataAntn,
   presentationForPath,
   type OptPresentationByPath,
   type OptVisibilityToken,
@@ -23,7 +25,16 @@ export const DATA_ANTN_PREFIX = "data-antn-";
 export const DATA_ANTN_KEY_SUFFIX = "-key";
 
 export const OPT_VISIBILITY_ATTR = "data-opt-visibility";
-const OPT_ALIAS_ATTR = "data-opt-alias";
+export const OPT_ALIAS_ATTR = "data-opt-alias";
+export const RM_VISIBILITY_ATTR = "data-rm-visibility";
+export const RM_ALIAS_ATTR = "data-rm-alias";
+
+/** Presentation attrs on `<o-*>` / locatable elements (not canonical RM). */
+export function isZipEhrTemplatePresentationHtmlAttr(name: string): boolean {
+  const lower = name.toLowerCase();
+  return lower.startsWith(DATA_ANTN_PREFIX) || lower.startsWith("data-opt-") ||
+    lower.startsWith("data-rm-");
+}
 
 type AttrBag = { name: string; value?: string; boolean?: boolean };
 
@@ -187,19 +198,28 @@ function indexOfAttr(attrs: AttrBag[], name: string): number {
   return attrs.findIndex((a) => a.name.toLowerCase() === lower);
 }
 
-/** Apply view metadata and template `data-antn-*` annotation attrs. */
+/** Apply `data-opt-*`, `data-rm-*`, and `data-antn-*` presentation attrs. */
 export function applyPresentationAttrs(
   attrs: AttrBag[],
   presentation: OptPresentationByPath,
 ): void {
-  if (presentation.visibility) {
+  if (presentation.optVisibility) {
     attrs.push({
       name: OPT_VISIBILITY_ATTR,
-      value: presentation.visibility,
+      value: presentation.optVisibility,
     });
   }
-  if (presentation.alias) {
-    attrs.push({ name: OPT_ALIAS_ATTR, value: presentation.alias });
+  if (presentation.optAlias) {
+    attrs.push({ name: OPT_ALIAS_ATTR, value: presentation.optAlias });
+  }
+  if (presentation.rmVisibility) {
+    attrs.push({
+      name: RM_VISIBILITY_ATTR,
+      value: presentation.rmVisibility,
+    });
+  }
+  if (presentation.rmAlias) {
+    attrs.push({ name: RM_ALIAS_ATTR, value: presentation.rmAlias });
   }
 
   for (const p of dataAntnAttrsFromAnnotations(presentation.annotations)) {
@@ -227,8 +247,10 @@ function mergePresentation(
 ): OptPresentationByPath {
   if (!prev) return next;
   return {
-    visibility: next.visibility ?? prev.visibility,
-    alias: next.alias ?? prev.alias,
+    optVisibility: next.optVisibility ?? prev.optVisibility,
+    optAlias: next.optAlias ?? prev.optAlias,
+    rmVisibility: next.rmVisibility ?? prev.rmVisibility,
+    rmAlias: next.rmAlias ?? prev.rmAlias,
     annotations: { ...prev.annotations, ...next.annotations },
   };
 }
@@ -249,8 +271,8 @@ function indexAtPath(
     nodeName,
     renderLang,
   );
-  const hasMeta = pres.visibility || pres.alias ||
-    Object.keys(pres.annotations).length;
+  const hasMeta = pres.optVisibility || pres.optAlias || pres.rmVisibility ||
+    pres.rmAlias || Object.keys(pres.annotations).length;
   if (!hasMeta) return;
   const navPath = aqlPathForInstanceNav(aqlPath);
   for (const { value } of resolveAllValuesAtPath(compositionRoot, navPath)) {
@@ -286,7 +308,9 @@ function walkWebTemplate(
         if (v == null) continue;
         extra[k] = String(v);
       }
-      if (Object.keys(extra).length) {
+      const wtAntn = pathAnnotationsForDataAntn(extra);
+      const wtOptVis = optVisibilityFromConventionKeys(undefined, extra);
+      if (Object.keys(wtAntn).length || wtOptVis) {
         for (const { value } of resolveAllValuesAtPath(
           compositionRoot,
           aqlPathForInstanceNav(path),
@@ -299,7 +323,8 @@ function walkWebTemplate(
           };
           map.set(value, mergePresentation(prev, {
             ...prev,
-            annotations: { ...prev.annotations, ...extra },
+            optVisibility: wtOptVis ?? prev.optVisibility,
+            annotations: { ...prev.annotations, ...wtAntn },
           }));
         }
       }

@@ -89,12 +89,19 @@ export type {
 export {
   attachOptViewConstraints,
   getOptViewConstraints,
+  optVisibilityFromConventionKeys,
   parseOptViewConstraints,
   presentationForPath,
   pickPathAnnotationItems,
+} from "./opt_view.ts";
+export {
+  HIDE_ON_FORM_ANNOTATION_KEYS,
+  isHideOnFormAnnotationKey,
+  pathAnnotationsForDataAntn,
 } from "./opt_view.ts";
 export type {
   OptPresentationByPath,
   OptViewConstraint,
   OptVisibilityToken,
+  RmVisibilityToken,
 } from "./opt_view.ts";

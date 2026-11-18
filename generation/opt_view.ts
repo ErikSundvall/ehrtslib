@@ -23,6 +23,29 @@ import {
 } from "./term_scope.ts";
 
 export type OptVisibilityToken = "hide" | "show" | "pass-through";
+export type RmVisibilityToken = "hide" | "show";
+
+/** Keys consumed into `data-opt-visibility`, not emitted as `data-antn-*`. */
+export const HIDE_ON_FORM_ANNOTATION_KEYS = [
+  "a.hide_on_form",
+  "hide_on_form",
+  "hide-on-form",
+] as const;
+
+export function isHideOnFormAnnotationKey(key: string): boolean {
+  return (HIDE_ON_FORM_ANNOTATION_KEYS as readonly string[]).includes(key);
+}
+
+export function pathAnnotationsForDataAntn(
+  annotations: Record<string, string>,
+): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(annotations)) {
+    if (isHideOnFormAnnotationKey(k)) continue;
+    out[k] = v;
+  }
+  return out;
+}
 
 export type OptViewConstraint = {
   path: string;
@@ -33,9 +56,13 @@ export type OptViewConstraint = {
 const OPT_VIEW_CONSTRAINTS = Symbol.for("ehrtslib.optViewConstraints");
 
 export type OptPresentationByPath = {
-  visibility?: OptVisibilityToken;
-  alias?: string;
-  /** All annotation items for the chosen language (lossless forward). */
+  /** OPT 1.4 `<view>` and hide-on-form conventions only. */
+  optVisibility?: OptVisibilityToken;
+  optAlias?: string;
+  /** ADL2 / AOM2 `rm_overlay.rm_visibility` only. */
+  rmVisibility?: RmVisibilityToken;
+  rmAlias?: string;
+  /** Path annotations for `data-antn-*` (hide-on-form keys excluded). */
   annotations: Record<string, string>;
 };
 
@@ -120,21 +147,16 @@ function rmVisibilityMap(
   return m;
 }
 
-function pickVisibility(
-  view?: OptViewConstraint,
-  rmVis?: Record<string, string>,
-  annot?: Record<string, string>,
+/** OPT 1.4 `<view>` plus hide-on-form annotation keys only. */
+export function optVisibilityFromConventionKeys(
+  view: OptViewConstraint | undefined,
+  annot: Record<string, string>,
 ): OptVisibilityToken | undefined {
   if (view?.passThrough === true) return "pass-through";
   if (view?.passThrough === false) return "hide";
-
-  const rmTok = rmVis?.visibility?.toLowerCase();
-  if (rmTok === "hide" || rmTok === "hiding") return "hide";
-  if (rmTok === "show" || rmTok === "visible") return "show";
-
   if (view?.visibleInView) return "show";
 
-  const hof = annot?.["a.hide_on_form"] ?? annot?.hide_on_form;
+  const hof = annot["a.hide_on_form"] ?? annot.hide_on_form ?? annot["hide-on-form"];
   if (hof === "presentation" || hof === "true" || hof === "input") {
     return hof === "input" ? "show" : "hide";
   }
@@ -142,8 +164,17 @@ function pickVisibility(
   return undefined;
 }
 
+function pickRmVisibility(
+  rmVis: Record<string, string> | undefined,
+): RmVisibilityToken | undefined {
+  const rmTok = rmVis?.visibility?.toLowerCase();
+  if (rmTok === "hide" || rmTok === "hiding") return "hide";
+  if (rmTok === "show" || rmTok === "visible") return "show";
+  return undefined;
+}
+
 /** `rm_visibility.alias` is an at-code; emit terminology text when resolvable. */
-function pickAlias(
+function pickRmAlias(
   opt: openehr_am.OPERATIONAL_TEMPLATE,
   rmVis: Record<string, string> | undefined,
   renderLang: string,
@@ -220,7 +251,13 @@ export function presentationForPath(
     nodeName,
     renderLang,
   );
-  const visibility = pickVisibility(view, rmVis, annotations);
-  const alias = pickAlias(opt, rmVis, renderLang);
-  return { visibility, alias, annotations };
+  const optVisibility = optVisibilityFromConventionKeys(view, annotations);
+  const rmVisibility = pickRmVisibility(rmVis);
+  const rmAlias = pickRmAlias(opt, rmVis, renderLang);
+  return {
+    optVisibility,
+    rmVisibility,
+    rmAlias,
+    annotations: pathAnnotationsForDataAntn(annotations),
+  };
 }
