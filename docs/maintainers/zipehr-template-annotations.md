@@ -90,26 +90,28 @@ them so stored data stays standard.
 
 | Source in authoring | On HTML | In openEHR standards | How to treat in apps |
 |---------------------|---------|----------------------|----------------------|
-| Path annotations on constraints (`annotations { … }`) | `data-antn-{slug}` | Informal / vendor keys; AM is grouping documentation-style metadata in ADL2 | Opaque UI hints; filter or namespace keys you trust |
-| OPT 1.4 `<view>` items (`pass_through`, `VisibleInView`, …) | `data-opt-visibility`, `data-opt-alias` | Legacy OPT XML (Ocean / EHRbase era) | Import-only; no ADL2 equivalent |
-| ADL2 `rm_overlay.rm_visibility` | `data-rm-visibility`, `data-rm-alias` | Normative ADL2 template overlay | Stable for ADL2-authored templates |
+| Path annotations on constraints (`annotations { … }`) | `data-antn-{slug}` | ADL2 standardises only a `documentation` group; no standard UI-hint vocabulary yet ([SPECPR-469](https://specifications.openehr.org/tickets/SPECPR-469) proposes a `technical` group, open) | Opaque hints (`hide-on-form`, `L10n.*`, …); filter keys you trust |
+| OPT 1.4 `<view>` items (`pass_through`, `VisibleInView`, …) | `data-opt-visibility`, `data-opt-alias` | Tool conventions (Ocean Template Designer) in the OPT 1.4 XML schema — not in normative spec prose; no ADL2/OPT2 equivalent | Import-only from OPT 1.4 XML |
+| ADL2 `rm_overlay.rm_visibility` (AOM2 RM overlay) | `data-rm-visibility`, `data-rm-alias` | Normative ADL2/AOM2, but narrow scope (see below) | Authoring-tool visibility hints, not end-user form rules |
 
 **`data-antn-*`** comes from whatever string keys authors attach at a template
-path (localization `L10n.*`, form layout `hide-on-form`, internal codes, etc.).
-They are useful for rendering but are not validated as RM. Prefer explicit
-`templateAnnotationFilter` if you only want a subset. Evolution of first-class
-“documentation” metadata in AM is tracked in the community process (e.g.
-[SPECPR-469](https://specifications.openehr.org/tickets/SPECPR-469)); until
-that settles, treat `data-antn-*` as presentation-only.
+path. They are useful for rendering but are not validated as RM. Use
+`templateAnnotationFilter` to emit only keys you rely on. OPT2 can let profiled
+OPTs strip annotations, so hints may disappear on conversion — do not treat them
+as permanent RM facts.
 
 **`data-opt-*`** is read only from OPT 1.4 XML `<view><constraints path="…">`.
-It reflected early operational-template UI tooling. New ADL2/OPT2 pipelines should
-not rely on it; ehrtslib maps it for compatibility when you serialize with an
-OPT 1.4 `template`. Reference: [Operational Template (OPT 1.4)](https://specifications.openehr.org/releases/AM/latest/docs/openehr_template/op_template.html).
+Item ids such as `pass_through` and `VisibleInView` are defined in the legacy
+OPT schema, not as first-class AM semantics. New ADL2/OPT2 pipelines should not
+rely on them; ehrtslib emits them when given an OPT 1.4 `template`. Reference:
+[Operational Template (OPT 1.4)](https://specifications.openehr.org/releases/AM/latest/docs/openehr_template/op_template.html).
 
-**`data-rm-*`** mirrors ADL2 template `rm_overlay` visibility and alias overlays
-on RM nodes. That is the standards-backed place for “show/hide this RM slot in
-this template.” Reference: [ADL 2 — templates and overlays](https://specifications.openehr.org/releases/AM/latest/docs/ADL2/ADL2.html).
+**`data-rm-*`** mirrors ADL2 `rm_overlay` visibility and alias on **non-archetyped
+RM attributes** only; archetyped and constrained nodes are visible by default in
+the overlay model. `hide` / `show` there **indicates to a tool** (modelling /
+authoring), not an end-user form engine — and it does **not** hide an archetyped
+node the way a path annotation such as `hide-on-form` can. Reference:
+[AOM2 — RM overlay](https://specifications.openehr.org/releases/AM/latest/AOM2.html).
 
 ## Parser
 
