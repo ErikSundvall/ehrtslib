@@ -51,6 +51,22 @@ jobs:
       - name: Preserve frozen release versions on GitHub Pages
         run: deno run -A scripts/assemble-pages.ts main docs dist-pages
 
+      - name: Require bleeding-edge webapp chunks
+        run: |
+          set -euo pipefail
+          require_nonempty_dir() {
+            local dir="$1"
+            if [ ! -d "$dir" ] || [ -z "$(find "$dir" -mindepth 1 -print -quit)" ]; then
+              echo "$dir is missing or empty; refusing to deploy Pages" >&2
+              exit 1
+            fi
+          }
+          require_nonempty_dir dist-pages/demo/chunks
+          # TAAAT has no chunks today. When a build emits them, they must ship.
+          if [ -d docs/taaat/chunks ] || [ -d dist-pages/taaat/chunks ]; then
+            require_nonempty_dir dist-pages/taaat/chunks
+          fi
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact

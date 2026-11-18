@@ -183,6 +183,88 @@ export async function copyDirContents(
   }
 }
 
+async function pathIsDirectory(path: string): Promise<boolean> {
+  try {
+    return (await Deno.stat(path)).isDirectory;
+  } catch (error) {
+    if (error instanceof Deno.errors.NotFound) return false;
+    throw error;
+  }
+}
+
+async function directoryNonEmpty(dir: string): Promise<boolean> {
+  try {
+    for await (const _entry of Deno.readDir(dir)) {
+      return true;
+    }
+    return false;
+  } catch (error) {
+    if (error instanceof Deno.errors.NotFound) return false;
+    throw error;
+  }
+}
+
+/** Demo builds emit `chunks/`; that directory is gitignored until `build:demo`. */
+async function demoChunksReady(docsDir: string): Promise<boolean> {
+  return await directoryNonEmpty(join(docsDir, "demo", "chunks"));
+}
+
+/**
+ * A TAAAT tree we can publish in place of a mirror. `chunks/` is optional
+ * (the current build has none); an empty chunks directory is not a build.
+ */
+async function taaatTreeIsPublishable(dir: string): Promise<boolean> {
+  if (!(await directoryHasIndex(dir))) return false;
+  if (!(await fileExists(join(dir, "bundle.js")))) return false;
+  const chunks = join(dir, "chunks");
+  if (await pathIsDirectory(chunks) && !(await directoryNonEmpty(chunks))) {
+    return false;
+  }
+  return true;
+}
+
+/** Library releases may seed from docs only when both bleeding-edge apps were built. */
+async function docsHaveBuiltWebapps(docsDir: string): Promise<boolean> {
+  return await demoChunksReady(docsDir) &&
+    await taaatTreeIsPublishable(join(docsDir, "taaat"));
+}
+
+async function replaceDir(src: string, dest: string): Promise<void> {
+  try {
+    await Deno.remove(dest, { recursive: true });
+  } catch (error) {
+    if (!(error instanceof Deno.errors.NotFound)) throw error;
+  }
+  await copy(src, dest);
+}
+
+/**
+ * wget follows HTML links, not ES module imports, so a release mirror of the
+ * live site drops `demo/chunks/`. `release.yml` builds demo and TAAAT before
+ * assemble; publish those trees so bleeding-edge matches `assemble-pages main`.
+ *
+ * Demo chunks exist only after `build:demo`. TAAAT's committed tree also has
+ * `bundle.js`, so a demo or TAAAT tag does not replace `/taaat/` unless that
+ * build emitted chunks (otherwise the mirrored other webapp would be swapped
+ * for whatever is already in git).
+ */
+async function publishBuiltBleedingEdge(
+  docsDir: string,
+  outDir: string,
+  pkg: ReleasePackage,
+): Promise<void> {
+  if (await demoChunksReady(docsDir)) {
+    await replaceDir(join(docsDir, "demo"), join(outDir, "demo"));
+  }
+  const taaat = join(docsDir, "taaat");
+  const taaatHasChunks = await directoryNonEmpty(join(taaat, "chunks"));
+  const replaceTaaat = taaatHasChunks ||
+    (pkg === "library" && await taaatTreeIsPublishable(taaat));
+  if (replaceTaaat && await taaatTreeIsPublishable(taaat)) {
+    await replaceDir(taaat, join(outDir, "taaat"));
+  }
+}
+
 /** Mirror the live Pages site (root + frozen versions) into dest. */
 export async function mirrorLiveSite(
   baseUrl: string,
@@ -404,7 +486,10 @@ export async function assembleMainPagesSite(opts: {
 /**
  * Release deploy: add an immutable version subdirectory without replacing
  * other frozen copies. A library release also publishes `/lib/<tag>/` when
- * `appDist` is the runtime-bundle directory.
+ * `appDist` is the runtime-bundle directory, and replaces bleeding-edge
+ * `/demo/` and `/taaat/` with the builds in `docsDir` (same trees as
+ * `assembleMainPagesSite`). Webapp tags replace `/demo/` from that build so
+ * a wget mirror cannot drop chunks, and leave the other webapp as mirrored.
  */
 export async function assembleReleasePagesSite(opts: {
   baseUrl: string;
@@ -429,14 +514,17 @@ export async function assembleReleasePagesSite(opts: {
     await mirrorLiveSite(opts.baseUrl, opts.outDir);
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error);
-    if (key === "library") {
+    const built = await docsHaveBuiltWebapps(opts.docsDir);
+    if (key === "library" && !built) {
       throw new Error(
         `Live Pages mirror failed during a library release (${reason}). ` +
           "Refusing to seed from docs/ so /demo/ and /taaat/ are not wiped.",
       );
     }
     console.warn(
-      `Live Pages mirror failed (${reason}); seeding from docs/`,
+      built
+        ? `Live Pages mirror failed (${reason}); seeding from built docs/`
+        : `Live Pages mirror failed (${reason}); seeding from docs/`,
     );
     await emptyDir(opts.outDir);
     await copyDirContents(opts.docsDir, opts.outDir);
@@ -445,6 +533,9 @@ export async function assembleReleasePagesSite(opts: {
   if (!(await fileExists(join(opts.outDir, "index.html")))) {
     await copyDirContents(opts.docsDir, opts.outDir);
   }
+
+  // The mirror (or a docs seed) still lacks demo chunks. Overlay the builds.
+  await publishBuiltBleedingEdge(opts.docsDir, opts.outDir, key);
 
   const demoKept = await preserveFrozenTags(
     opts.baseUrl,
