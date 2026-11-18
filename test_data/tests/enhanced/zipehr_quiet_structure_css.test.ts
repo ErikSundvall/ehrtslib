@@ -174,7 +174,7 @@ Deno.test("quiet preview: archetype names visible, tech clusters hidden, human d
   assertStringIncludes(bodyText, "Episode duration");
   assertStringIncludes(bodyText, "3 days");
   const techClusters = win.document.querySelectorAll(
-    '[data-hide-on-form="true"]',
+    '[data-antn-hide-on-form="true"]',
   );
   assert(techClusters.length >= 1);
   const displayText = [...win.document.querySelectorAll(".zs-display-value")]
@@ -182,8 +182,8 @@ Deno.test("quiet preview: archetype names visible, tech clusters hidden, human d
     .join(" ");
   assert(!displayText.includes("2021-10-21T14:21:00+01:00"));
   assertStringIncludes(displayText, "2021");
-  const tech = win.document.querySelector('[data-hide-on-form="true"]');
-  assert(tech, "clinergy descriptor cluster should have html pass-through hide");
+  const tech = win.document.querySelector('[data-antn-hide-on-form="true"]');
+  assert(tech, "clinergy descriptor cluster should have data-antn hide hint");
 });
 
 Deno.test("quiet preview hides redundant HISTORY.origin when equal to event time", async () => {

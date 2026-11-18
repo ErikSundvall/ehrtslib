@@ -12,11 +12,15 @@ import {
   zipehrHtml5ToCanonical,
 } from "../../../serialization/zipehr/mod.ts";
 import {
-  HTML_ANNOTATION_PREFIX,
-  OPT_VISIBILITY_ATTR,
+  DATA_ANTN_PREFIX,
+  annotationsFromDataAntnAttrs,
   applyPresentationAttrs,
-  htmlAttributeNameFromAnnotationKey,
-  passthroughAttrsFromAnnotations,
+  dataAntnAttrName,
+  dataAntnAttrsFromAnnotations,
+  dataAntnKeyCompanionAttrName,
+  isSelfDescribingAnnotationKey,
+  normalizeAnnotationKeySlug,
+  planDataAntnAttrs,
 } from "../../../serialization/zipehr/template_annotations.ts";
 
 const repo = new URL("../../../", import.meta.url);
@@ -41,83 +45,88 @@ const SERIALIZE_OPTS = {
   operationalTemplate: OPT,
 };
 
-Deno.test("html: prefix maps annotation key to attribute name", () => {
-  assertEquals(HTML_ANNOTATION_PREFIX, "html:");
-  assertEquals(
-    htmlAttributeNameFromAnnotationKey("html:data-hide-on-form"),
-    "data-hide-on-form",
-  );
-  assertEquals(
-    htmlAttributeNameFromAnnotationKey("html:class"),
-    "class",
+Deno.test("data-antn: normalize annotation key slug", () => {
+  assertEquals(normalizeAnnotationKeySlug("L10n.en"), "l10n-en");
+  assertEquals(normalizeAnnotationKeySlug("html:data-hide-on-form"), "html-data-hide-on-form");
+  assertEquals(normalizeAnnotationKeySlug("hide-on-form"), "hide-on-form");
+  assertEquals(normalizeAnnotationKeySlug("a.hide_on_form"), "a-hide-on-form");
+  assertEquals(normalizeAnnotationKeySlug("Notes.Comment"), "notes-comment");
+  assertEquals(normalizeAnnotationKeySlug("weird  /slash"), "weird-slash");
+  assertEquals(isSelfDescribingAnnotationKey("hide-on-form"), true);
+  assertEquals(isSelfDescribingAnnotationKey("L10n.en"), false);
+});
+
+Deno.test("data-antn: lossy keys get -key companion", () => {
+  const attrs = dataAntnAttrsFromAnnotations({ "L10n.en": "History" });
+  const names = attrs.map((a) => a.name);
+  assert(names.includes(dataAntnAttrName("l10n-en")));
+  assert(names.includes(dataAntnKeyCompanionAttrName("l10n-en")));
+});
+
+Deno.test("data-antn: collision disambiguation and round-trip", () => {
+  const input = {
+    "note.a": "first",
+    "note-a": "second",
+  };
+  const plans = planDataAntnAttrs(input);
+  assertEquals(plans.length, 2);
+  assertEquals(plans[0]!.attrSlug, "note-a--1");
+  assertEquals(plans[1]!.attrSlug, "note-a--2");
+
+  const bag = dataAntnAttrsFromAnnotations(input);
+  const attrRecord: Record<string, string> = {};
+  for (const a of bag) {
+    attrRecord[a.name] = a.value ?? "true";
+  }
+  assertEquals(annotationsFromDataAntnAttrs(attrRecord), input);
+});
+
+Deno.test("data-antn: odd keys round-trip via companion", () => {
+  const input = {
+    "Notes.Comment": "author note",
+    'say "hi"': "quoted",
+    "a.hide_on_form": "presentation",
+  };
+  const bag = dataAntnAttrsFromAnnotations(input);
+  const attrRecord: Record<string, string> = {};
+  for (const a of bag) {
+    attrRecord[a.name] = a.value ?? "true";
+  }
+  assertEquals(annotationsFromDataAntnAttrs(attrRecord), input);
+});
+
+Deno.test("data-antn: empty key slug fails loudly", () => {
+  assertThrows(
+    () => planDataAntnAttrs({ "///": "x" }),
+    Error,
+    "empty slug",
   );
 });
 
-Deno.test("html: pass-through rejects event handlers and javascript URLs", () => {
-  assertThrows(
-    () =>
-      passthroughAttrsFromAnnotations(
-        { "html:onclick": "alert(1)" },
-        "short",
-      ),
-    Error,
-  );
-  assertThrows(
-    () =>
-      passthroughAttrsFromAnnotations(
-        { "html:href": "javascript:alert(1)" },
-        "short",
-      ),
-    Error,
-  );
-});
-
-Deno.test("html: pass-through rejects serializer round-trip attrs", () => {
+Deno.test("data-antn: applyPresentationAttrs rejects duplicate antn attrs", () => {
   const attrs: { name: string; value: string }[] = [
-    { name: "n", value: "at0001" },
+    { name: dataAntnAttrName("hide-on-form"), value: "false" },
   ];
   assertThrows(
     () =>
-      applyPresentationAttrs(
-        attrs,
-        {
-          annotations: { "html:n": "evil" },
-        },
-        "short",
-      ),
+      applyPresentationAttrs(attrs, {
+        annotations: { "hide-on-form": "true" },
+      }),
     Error,
-  );
-  assertThrows(
-    () =>
-      passthroughAttrsFromAnnotations(
-        { "html:data-zs-value": "x" },
-        "short",
-      ),
-    Error,
+    "overwrite",
   );
 });
 
-Deno.test("html: pass-through emits class merge", () => {
-  const attrs: { name: string; value?: string }[] = [
-    { name: "class", value: "zs-wrap" },
-  ];
-  applyPresentationAttrs(
-    attrs,
-    { annotations: { "html:class": "quiet" } },
-    "short",
-  );
-  assertEquals(attrs.find((a) => a.name === "class")?.value, "zs-wrap quiet");
-});
-
-Deno.test("template presentation: html:data-hide-on-form on clinergy", async () => {
+Deno.test("template presentation: data-antn-hide-on-form on clinergy", async () => {
   const html = await serializeToHtml5Variant(
     PAIN,
     "zipehr.html5.short",
     SERIALIZE_OPTS,
   );
-  assertStringIncludes(html, 'data-hide-on-form="true"');
-  assert(!html.includes("data-opt-annotations"));
-  assert(!html.match(/data-opt-[a-z]/));
+  assertStringIncludes(html, 'data-antn-hide-on-form="true"');
+  assert(!html.includes("data-hide-on-form="));
+  assert(!html.includes("html:data"));
+  assert(!html.includes(`${DATA_ANTN_PREFIX}html`));
 
   const plain = await serializeToHtml5Variant(PAIN, "zipehr.html5.short", {
     layout: "linesaving",
@@ -127,7 +136,7 @@ Deno.test("template presentation: html:data-hide-on-form on clinergy", async () 
   assertEquals(back, backPlain);
 });
 
-Deno.test("template presentation: quiet CSS hides data-hide-on-form", async () => {
+Deno.test("template presentation: quiet CSS hides data-antn-hide-on-form", async () => {
   const html = await serializeToHtml5Variant(
     PAIN,
     "zipehr.html5.short",
@@ -142,14 +151,17 @@ Deno.test("template presentation: quiet CSS hides data-hide-on-form", async () =
   const doc = `<!DOCTYPE html><html><head><style>${quiet}</style></head><body>${html}</body></html>`;
   const win = new Window({ url: "https://example.test/" });
   win.document.write(doc);
-  const hidden = win.document.querySelector('[data-hide-on-form="true"]');
-  assert(hidden, "clinergy cluster should have html pass-through hide hint");
+  const hidden = win.document.querySelector('[data-antn-hide-on-form="true"]');
+  assert(hidden, "clinergy cluster should have data-antn hide hint");
   assertEquals(win.getComputedStyle(hidden as Element).display, "none");
 });
 
-Deno.test("template presentation: view visibility attr unchanged", () => {
-  assertEquals(OPT_VISIBILITY_ATTR, "data-opt-visibility");
-  const attrs: { name: string; value: string }[] = [];
-  applyPresentationAttrs(attrs, { visibility: "pass-through", annotations: {} }, "short");
-  assertEquals(attrs[0]?.name, "data-opt-visibility");
+Deno.test("template presentation: L10n annotations emit data-antn with key companion", async () => {
+  const html = await serializeToHtml5Variant(
+    PAIN,
+    "zipehr.html5.short",
+    SERIALIZE_OPTS,
+  );
+  assertStringIncludes(html, 'data-antn-l10n-en="Symptom/Sign"');
+  assertStringIncludes(html, 'data-antn-l10n-en-key="L10n.en"');
 });

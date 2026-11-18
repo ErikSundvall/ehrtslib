@@ -137,16 +137,16 @@ await historySection.screenshot({
   path: `${OUT}/zipehr-quiet-html-passthrough-hide.png`,
 });
 const hasHiddenClinergy = await painPage.locator(
-  '[data-hide-on-form="true"]',
+  '[data-antn-hide-on-form="true"]',
 ).count();
 const visibleClinergyLabel = await painPage
-  .locator('[data-hide-on-form="true"]')
+  .locator('[data-antn-hide-on-form="true"]')
   .first()
   .evaluate((el) => getComputedStyle(el).display)
   .catch(() => "missing");
 await Deno.writeTextFile(
   `${OUT}/zipehr-html-passthrough-hide-evidence.txt`,
-  `[data-hide-on-form="true"] count (02-pain-rich + OPT html: annotation): ${hasHiddenClinergy}\n` +
+  `[data-antn-hide-on-form="true"] count (02-pain-rich + OPT): ${hasHiddenClinergy}\n` +
     `computed display on first: ${visibleClinergyLabel}\n`,
 );
 await painPage.close();

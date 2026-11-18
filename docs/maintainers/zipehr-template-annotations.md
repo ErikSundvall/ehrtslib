@@ -1,8 +1,8 @@
 # ZipEHR HTML5: template UI metadata
 
 ZipEHR html5 can forward **template** metadata onto composition markup. The
-HTML5 deserializer ignores these attributes; canonical JSON round-trip stays
-lossless.
+HTML5 deserializer ignores `data-antn-*` and `data-opt-*` presentation attrs;
+canonical JSON round-trip stays lossless.
 
 There is **no agreed openEHR UI-hint vocabulary**. Real-world sources differ:
 
@@ -14,92 +14,69 @@ There is **no agreed openEHR UI-hint vocabulary**. Real-world sources differ:
 | **OPT `<annotations>`** | Project-local, often set-prefixed (`Notes.Comment`, `fhir_mapping`, `L10n.en`). Not a shared UI-hint registry. |
 | **Experimental** | Discourse [#2406](https://discourse.openehr.org/t/agreeing-on-optional-user-interface-hints-in-templates/2406): `a.hide_on_form` with values `input` \| `presentation` — **not standard**. |
 
-ehrtslib does **not** treat invented `<items id="hide-on-form">` as practice.
+ehrtslib does **not** treat invented `<items id="hide-on-form">` as practice
+(Ocean uses view rules / overlay metadata instead).
 
-## Pass-through prefix: `html:`
+## `data-antn-*` (all path annotations)
 
-Template annotation keys that start with **`html:`** are copied verbatim onto the
-matched composition element: the part after the prefix becomes the HTML
-attribute name; the annotation value becomes the attribute value (with `class`
-merged when both serializer and template supply it).
+When serializing with **Web Template + OPT**, **every** path annotation for the
+matched node becomes one or two HTML attributes:
 
-Examples:
+| Output | Meaning |
+|--------|---------|
+| `data-antn-{slug}="value"` | Annotation value |
+| `data-antn-{slug}-key="original"` | Present when the slug is **lossy** or **collides** |
 
-| OPT / Web Template annotation key | Html5 output |
-|-----------------------------------|--------------|
-| `html:data-hide-on-form` = `true` | `data-hide-on-form="true"` |
-| `html:class` = `quiet` | `class="quiet"` (merged with existing `class`) |
+**Slug normalization** (from the template annotation key):
 
-### Why `html:` (not `html.`)
+1. Trim whitespace.
+2. Lowercase.
+3. Replace every character outside `[a-z0-9-]` (dots, underscores, colons, slashes, spaces, …) with a single `-`.
+4. Collapse repeated `-`.
+5. Trim leading/trailing `-`.
 
-- Matches the experimental Discourse shape (`html:…` as a pseudo-namespace) and
-  keeps the suffix **exactly** the DOM attribute name (including `data-*` and
-  hyphenated names).
-- Survives **OPT 1.4** path `<items id="…">` (XML allows `:` in `id` values;
-  same storage as `L10n.en`, `Notes.Comment`, etc.).
-- Survives **ADL2** / documentation bags (arbitrary string keys).
-- Does not collide with established dotted families (`L10n.`, `a.`) used by
-  `annotationFamily()` — `html:data-foo` stays unprefixed-family, distinct
-  from `html.data-foo` which would parse as family `html.`.
+Example: `hide-on-form` → `data-antn-hide-on-form="true"`; `L10n.en` →
+`data-antn-l10n-en="…"` plus `data-antn-l10n-en-key="L10n.en"`.
 
-The serializer has **no** registry of viewer-specific keys — only:
+**Collision:** two keys that normalize to the same slug (e.g. `note.a` and
+`note-a`) use disambiguators `data-antn-note-a--1`, `data-antn-note-a--2`, each
+with a `-key` companion holding the original key.
 
-- Reject `on*` attribute names (event handlers).
-- Reject `javascript:` in values.
-- Reject invalid HTML attribute names.
-- Reject pass-through that would overwrite serializer round-trip attributes
-  (`data-zs-*`, `data-opt-*`, short `n`/`a`/`tp`/`rm`/`fmt`, …).
+The serializer does **not** interpret annotation names (no hide/class/title
+registry). Viewers choose CSS/JS against `data-antn-*`. Native `lang` on nodes
+stays the existing ZipEHR language-carrier behaviour.
 
-Non-`html:` annotations remain in the OPT only; they are **not** emitted on html5
-(no lossless JSON blob on markup).
+**Annotation round-trip:** `annotationsFromDataAntnAttrs()` in
+`serialization/zipehr/template_annotations.ts` rebuilds the exact key/value map
+from `data-antn-*` attrs (used in tests; html5 canonical deserialize still
+strips them).
 
-## View constraints (separate)
-
-When `operationalTemplate` + `webTemplate` are supplied, the serializer still
-summarises normative / de-facto **view** metadata:
+## View constraints (separate, unchanged for now)
 
 | Attribute | Meaning |
 |-----------|---------|
-| `data-opt-visibility` | `hide` \| `show` \| `pass-through` from `<view>` `pass_through`, `rm_visibility`, `VisibleInView`, experimental `a.hide_on_form`. |
+| `data-opt-visibility` | `hide` \| `show` \| `pass-through` from `<view>`, `rm_visibility`, experimental `a.hide_on_form`. |
 | `data-opt-alias` | `rm_visibility.alias` when present. |
 
-This is independent of `html:` pass-through; viewers may use either or both.
+Not folded into `data-antn-*`.
 
-Visibility mapping (first match wins):
+## Quiet-structure CSS (example viewer)
 
-1. `view.pass_through === true` → `pass-through`
-2. `view.pass_through === false` → `hide`
-3. `rm_overlay.rm_visibility` → `hide` / `show`
-4. `VisibleInView` item present → `show`
-5. Experimental `a.hide_on_form` / `hide_on_form`: `presentation` or `true` → `hide`; `input` → `show`
+Shipped overrides are **not** part of round-trip:
 
-Metadata is attached only on nodes matched by Web Template `aqlPath` (not copied
-to descendants).
-
-## Quiet-structure CSS
-
-Shipped overrides (viewer-owned; not part of round-trip):
-
-- `[data-hide-on-form="true"]` — example pass-through hide (Ferro Clinergy fixture)
-- `[data-opt-visibility="hide"]` — view / `rm_visibility` summary hide
-- `[data-opt-visibility="pass-through"]` — `display: contents`; hide `.zs-structural-label` children
+- `[data-antn-hide-on-form="true"]` — Ferro Clinergy fixture
+- `[data-opt-visibility="hide"]` — view summary
+- `[data-opt-visibility="pass-through"]` — `display: contents`; hide `.zs-structural-label`
 
 ## Serializer API
 
-`Html5SerializeOptions`:
-
-- `operationalTemplate` — parsed OPT (view constraints, rm_overlay, annotations)
-- `webTemplate` — index nodes by `aqlPath`
-- `templateRenderLang` — annotation language preference (`render` → `""` → original)
+`Html5SerializeOptions`: `operationalTemplate`, `webTemplate`, `templateRenderLang`.
 
 ## Ferro / workbench
 
-Clinergy descriptor hiding in `thumb-pain-encounter.v2-coded.opt` uses
-`html:data-hide-on-form` on the cluster path (not invented annotation ids).
-Production Ocean OPTs may still use `<view>` `pass_through` (mapped to
-`data-opt-visibility`) or project-specific `html:*` keys.
+`thumb-pain-encounter.v2-coded.opt` uses annotation key `hide-on-form` on
+Clinergy descriptor paths (→ `data-antn-hide-on-form` in html5).
 
 ## Parser
 
-OPT XML: `parser/legacy/opt_xml_parser.ts` calls `attachOptViewConstraints`.
-ADL2 `rm_overlay` is already parsed via `applyRmOverlayOdin`.
+OPT XML: path annotations and `attachOptViewConstraints` in `opt_xml_parser.ts`.

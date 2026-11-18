@@ -12557,12 +12557,12 @@
     <items id="L10n.en">Specific details</items>
   </annotations>
   <annotations path="/content[openEHR-EHR-SECTION.adhoc.v1 and name/value='History']/items[openEHR-EHR-OBSERVATION.story.v1]/data[at0001]/events[at0002]/data[at0003]/items[openEHR-EHR-CLUSTER.symptom_sign.v2]/items[openEHR-EHR-CLUSTER.clinergy_descriptor.v0]">
-    <items id="html:data-hide-on-form">
+    <items id="hide-on-form">
       <value>true</value>
     </items>
   </annotations>
   <annotations path="/content[openEHR-EHR-SECTION.adhoc.v1 and name/value='Examination']/items[openEHR-EHR-OBSERVATION.exam.v1]/data[at0001]/events[at0002]/data[at0003]/items[openEHR-EHR-CLUSTER.exam.v2]/items[openEHR-EHR-CLUSTER.range_of_motion.v1]/items[openEHR-EHR-CLUSTER.clinergy_descriptor.v0]">
-    <items id="html:data-hide-on-form">
+    <items id="hide-on-form">
       <value>true</value>
     </items>
   </annotations>

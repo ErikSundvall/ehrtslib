@@ -11,7 +11,7 @@
 o-cph.zipehr-tech-quiet,
 o-cnt.zipehr-tech-quiet,
 o-dt.zipehr-tech-quiet,
-[data-hide-on-form="true"],
+[data-antn-hide-on-form="true"],
 [data-opt-visibility="hide"] {
   display: none !important;
 }

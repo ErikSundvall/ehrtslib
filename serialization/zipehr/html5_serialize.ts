@@ -815,7 +815,7 @@ function buildNode(
 
   const presentation = options.presentationByObject?.get(obj);
   if (presentation) {
-    applyPresentationAttrs(attrs, presentation, dialect);
+    applyPresentationAttrs(attrs, presentation);
   }
 
   // Preserve canonical JSON key order (lossless html5 round-trip); do not RM-reorder.

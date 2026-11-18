@@ -11,8 +11,8 @@
 o-cph.zipehr-tech-quiet,
 o-cnt.zipehr-tech-quiet,
 o-dt.zipehr-tech-quiet,
-/* OPT `html:` pass-through (viewer-owned) and view / rm_visibility summary */
-[data-hide-on-form="true"],
+/* Template `data-antn-*` hints and view / rm_visibility summary */
+[data-antn-hide-on-form="true"],
 [data-opt-visibility="hide"] {
   display: none !important;
 }
