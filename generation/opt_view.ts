@@ -42,6 +42,8 @@ export type OptPresentationByPath = {
   rmAlias?: string;
   /** All path annotations → `data-antn-*`. */
   annotations: Record<string, string>;
+  /** AQL path for collision diagnostics (annotation indexing only). */
+  presentationPath?: string;
 };
 
 export function parseOptViewConstraints(

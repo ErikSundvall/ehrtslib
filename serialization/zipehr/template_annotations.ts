@@ -20,6 +20,89 @@ import type { WebTemplate, WebTemplateNode } from "../simplified/types.ts";
 
 export const DATA_ANTN_PREFIX = "data-antn-";
 
+/** Stable docs anchor: `docs/maintainers/zipehr-template-annotations.md#…` */
+export const ZIP_ANNOTATION_FILTER_DOCS_ANCHOR =
+  "template-annotation-filter-regexp";
+export const ZIP_ANNOTATION_FILTER_DOCS_PATH =
+  `docs/maintainers/zipehr-template-annotations.md#${ZIP_ANNOTATION_FILTER_DOCS_ANCHOR}`;
+
+export type AnnotationSlugCollision = {
+  keptKey: string;
+  droppedKey: string;
+  attrSlug: string;
+};
+
+let annotationSlugCollisionWarn: (
+  message?: string,
+  ...optionalParams: unknown[]
+) => void = console.warn.bind(console);
+
+/** Test hook: capture `console.warn` from slug collision reporting. */
+export function setAnnotationSlugCollisionWarnForTests(
+  fn: (message?: string, ...optionalParams: unknown[]) => void,
+): void {
+  annotationSlugCollisionWarn = fn;
+}
+
+export function resetAnnotationSlugCollisionWarnForTests(): void {
+  annotationSlugCollisionWarn = console.warn.bind(console);
+}
+
+/** HTML comment body safe for `<!-- … -->` (no raw `--`). */
+export function escapeHtmlCommentBody(text: string): string {
+  return text.replace(/--/g, "‑‑");
+}
+
+export function formatSafeHtmlComment(body: string): string {
+  return `<!--${escapeHtmlCommentBody(body)}-->`;
+}
+
+export function formatAnnotationCollisionHtmlComment(
+  collision: AnnotationSlugCollision,
+): string {
+  return formatSafeHtmlComment(
+    `ehrtslib: data-antn slug collision: kept ${collision.keptKey} as ${dataAntnAttrName(collision.attrSlug)}; ` +
+      `dropped ${collision.droppedKey}. Narrow keys with templateAnnotationFilter (${ZIP_ANNOTATION_FILTER_DOCS_PATH}).`,
+  );
+}
+
+export function detectAnnotationSlugCollisions(
+  annotations: Record<string, string>,
+  filter?: RegExp | RegExp[],
+): AnnotationSlugCollision[] {
+  const filtered = filterAnnotationRecord(annotations, filter);
+  const keys = Object.keys(filtered).sort((a, b) => a.localeCompare(b));
+  const collisions: AnnotationSlugCollision[] = [];
+  const slugToKept = new Map<string, string>();
+
+  for (const key of keys) {
+    const slug = normalizeAnnotationKeySlug(key);
+    if (!slug) continue;
+    const kept = slugToKept.get(slug);
+    if (kept !== undefined) {
+      collisions.push({ keptKey: kept, droppedKey: key, attrSlug: slug });
+    } else {
+      slugToKept.set(slug, key);
+    }
+  }
+  return collisions;
+}
+
+export function warnAnnotationSlugCollisions(
+  collisions: AnnotationSlugCollision[],
+  context: { aqlPath?: string },
+): void {
+  for (const c of collisions) {
+    const attr = dataAntnAttrName(c.attrSlug);
+    const path = context.aqlPath ?? "?";
+    annotationSlugCollisionWarn(
+      `ZipEHR data-antn slug collision at ${path}: ` +
+        `kept ${JSON.stringify(c.keptKey)} → ${attr}; ` +
+        `dropped ${JSON.stringify(c.droppedKey)} (both normalize to ${JSON.stringify(c.attrSlug)})`,
+    );
+  }
+}
+
 export const OPT_VISIBILITY_ATTR = "data-opt-visibility";
 export const OPT_ALIAS_ATTR = "data-opt-alias";
 export const RM_VISIBILITY_ATTR = "data-rm-visibility";
@@ -84,7 +167,8 @@ export type DataAntnAttrPlan = {
 export function planDataAntnAttrs(
   annotations: Record<string, string>,
 ): DataAntnAttrPlan[] {
-  const keys = Object.keys(annotations).sort((a, b) => a.localeCompare(b));
+  const filtered = { ...annotations };
+  const keys = Object.keys(filtered).sort((a, b) => a.localeCompare(b));
   const plans: DataAntnAttrPlan[] = [];
   const usedSlugs = new Set<string>();
 
@@ -100,10 +184,33 @@ export function planDataAntnAttrs(
     plans.push({
       attrSlug: slug,
       originalKey: key,
-      value: String(annotations[key] ?? ""),
+      value: String(filtered[key] ?? ""),
     });
   }
   return plans;
+}
+
+export type DataAntnEmitResult = {
+  attrs: AttrBag[];
+  presentationComments: string[];
+};
+
+export function emitDataAntnPresentation(
+  annotations: Record<string, string>,
+  context: {
+    aqlPath?: string;
+    filter?: RegExp | RegExp[];
+  },
+): DataAntnEmitResult {
+  const collisions = detectAnnotationSlugCollisions(
+    annotations,
+    context.filter,
+  );
+  warnAnnotationSlugCollisions(collisions, { aqlPath: context.aqlPath });
+  return {
+    attrs: dataAntnAttrsFromAnnotations(annotations, context.filter),
+    presentationComments: collisions.map(formatAnnotationCollisionHtmlComment),
+  };
 }
 
 export function dataAntnAttrsFromAnnotations(
@@ -136,12 +243,12 @@ function indexOfAttr(attrs: AttrBag[], name: string): number {
   return attrs.findIndex((a) => a.name.toLowerCase() === lower);
 }
 
-/** Apply `data-opt-*`, `data-rm-*`, and `data-antn-*` presentation attrs. */
-export function applyPresentationAttrs(
+/** Apply attrs; returns HTML comments for `data-antn-*` slug collisions. */
+export function applyPresentationAttrsAndComments(
   attrs: AttrBag[],
   presentation: OptPresentationByPath,
   annotationFilter?: RegExp | RegExp[],
-): void {
+): string[] {
   if (presentation.optVisibility) {
     attrs.push({
       name: OPT_VISIBILITY_ATTR,
@@ -161,10 +268,14 @@ export function applyPresentationAttrs(
     attrs.push({ name: RM_ALIAS_ATTR, value: presentation.rmAlias });
   }
 
-  for (const p of dataAntnAttrsFromAnnotations(
+  const { attrs: antnAttrs, presentationComments } = emitDataAntnPresentation(
     presentation.annotations,
-    annotationFilter,
-  )) {
+    {
+      aqlPath: presentation.presentationPath,
+      filter: annotationFilter,
+    },
+  );
+  for (const p of antnAttrs) {
     if (indexOfAttr(attrs, p.name) >= 0) {
       throw new Error(
         `ZipEHR template annotation would overwrite existing attribute ${p.name}`,
@@ -172,6 +283,16 @@ export function applyPresentationAttrs(
     }
     attrs.push(p);
   }
+  return presentationComments;
+}
+
+/** Apply `data-opt-*`, `data-rm-*`, and `data-antn-*` presentation attrs. */
+export function applyPresentationAttrs(
+  attrs: AttrBag[],
+  presentation: OptPresentationByPath,
+  annotationFilter?: RegExp | RegExp[],
+): void {
+  applyPresentationAttrsAndComments(attrs, presentation, annotationFilter);
 }
 
 export type PresentationIndex = WeakMap<object, OptPresentationByPath>;
@@ -221,7 +342,13 @@ function indexAtPath(
     if (value == null || typeof value !== "object" || Array.isArray(value)) {
       continue;
     }
-    map.set(value, mergePresentation(map.get(value), pres));
+    map.set(
+      value,
+      mergePresentation(map.get(value), {
+        ...pres,
+        presentationPath: pres.presentationPath ?? aqlPath,
+      }),
+    );
   }
 }
 

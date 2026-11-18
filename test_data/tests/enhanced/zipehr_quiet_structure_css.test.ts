@@ -13,8 +13,6 @@ import {
   ZIP_QUIET_PREVIEW_SCRIPT,
   buildZipehrPreviewDocument,
 } from "../../../serialization/zipehr/css/compose_quiet_css.ts";
-import { parseOptXml } from "../../../parser/legacy/opt_xml_parser.ts";
-import { buildWebTemplate } from "../../../serialization/simplified/mod.ts";
 import { serializeToHtml5Variant } from "../../../serialization/zipehr/mod.ts";
 
 const cssDir = new URL("../../../serialization/zipehr/css/", import.meta.url);
@@ -49,9 +47,6 @@ const FERRO_OPT_XML = await Deno.readTextFile(
     import.meta.url,
   ),
 );
-const FERRO_OPT = parseOptXml(FERRO_OPT_XML).operationalTemplate;
-const FERRO_WT = buildWebTemplate(FERRO_OPT);
-
 function openQuietPreview(html: string, css: string): Window {
   const docHtml = buildZipehrPreviewDocument(html, css, {
     quietStructureTooltips: false,
@@ -163,8 +158,7 @@ Deno.test("quiet preview: archetype names visible, tech clusters hidden, human d
     {
       layout: "linesaving",
       propertyMode: "comment",
-      webTemplate: FERRO_WT,
-      operationalTemplate: FERRO_OPT,
+      template: FERRO_OPT_XML,
     },
   );
   const css = await loadComposedQuietCss();

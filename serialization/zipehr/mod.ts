@@ -205,7 +205,11 @@ export {
   OPT_VISIBILITY_ATTR,
   RM_ALIAS_ATTR,
   RM_VISIBILITY_ATTR,
+  ZIP_ANNOTATION_FILTER_DOCS_PATH,
   normalizeAnnotationKeySlug,
+  type PresentationIndex,
+  resetAnnotationSlugCollisionWarnForTests,
+  setAnnotationSlugCollisionWarnForTests,
 } from "./template_annotations.ts";
 
 export {

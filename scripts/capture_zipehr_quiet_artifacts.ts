@@ -8,8 +8,6 @@ import {
   ZIP_QUIET_STRUCTURE_CSS,
   buildZipehrPreviewDocument,
 } from "../serialization/zipehr/css/compose_quiet_css.ts";
-import { parseOptXml } from "../parser/legacy/opt_xml_parser.ts";
-import { buildWebTemplate } from "../serialization/simplified/mod.ts";
 import { serializeToHtml5Variant } from "../serialization/zipehr/mod.ts";
 
 const OUT = "/opt/cursor/artifacts";
@@ -34,21 +32,17 @@ async function loadBaseCss(): Promise<string> {
   );
 }
 
-const FERRO_OPT = parseOptXml(
-  await Deno.readTextFile(
-    new URL(
-      "test_data/fixtures/ferroehr/thumb-pain-encounter.v2-coded.opt",
-      repo,
-    ),
+const FERRO_OPT_XML = await Deno.readTextFile(
+  new URL(
+    "test_data/fixtures/ferroehr/thumb-pain-encounter.v2-coded.opt",
+    repo,
   ),
-).operationalTemplate;
-const FERRO_WT = buildWebTemplate(FERRO_OPT);
+);
 
 const HTML5_OPTS = {
   layout: "linesaving" as const,
   propertyMode: "comment" as const,
-  webTemplate: FERRO_WT,
-  operationalTemplate: FERRO_OPT,
+  template: FERRO_OPT_XML,
 };
 
 async function buildDocs(comp: unknown) {

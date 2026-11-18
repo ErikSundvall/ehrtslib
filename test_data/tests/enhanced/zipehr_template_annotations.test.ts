@@ -16,13 +16,19 @@ import {
   RM_ALIAS_ATTR,
   RM_VISIBILITY_ATTR,
   applyPresentationAttrs,
+  applyPresentationAttrsAndComments,
   annotationKeyMatchesFilter,
   dataAntnAttrName,
   dataAntnAttrsFromAnnotations,
+  detectAnnotationSlugCollisions,
+  emitDataAntnPresentation,
   filterAnnotationRecord,
+  formatAnnotationCollisionHtmlComment,
   isZipEhrTemplatePresentationHtmlAttr,
   normalizeAnnotationKeySlug,
   planDataAntnAttrs,
+  resetAnnotationSlugCollisionWarnForTests,
+  setAnnotationSlugCollisionWarnForTests,
 } from "../../../serialization/zipehr/template_annotations.ts";
 import { resolveZipEhrTemplatePresentation } from "../../../serialization/zipehr/template_presentation_input.ts";
 
@@ -59,6 +65,57 @@ Deno.test("data-antn: slug collision first key wins", () => {
   });
   assertEquals(plans.length, 1);
   assertEquals(plans[0]!.originalKey, "note-a");
+});
+
+Deno.test("data-antn: slug collision warns and emits HTML comment", () => {
+  const collisions = detectAnnotationSlugCollisions({
+    "note.a": "first",
+    "note-a": "second",
+  });
+  assertEquals(collisions.length, 1);
+  assertEquals(collisions[0]!.keptKey, "note-a");
+  assertEquals(collisions[0]!.droppedKey, "note.a");
+
+  const warnings: string[] = [];
+  setAnnotationSlugCollisionWarnForTests((msg) => {
+    if (typeof msg === "string") warnings.push(msg);
+  });
+  try {
+    const { attrs, presentationComments } = emitDataAntnPresentation(
+      { "note.a": "first", "note-a": "second" },
+      { aqlPath: "/content[0]" },
+    );
+    assertEquals(attrs.length, 1);
+    assertEquals(attrs[0]?.name, dataAntnAttrName("note-a"));
+    assertEquals(presentationComments.length, 1);
+    assertStringIncludes(
+      presentationComments[0]!,
+      "slug collision",
+    );
+    assertStringIncludes(warnings[0] ?? "", "/content[0]");
+  } finally {
+    resetAnnotationSlugCollisionWarnForTests();
+  }
+});
+
+Deno.test("data-antn: collision HTML comment is stripped on html5 round-trip", async () => {
+  const attrs: { name: string; value: string }[] = [];
+  const comments = applyPresentationAttrsAndComments(attrs, {
+    presentationPath: "/test",
+    annotations: { "X.Y": "a", "x-y": "b" },
+  });
+  const comment = comments[0] ?? formatAnnotationCollisionHtmlComment({
+    keptKey: "x-y",
+    droppedKey: "X.Y",
+    attrSlug: "x-y",
+  });
+  const html = `${comment}<o-e n="openEHR-EHR-OBSERVATION.test.v1" ${attrs.map((a) => `${a.name}="${a.value}"`).join(" ")}></o-e>`;
+  const back = zipehrHtml5ToCanonical(html, "short");
+  const backPlain = zipehrHtml5ToCanonical(
+    `<o-e n="openEHR-EHR-OBSERVATION.test.v1" ${attrs.map((a) => `${a.name}="${a.value}"`).join(" ")}></o-e>`,
+    "short",
+  );
+  assertEquals(back, backPlain);
 });
 
 Deno.test("data-antn: no -key companions", () => {

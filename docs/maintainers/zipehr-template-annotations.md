@@ -32,13 +32,23 @@ await serializeToHtml5Variant(composition, "zipehr.html5.short", {
 - **`template`**: OPT 1.4 XML, ADL 1.4/ADL2 template text, Web Template JSON
   (paired OPT only — WT JSON alone yields no presentation), or
   `{ operationalTemplate, webTemplate?, renderLang?, pathAnnotations? }`.
-- **No `template`** (and no legacy `webTemplate` + `operationalTemplate`) ⇒
-  no presentation attributes.
+- **No `template`** ⇒ no presentation attributes.
 - **`templateAnnotationFilter`**: applied to **original** annotation keys before
   `data-antn-*` emission; `data-opt-*` / `data-rm-*` are unaffected.
 
-Legacy: `webTemplate` + `operationalTemplate` on `Html5SerializeOptions` still
-work; prefer `template`.
+<a id="template-annotation-filter-regexp"></a>
+
+### `templateAnnotationFilter` (RegExp)
+
+Include-only filter on **original** annotation keys before emitting
+`data-antn-*`. Multiple patterns are OR’d. Unmatched keys are omitted.
+
+When two included keys normalize to the same slug, the lexicographically first
+key wins. The serializer emits `console.warn` with both keys, the resulting
+`data-antn-*` name, the node path, and which key was dropped, and inserts an
+HTML comment immediately before the affected element (ignored by ZipEHR
+deserialize; canonical RM unchanged). Narrow keys with `templateAnnotationFilter`
+to avoid silent data loss.
 
 Exports: `serialization/zipehr/mod.ts` — `resolveZipEhrTemplatePresentation`,
 `ZipEhrTemplatePresentationSource`, `isZipEhrTemplatePresentationHtmlAttr`, …
@@ -47,7 +57,8 @@ Exports: `serialization/zipehr/mod.ts` — `resolveZipEhrTemplatePresentation`,
 
 Slug rule: lowercase; chars outside `[a-z0-9-]` → `-`; collapse runs; trim.
 **Colliding slugs:** sorted keys, **first wins** (no `-key` companions, no
-`--N` suffixes).
+`--N` suffixes). See [templateAnnotationFilter](#template-annotation-filter-regexp)
+for warnings and HTML comments.
 
 ## Quiet-structure CSS
 

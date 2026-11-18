@@ -30,8 +30,9 @@ import {
   formatZsDisplayDuration,
 } from "./temporal_display.ts";
 import {
-  applyPresentationAttrs,
+  applyPresentationAttrsAndComments,
   indexTemplatePresentation,
+  type PresentationIndex,
 } from "./template_annotations.ts";
 import { resolveZipEhrTemplatePresentation } from "./template_presentation_input.ts";
 import type { OptPathAnnotationMap } from "../../generation/opt_l10n.ts";
@@ -63,20 +64,20 @@ export type Html5SerializeOptions = {
    * Default: `omit` (attribute only when the parent slot is ambiguous).
    */
   propertyMode?: RmPropertyEmitMode;
-  /** OPT path annotations override (else taken from {@link operationalTemplate}). */
+  /** OPT path annotations override (else taken from resolved {@link template}). */
   pathAnnotations?: OptPathAnnotationMap;
   /**
    * Template for presentation attrs: OPT 1.4 XML, ADL2, Web Template JSON, or
-   * `{ operationalTemplate, webTemplate? }`. No `template` (and no legacy pair)
+   * `{ operationalTemplate, webTemplate? }`. No `template`
    * ⇒ no `data-antn-*` / `data-opt-*` / `data-rm-*`.
    */
   template?: import("./template_presentation_input.ts").ZipEhrTemplatePresentationSource | null;
   /** Filter on original annotation keys before `data-antn-*` emission. */
   templateAnnotationFilter?: RegExp | RegExp[];
-  /** @deprecated Prefer {@link template}. */
-  webTemplate?: WebTemplate | null;
-  /** @deprecated Prefer {@link template}. */
-  operationalTemplate?: openehr_am.OPERATIONAL_TEMPLATE | null;
+  /**
+   * Skip `template` resolution and use this presentation index (tests, tooling).
+   */
+  presentationByObject?: PresentationIndex;
   /** Language for path annotation bags (default Web Template language). */
   templateRenderLang?: string;
   archetypeRepository?: import("../../parser/legacy/archetype_repository.ts").ArchetypeRepository;
@@ -491,6 +492,8 @@ type MarkupNode = {
   children: MarkupNode[];
   /** Compact `<!--prop-->` emitted immediately before the open tag. */
   propertyComment?: string;
+  /** `<!-- ehrtslib: … -->` before the open tag (annotation slug collisions). */
+  presentationComments?: string[];
 };
 
 function markup(
@@ -501,6 +504,7 @@ function markup(
     textContent?: string;
     children?: MarkupNode[];
     propertyComment?: string;
+    presentationComments?: string[];
   },
 ): MarkupNode {
   return {
@@ -510,6 +514,7 @@ function markup(
     textContent: opts?.textContent,
     children: opts?.children ?? [],
     propertyComment: opts?.propertyComment,
+    presentationComments: opts?.presentationComments,
   };
 }
 
@@ -825,9 +830,10 @@ function buildNode(
     attrs.push({ name: "tabindex", value: "0" });
   }
 
+  let presentationComments: string[] | undefined;
   const presentation = options.presentationByObject?.get(obj);
   if (presentation) {
-    applyPresentationAttrs(
+    presentationComments = applyPresentationAttrsAndComments(
       attrs,
       presentation,
       options.templateAnnotationFilter,
@@ -884,6 +890,9 @@ function buildNode(
     leadingText: quietStructural ? "" : nameText,
     children,
     propertyComment: propertyCommentName,
+    presentationComments: presentationComments?.length
+      ? presentationComments
+      : undefined,
   });
 }
 
@@ -903,12 +912,20 @@ function propertyCommentPrefix(node: MarkupNode): string {
     : "";
 }
 
+function elementPrefix(node: MarkupNode): string {
+  let out = propertyCommentPrefix(node);
+  if (node.presentationComments?.length) {
+    out += node.presentationComments.join("");
+  }
+  return out;
+}
+
 function isSimpleLeaf(node: MarkupNode): boolean {
   return node.children.length === 0;
 }
 
 function formatCompact(node: MarkupNode): string {
-  const prefix = propertyCommentPrefix(node);
+  const prefix = elementPrefix(node);
   if (isSimpleLeaf(node)) {
     const text = node.textContent != null
       ? escapeXmlText(node.textContent)
@@ -944,7 +961,7 @@ function canInlineLinesaving(node: MarkupNode): boolean {
 
 function formatLinesaving(node: MarkupNode, depth: number): string {
   const pad = "  ".repeat(depth);
-  const prefix = propertyCommentPrefix(node);
+  const prefix = elementPrefix(node);
   if (canInlineLinesaving(node)) {
     return pad + formatCompact(node);
   }
@@ -963,7 +980,7 @@ function formatLinesaving(node: MarkupNode, depth: number): string {
 function formatFluffy(node: MarkupNode, depth: number): string {
   const pad = "  ".repeat(depth);
   const childPad = "  ".repeat(depth + 1);
-  const prefix = propertyCommentPrefix(node);
+  const prefix = elementPrefix(node);
 
   if (isSimpleLeaf(node)) {
     const text = node.textContent != null
@@ -1022,14 +1039,6 @@ function resolveHtml5TemplateContext(options: Html5SerializeOptions): {
       templateRenderLang: ctx.renderLang,
     };
   }
-  if (options.webTemplate && options.operationalTemplate) {
-    return {
-      webTemplate: options.webTemplate,
-      operationalTemplate: options.operationalTemplate,
-      pathAnnotations: options.pathAnnotations,
-      templateRenderLang: options.templateRenderLang,
-    };
-  }
   return { webTemplate: null, operationalTemplate: null };
 }
 
@@ -1041,14 +1050,15 @@ export function serializeCanonicalToHtml5(
   const dialect = options.dialect;
   const layout = resolveLayout(dialect, options);
   const tpl = resolveHtml5TemplateContext(options);
-  const presentationByObject = (tpl.webTemplate && tpl.operationalTemplate)
-    ? indexTemplatePresentation(canonical, {
-      webTemplate: tpl.webTemplate,
-      operationalTemplate: tpl.operationalTemplate,
-      pathAnnotations: tpl.pathAnnotations ?? options.pathAnnotations,
-      renderLang: tpl.templateRenderLang ?? options.lang,
-    })
-    : undefined;
+  const presentationByObject = options.presentationByObject ??
+    ((tpl.webTemplate && tpl.operationalTemplate)
+      ? indexTemplatePresentation(canonical, {
+        webTemplate: tpl.webTemplate,
+        operationalTemplate: tpl.operationalTemplate,
+        pathAnnotations: tpl.pathAnnotations ?? options.pathAnnotations,
+        renderLang: tpl.templateRenderLang ?? options.lang,
+      })
+      : undefined);
   const built = buildNode(canonical, dialect, {
     omitLocatableNames: options.omitLocatableNames ?? false,
     isRoot: true,
