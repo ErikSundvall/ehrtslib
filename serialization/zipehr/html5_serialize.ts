@@ -33,6 +33,7 @@ import {
   applyPresentationAttrs,
   indexTemplatePresentation,
 } from "./template_annotations.ts";
+import { resolveZipEhrTemplatePresentation } from "./template_presentation_input.ts";
 import type { OptPathAnnotationMap } from "../../generation/opt_l10n.ts";
 import type { WebTemplate } from "../simplified/types.ts";
 import type * as openehr_am from "../../am/openehr_am.ts";
@@ -64,11 +65,21 @@ export type Html5SerializeOptions = {
   propertyMode?: RmPropertyEmitMode;
   /** OPT path annotations override (else taken from {@link operationalTemplate}). */
   pathAnnotations?: OptPathAnnotationMap;
-  /** Web Template + OPT for view constraints and path annotations. */
+  /**
+   * Template for presentation attrs: OPT 1.4 XML, ADL2, Web Template JSON, or
+   * `{ operationalTemplate, webTemplate? }`. No `template` (and no legacy pair)
+   * ⇒ no `data-antn-*` / `data-opt-*` / `data-rm-*`.
+   */
+  template?: import("./template_presentation_input.ts").ZipEhrTemplatePresentationSource | null;
+  /** Filter on original annotation keys before `data-antn-*` emission. */
+  templateAnnotationFilter?: RegExp | RegExp[];
+  /** @deprecated Prefer {@link template}. */
   webTemplate?: WebTemplate | null;
+  /** @deprecated Prefer {@link template}. */
   operationalTemplate?: openehr_am.OPERATIONAL_TEMPLATE | null;
   /** Language for path annotation bags (default Web Template language). */
   templateRenderLang?: string;
+  archetypeRepository?: import("../../parser/legacy/archetype_repository.ts").ArchetypeRepository;
 };
 
 export const ZIPEHR_HTML5_URI = {
@@ -697,6 +708,7 @@ function buildNode(
     lang?: string;
     propertyMode: RmPropertyEmitMode;
     presentationByObject?: import("./template_annotations.ts").PresentationIndex;
+    templateAnnotationFilter?: RegExp | RegExp[];
   },
 ): MarkupNode | MarkupNode[] | null {
   if (node == null) return null;
@@ -815,7 +827,11 @@ function buildNode(
 
   const presentation = options.presentationByObject?.get(obj);
   if (presentation) {
-    applyPresentationAttrs(attrs, presentation);
+    applyPresentationAttrs(
+      attrs,
+      presentation,
+      options.templateAnnotationFilter,
+    );
   }
 
   // Preserve canonical JSON key order (lossless html5 round-trip); do not RM-reorder.
@@ -857,6 +873,7 @@ function buildNode(
       propertyMode: options.propertyMode,
       lang: effectiveLang,
       presentationByObject: options.presentationByObject,
+      templateAnnotationFilter: options.templateAnnotationFilter,
     });
     if (built == null) continue;
     if (Array.isArray(built)) children.push(...built);
@@ -984,6 +1001,38 @@ function formatMarkup(node: MarkupNode, layout: Html5Layout): string {
   return formatLinesaving(node, 0) + "\n";
 }
 
+function resolveHtml5TemplateContext(options: Html5SerializeOptions): {
+  webTemplate?: WebTemplate | null;
+  operationalTemplate?: openehr_am.OPERATIONAL_TEMPLATE | null;
+  pathAnnotations?: OptPathAnnotationMap;
+  templateRenderLang?: string;
+} {
+  if (options.template != null) {
+    const ctx = resolveZipEhrTemplatePresentation(options.template, {
+      archetypeRepository: options.archetypeRepository,
+      defaultRenderLang: options.templateRenderLang ?? options.lang,
+    });
+    if (!ctx) {
+      return { webTemplate: null, operationalTemplate: null };
+    }
+    return {
+      webTemplate: ctx.webTemplate,
+      operationalTemplate: ctx.operationalTemplate,
+      pathAnnotations: ctx.pathAnnotations ?? options.pathAnnotations,
+      templateRenderLang: ctx.renderLang,
+    };
+  }
+  if (options.webTemplate && options.operationalTemplate) {
+    return {
+      webTemplate: options.webTemplate,
+      operationalTemplate: options.operationalTemplate,
+      pathAnnotations: options.pathAnnotations,
+      templateRenderLang: options.templateRenderLang,
+    };
+  }
+  return { webTemplate: null, operationalTemplate: null };
+}
+
 /** Serialize canonical JSON (with `_type`) to ZipEHR HTML5 markup. */
 export function serializeCanonicalToHtml5(
   canonical: unknown,
@@ -991,12 +1040,13 @@ export function serializeCanonicalToHtml5(
 ): string {
   const dialect = options.dialect;
   const layout = resolveLayout(dialect, options);
-  const presentationByObject = (options.webTemplate && options.operationalTemplate)
+  const tpl = resolveHtml5TemplateContext(options);
+  const presentationByObject = (tpl.webTemplate && tpl.operationalTemplate)
     ? indexTemplatePresentation(canonical, {
-      webTemplate: options.webTemplate,
-      operationalTemplate: options.operationalTemplate,
-      pathAnnotations: options.pathAnnotations,
-      renderLang: options.templateRenderLang ?? options.lang,
+      webTemplate: tpl.webTemplate,
+      operationalTemplate: tpl.operationalTemplate,
+      pathAnnotations: tpl.pathAnnotations ?? options.pathAnnotations,
+      renderLang: tpl.templateRenderLang ?? options.lang,
     })
     : undefined;
   const built = buildNode(canonical, dialect, {
@@ -1005,6 +1055,7 @@ export function serializeCanonicalToHtml5(
     lang: options.lang,
     propertyMode: options.propertyMode ?? "omit",
     presentationByObject,
+    templateAnnotationFilter: options.templateAnnotationFilter,
   });
   if (built == null) return "";
   if (Array.isArray(built)) {

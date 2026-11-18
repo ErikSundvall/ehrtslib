@@ -12,6 +12,7 @@ o-cph.zipehr-tech-quiet,
 o-cnt.zipehr-tech-quiet,
 o-dt.zipehr-tech-quiet,
 /* Template `data-antn-*` hints and view / rm_visibility summary */
+[data-antn-hide-on-form="true"],
 [data-opt-visibility="hide"],
 [data-rm-visibility="hide"] {
   display: none !important;

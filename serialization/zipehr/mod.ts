@@ -195,3 +195,21 @@ export {
   buildZipehrPreviewDocument,
   type ZipehrPreviewDocumentOptions,
 } from "./css/compose_quiet_css.ts";
+
+export {
+  annotationKeyMatchesFilter,
+  DATA_ANTN_PREFIX,
+  filterAnnotationRecord,
+  isZipEhrTemplatePresentationHtmlAttr,
+  OPT_ALIAS_ATTR,
+  OPT_VISIBILITY_ATTR,
+  RM_ALIAS_ATTR,
+  RM_VISIBILITY_ATTR,
+  normalizeAnnotationKeySlug,
+} from "./template_annotations.ts";
+
+export {
+  resolveZipEhrTemplatePresentation,
+  type ZipEhrTemplatePresentationContext,
+  type ZipEhrTemplatePresentationSource,
+} from "./template_presentation_input.ts";

@@ -1,7 +1,7 @@
 /**
  * Forward template metadata onto ZipEHR HTML5 (ignored on canonical html5
- * deserialize): `data-antn-*` (path annotations), `data-opt-*` (OPT 1.4 view /
- * hide-on-form), `data-rm-*` (ADL2 rm_visibility).
+ * deserialize): `data-antn-*` (all path annotations), `data-opt-*` (OPT 1.4
+ * `<view>` only), `data-rm-*` (ADL2 rm_visibility).
  */
 
 import {
@@ -10,8 +10,6 @@ import {
   stripLeadingArchetypeId,
 } from "../../generation/opt_l10n.ts";
 import {
-  optVisibilityFromConventionKeys,
-  pathAnnotationsForDataAntn,
   presentationForPath,
   type OptPresentationByPath,
   type OptVisibilityToken,
@@ -21,8 +19,6 @@ import { resolveAllValuesAtPath } from "../simplified/instance_nav.ts";
 import type { WebTemplate, WebTemplateNode } from "../simplified/types.ts";
 
 export const DATA_ANTN_PREFIX = "data-antn-";
-/** Companion suffix: `data-antn-{slug}${DATA_ANTN_KEY_SUFFIX}` holds the original key. */
-export const DATA_ANTN_KEY_SUFFIX = "-key";
 
 export const OPT_VISIBILITY_ATTR = "data-opt-visibility";
 export const OPT_ALIAS_ATTR = "data-opt-alias";
@@ -34,6 +30,26 @@ export function isZipEhrTemplatePresentationHtmlAttr(name: string): boolean {
   const lower = name.toLowerCase();
   return lower.startsWith(DATA_ANTN_PREFIX) || lower.startsWith("data-opt-") ||
     lower.startsWith("data-rm-");
+}
+
+export function annotationKeyMatchesFilter(
+  key: string,
+  filter?: RegExp | RegExp[],
+): boolean {
+  if (!filter) return true;
+  const list = Array.isArray(filter) ? filter : [filter];
+  return list.some((re) => re.test(key));
+}
+
+export function filterAnnotationRecord(
+  annotations: Record<string, string>,
+  filter?: RegExp | RegExp[],
+): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(annotations)) {
+    if (annotationKeyMatchesFilter(k, filter)) out[k] = v;
+  }
+  return out;
 }
 
 type AttrBag = { name: string; value?: string; boolean?: boolean };
@@ -52,37 +68,26 @@ export function normalizeAnnotationKeySlug(key: string): string {
   return slug;
 }
 
-/** Key is unchanged by normalization (no lossy transform needed for round-trip). */
-export function isSelfDescribingAnnotationKey(key: string): boolean {
-  const k = key.trim();
-  if (!k) return false;
-  return k === normalizeAnnotationKeySlug(k);
-}
-
 export function dataAntnAttrName(attrSlug: string): string {
   return `${DATA_ANTN_PREFIX}${attrSlug}`;
-}
-
-export function dataAntnKeyCompanionAttrName(attrSlug: string): string {
-  return `${DATA_ANTN_PREFIX}${attrSlug}${DATA_ANTN_KEY_SUFFIX}`;
 }
 
 export type DataAntnAttrPlan = {
   attrSlug: string;
   originalKey: string;
   value: string;
-  needsKeyCompanion: boolean;
 };
 
 /**
- * Plan `data-antn-*` attrs for a path annotation map (deterministic order).
- * Throws on empty slug or attr slug collision after disambiguation.
+ * Plan `data-antn-*` attrs (sorted keys; slug collision → first key wins).
  */
 export function planDataAntnAttrs(
   annotations: Record<string, string>,
 ): DataAntnAttrPlan[] {
   const keys = Object.keys(annotations).sort((a, b) => a.localeCompare(b));
-  const bySlug = new Map<string, string[]>();
+  const plans: DataAntnAttrPlan[] = [];
+  const usedSlugs = new Set<string>();
+
   for (const key of keys) {
     const slug = normalizeAnnotationKeySlug(key);
     if (!slug) {
@@ -90,36 +95,12 @@ export function planDataAntnAttrs(
         `ZipEHR template annotation key ${JSON.stringify(key)} normalizes to empty slug`,
       );
     }
-    const group = bySlug.get(slug) ?? [];
-    group.push(key);
-    bySlug.set(slug, group);
-  }
-
-  const plans: DataAntnAttrPlan[] = [];
-  const usedAttrSlugs = new Set<string>();
-
-  for (const key of keys) {
-    const baseSlug = normalizeAnnotationKeySlug(key);
-    const group = bySlug.get(baseSlug)!;
-    const indexInGroup = group.indexOf(key);
-    let attrSlug = baseSlug;
-    if (group.length > 1) {
-      attrSlug = `${baseSlug}--${indexInGroup + 1}`;
-    }
-    if (usedAttrSlugs.has(attrSlug)) {
-      throw new Error(
-        `ZipEHR template annotation attr slug collision: ${attrSlug}`,
-      );
-    }
-    usedAttrSlugs.add(attrSlug);
-
-    const needsKeyCompanion = !isSelfDescribingAnnotationKey(key) ||
-      group.length > 1;
+    if (usedSlugs.has(slug)) continue;
+    usedSlugs.add(slug);
     plans.push({
-      attrSlug,
+      attrSlug: slug,
       originalKey: key,
       value: String(annotations[key] ?? ""),
-      needsKeyCompanion,
     });
   }
   return plans;
@@ -127,9 +108,11 @@ export function planDataAntnAttrs(
 
 export function dataAntnAttrsFromAnnotations(
   annotations: Record<string, string>,
+  filter?: RegExp | RegExp[],
 ): AttrBag[] {
+  const filtered = filterAnnotationRecord(annotations, filter);
   const out: AttrBag[] = [];
-  for (const plan of planDataAntnAttrs(annotations)) {
+  for (const plan of planDataAntnAttrs(filtered)) {
     const val = plan.value;
     if (val === "true" && plan.attrSlug.length > 0) {
       out.push({
@@ -144,51 +127,6 @@ export function dataAntnAttrsFromAnnotations(
         value: val,
       });
     }
-    if (plan.needsKeyCompanion) {
-      out.push({
-        name: dataAntnKeyCompanionAttrName(plan.attrSlug),
-        value: plan.originalKey,
-      });
-    }
-  }
-  return out;
-}
-
-/** Parse `data-antn-*` attrs back to annotation keys/values (html5 annotation round-trip). */
-export function annotationsFromDataAntnAttrs(
-  attrs: Record<string, string | true | undefined>,
-): Record<string, string> {
-  const out: Record<string, string> = {};
-  const keySuffix = DATA_ANTN_KEY_SUFFIX;
-  const prefix = DATA_ANTN_PREFIX;
-
-  const valueAttrs: Array<{ attrSlug: string; value: string }> = [];
-  for (const [name, raw] of Object.entries(attrs)) {
-    if (!name.startsWith(prefix)) continue;
-    if (name.endsWith(keySuffix)) continue;
-    const attrSlug = name.slice(prefix.length);
-    if (!attrSlug) continue;
-    const value = raw === true ? "true" : String(raw ?? "");
-    valueAttrs.push({ attrSlug, value });
-  }
-  valueAttrs.sort((a, b) => a.attrSlug.localeCompare(b.attrSlug));
-
-  for (const { attrSlug, value } of valueAttrs) {
-    const companion = attrs[dataAntnKeyCompanionAttrName(attrSlug)];
-    let key: string;
-    if (companion !== undefined && companion !== true) {
-      key = String(companion);
-    } else if (companion === true) {
-      key = "true";
-    } else {
-      key = attrSlug;
-    }
-    if (key in out && out[key] !== value) {
-      throw new Error(
-        `ZipEHR data-antn duplicate annotation key ${JSON.stringify(key)}`,
-      );
-    }
-    out[key] = value;
   }
   return out;
 }
@@ -202,6 +140,7 @@ function indexOfAttr(attrs: AttrBag[], name: string): number {
 export function applyPresentationAttrs(
   attrs: AttrBag[],
   presentation: OptPresentationByPath,
+  annotationFilter?: RegExp | RegExp[],
 ): void {
   if (presentation.optVisibility) {
     attrs.push({
@@ -222,7 +161,10 @@ export function applyPresentationAttrs(
     attrs.push({ name: RM_ALIAS_ATTR, value: presentation.rmAlias });
   }
 
-  for (const p of dataAntnAttrsFromAnnotations(presentation.annotations)) {
+  for (const p of dataAntnAttrsFromAnnotations(
+    presentation.annotations,
+    annotationFilter,
+  )) {
     if (indexOfAttr(attrs, p.name) >= 0) {
       throw new Error(
         `ZipEHR template annotation would overwrite existing attribute ${p.name}`,
@@ -308,9 +250,7 @@ function walkWebTemplate(
         if (v == null) continue;
         extra[k] = String(v);
       }
-      const wtAntn = pathAnnotationsForDataAntn(extra);
-      const wtOptVis = optVisibilityFromConventionKeys(undefined, extra);
-      if (Object.keys(wtAntn).length || wtOptVis) {
+      if (Object.keys(extra).length) {
         for (const { value } of resolveAllValuesAtPath(
           compositionRoot,
           aqlPathForInstanceNav(path),
@@ -323,8 +263,7 @@ function walkWebTemplate(
           };
           map.set(value, mergePresentation(prev, {
             ...prev,
-            optVisibility: wtOptVis ?? prev.optVisibility,
-            annotations: { ...prev.annotations, ...wtAntn },
+            annotations: { ...prev.annotations, ...extra },
           }));
         }
       }

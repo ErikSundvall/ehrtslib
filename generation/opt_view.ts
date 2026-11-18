@@ -25,28 +25,6 @@ import {
 export type OptVisibilityToken = "hide" | "show" | "pass-through";
 export type RmVisibilityToken = "hide" | "show";
 
-/** Keys consumed into `data-opt-visibility`, not emitted as `data-antn-*`. */
-export const HIDE_ON_FORM_ANNOTATION_KEYS = [
-  "a.hide_on_form",
-  "hide_on_form",
-  "hide-on-form",
-] as const;
-
-export function isHideOnFormAnnotationKey(key: string): boolean {
-  return (HIDE_ON_FORM_ANNOTATION_KEYS as readonly string[]).includes(key);
-}
-
-export function pathAnnotationsForDataAntn(
-  annotations: Record<string, string>,
-): Record<string, string> {
-  const out: Record<string, string> = {};
-  for (const [k, v] of Object.entries(annotations)) {
-    if (isHideOnFormAnnotationKey(k)) continue;
-    out[k] = v;
-  }
-  return out;
-}
-
 export type OptViewConstraint = {
   path: string;
   passThrough?: boolean;
@@ -56,13 +34,13 @@ export type OptViewConstraint = {
 const OPT_VIEW_CONSTRAINTS = Symbol.for("ehrtslib.optViewConstraints");
 
 export type OptPresentationByPath = {
-  /** OPT 1.4 `<view>` and hide-on-form conventions only. */
+  /** OPT 1.4 `<view>` only (not path annotations). */
   optVisibility?: OptVisibilityToken;
   optAlias?: string;
   /** ADL2 / AOM2 `rm_overlay.rm_visibility` only. */
   rmVisibility?: RmVisibilityToken;
   rmAlias?: string;
-  /** Path annotations for `data-antn-*` (hide-on-form keys excluded). */
+  /** All path annotations → `data-antn-*`. */
   annotations: Record<string, string>;
 };
 
@@ -147,20 +125,13 @@ function rmVisibilityMap(
   return m;
 }
 
-/** OPT 1.4 `<view>` plus hide-on-form annotation keys only. */
-export function optVisibilityFromConventionKeys(
+/** OPT 1.4 `<view>` constraint items only. */
+export function optVisibilityFromView(
   view: OptViewConstraint | undefined,
-  annot: Record<string, string>,
 ): OptVisibilityToken | undefined {
   if (view?.passThrough === true) return "pass-through";
   if (view?.passThrough === false) return "hide";
   if (view?.visibleInView) return "show";
-
-  const hof = annot["a.hide_on_form"] ?? annot.hide_on_form ?? annot["hide-on-form"];
-  if (hof === "presentation" || hof === "true" || hof === "input") {
-    return hof === "input" ? "show" : "hide";
-  }
-
   return undefined;
 }
 
@@ -251,13 +222,13 @@ export function presentationForPath(
     nodeName,
     renderLang,
   );
-  const optVisibility = optVisibilityFromConventionKeys(view, annotations);
+  const optVisibility = optVisibilityFromView(view);
   const rmVisibility = pickRmVisibility(rmVis);
   const rmAlias = pickRmAlias(opt, rmVis, renderLang);
   return {
     optVisibility,
     rmVisibility,
     rmAlias,
-    annotations: pathAnnotationsForDataAntn(annotations),
+    annotations,
   };
 }
