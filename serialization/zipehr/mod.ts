@@ -184,3 +184,36 @@ export {
   type OptHydrateMode,
   type OptHydrateOptions,
 } from "./opt_html5_hydrate.ts";
+
+export {
+  composeQuietStructureCss,
+  stripCssImports,
+  ZIP_QUIET_STRUCTURE_CSS,
+  ZIP_QUIET_PREVIEW_SCRIPT,
+  ZIP_QUIET_CONTAINER_TAGS,
+  ZIP_QUIET_TECH_TAGS,
+  buildZipehrPreviewDocument,
+  type ZipehrPreviewDocumentOptions,
+} from "./css/compose_quiet_css.ts";
+
+export {
+  annotationKeyMatchesFilter,
+  DATA_ANTN_PREFIX,
+  filterAnnotationRecord,
+  isZipEhrTemplatePresentationHtmlAttr,
+  OPT_ALIAS_ATTR,
+  OPT_VISIBILITY_ATTR,
+  RM_ALIAS_ATTR,
+  RM_VISIBILITY_ATTR,
+  ZIP_ANNOTATION_FILTER_DOCS_PATH,
+  normalizeAnnotationKeySlug,
+  type PresentationIndex,
+  resetAnnotationSlugCollisionWarnForTests,
+  setAnnotationSlugCollisionWarnForTests,
+} from "./template_annotations.ts";
+
+export {
+  resolveZipEhrTemplatePresentation,
+  type ZipEhrTemplatePresentationContext,
+  type ZipEhrTemplatePresentationSource,
+} from "./template_presentation_input.ts";

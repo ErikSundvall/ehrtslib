@@ -2,10 +2,11 @@
  * #312: FLAT keys use the Web Template root id (`tree.id`), and a renamed
  * LOCATABLE is `/_name` (a path), which can be omitted for CDRs that reject it.
  */
-import { assert, assertEquals } from "@std/assert";
+import { assert, assertEquals, assertThrows } from "@std/assert";
 import {
   deserializeFromFlat,
   serializeToFlat,
+  UnknownFlatKeyError,
   validateFlatPayload,
   type WebTemplate,
 } from "../../../../serialization/simplified/mod.ts";
@@ -98,29 +99,18 @@ Deno.test("#312 /_name is a path segment and can be omitted", () => {
   assertEquals(omitted["encounter/symptom_sign/presence"], "present");
 });
 
-Deno.test("#312 reader accepts tree.id and the template-id alias", () => {
+Deno.test("#312 reader rejects template-id root when tree.id differs", () => {
   const nameOnly = Object.fromEntries(
     Object.entries(serializeToFlat(composition, wt)).filter(([key]) =>
       key.endsWith("/_name")
     ),
   );
-  const back = deserializeFromFlat(nameOnly, wt) as {
-    name?: { value?: string };
-    content?: Array<{ items?: Array<{ name?: { value?: string } }> }>;
-  };
-  assertEquals(back.name?.value, "Thumb pain");
-  assertEquals(back.content?.[0]?.items?.[0]?.name?.value, "Tenderness");
-
   const alias: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(nameOnly)) {
     alias[key.replace(/^encounter\//, "thumb-pain-encounter.v2/")] = value;
   }
-  const fromAlias = deserializeFromFlat(alias, wt) as {
-    name?: { value?: string };
-  };
-  assertEquals(fromAlias.name?.value, "Thumb pain");
-  assertEquals(validateFlatPayload(nameOnly, wt).errors, []);
-  assertEquals(validateFlatPayload(alias, wt).errors, []);
+  assertThrows(() => deserializeFromFlat(alias, wt), UnknownFlatKeyError);
+  assert(validateFlatPayload(alias, wt).errors.length > 0);
 });
 
 Deno.test("#312 ehrtslib tree.id equal to the template id keeps that root", () => {

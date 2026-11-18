@@ -3,6 +3,11 @@
  */
 
 import {
+  composeQuietStructureCss,
+  ZIP_QUIET_STRUCTURE_CSS,
+  buildZipehrPreviewDocument,
+} from "../../../serialization/zipehr/css/compose_quiet_css.ts";
+import {
   wrapOptHtml5PreviewDocument,
   type OptHydrateMode,
 } from "../../../serialization/zipehr/opt_html5_hydrate.ts";
@@ -100,6 +105,15 @@ export async function loadZipehrCssForVariant(
     session.loadedCssText = "";
     return "";
   }
+  if (file === ZIP_QUIET_STRUCTURE_CSS) {
+    const baseName = ZIP_DEFAULT_CSS[variant] ?? "zipehr-html5-short.css";
+    const [base, quiet] = await Promise.all([
+      fetchCssFile(baseName),
+      fetchCssFile(file),
+    ]);
+    session.loadedCssText = composeQuietStructureCss(base, quiet);
+    return session.loadedCssText;
+  }
   session.loadedCssText = await fetchCssFile(file);
   return session.loadedCssText;
 }
@@ -129,22 +143,13 @@ export async function loadOptCssForVariant(
 export function buildZipehrDocumentHtml(
   markup: string,
   css: string,
+  options?: { quietStructureTooltips?: boolean },
 ): string {
-  const body = markup.trim() || "<!-- empty ZipEHR markup -->";
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ZipEHR preview</title>
-<style>
-${css}
-</style>
-</head>
-<body>
-${body}
-</body>
-</html>`;
+  return buildZipehrPreviewDocument(markup, css, options);
+}
+
+export function isQuietStructureCssSelection(selectValue: string): boolean {
+  return selectValue === ZIP_QUIET_STRUCTURE_CSS;
 }
 
 export function readOptHydrateMode(): OptHydrateMode {
@@ -176,6 +181,10 @@ export function zipehrCssSelectOptions(): { value: string; label: string }[] {
     { value: "zipehr-html5-short.css", label: "zipehr-html5-short.css" },
     { value: "zipehr-html5-full.css", label: "zipehr-html5-full.css" },
     { value: "zipehr-html5-emoji.css", label: "zipehr-html5-emoji.css" },
+    {
+      value: "zipehr-html5-quiet-structure.css",
+      label: "Quiet (structure in tooltip)",
+    },
     { value: "none", label: "None" },
     { value: "custom", label: "Custom" },
   ];

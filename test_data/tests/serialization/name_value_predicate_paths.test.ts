@@ -10,6 +10,7 @@ import {
   aqlPathSegments,
   buildWebTemplate,
   deserializeFromFlatWithIssues,
+  flatRootId,
   resolveAtPath,
   serializeToFlat,
 } from "../../../serialization/simplified/mod.ts";
@@ -32,7 +33,7 @@ Deno.test("aqlPathSegments keeps name/value predicates in one segment", () => {
 Deno.test("FLAT round trip keeps sibling SECTIONs told apart by name/value", async () => {
   const xml = await Deno.readTextFile(new URL("../../opt14/aql_example.opt", import.meta.url));
   const wt = buildWebTemplate(parseOptXml(xml).operationalTemplate);
-  const root = "aql_example";
+  const root = flatRootId(wt);
   const weight = `${root}/measurements/body_weight/any_event/weight`;
   const status = `${root}/behavior/alcohol_consumption_summary/overall_description`;
   const flat = {

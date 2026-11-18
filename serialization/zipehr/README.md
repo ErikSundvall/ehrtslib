@@ -146,6 +146,7 @@ Default browser stylesheets for readable clinical display live in [`css/`](css/)
 | `html5/short` | [`css/zipehr-html5-short.css`](css/zipehr-html5-short.css) |
 | `html5/full` | [`css/zipehr-html5-full.css`](css/zipehr-html5-full.css) |
 | `html5/emoji` | [`css/zipehr-html5-emoji.css`](css/zipehr-html5-emoji.css) |
+| `html5` quiet structure | [`css/zipehr-html5-quiet-structure.css`](css/zipehr-html5-quiet-structure.css) — **overrides only**: `composeQuietStructureCss()` inlines it on the dialect default (srcdoc cannot resolve `@import`). Serializer keeps `<span class="zs-structural-label">` + `data-zs-quiet-heading` for round-trip; optional template `data-antn-*` path annotations (see [`docs/maintainers/zipehr-template-annotations.md`](../../docs/maintainers/zipehr-template-annotations.md)); previews run [`ZIP_QUIET_PREVIEW_SCRIPT`](css/quiet_structure_preview.ts) to inject `button.zipehr-structure-anchor` + tooltip span (hover, focus, tap-to-pin) and hide `o-cph` / `o-cnt` noise |
 | `opt.html5/short` | [`css/opt-html5-short.css`](css/opt-html5-short.css) |
 | `opt.html5/full` | [`css/opt-html5-full.css`](css/opt-html5-full.css) |
 | `opt.html5/emoji` | [`css/opt-html5-emoji.css`](css/opt-html5-emoji.css) |

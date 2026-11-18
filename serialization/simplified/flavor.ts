@@ -92,9 +92,10 @@ export function inputContextFields(instance: unknown): FlatPayload {
     const setting = rmProp(ctx, "setting");
     if (setting != null) {
       const f = extractFields("DV_CODED_TEXT", setting);
-      if (f.value != null) out["ctx/setting"] = f.value;
-      if (f.code != null) out["ctx/setting|code"] = f.code;
-      if (f.terminology != null) out["ctx/setting|terminology"] = f.terminology;
+      // ITS-REST simplified formats: bare ctx/setting accepts rubric or code
+      // (docs/vendor/simplified_formats.md § setting). Prefer code when present.
+      if (f.code != null) out["ctx/setting"] = f.code;
+      else if (f.value != null) out["ctx/setting"] = f.value;
     }
     const hcf = rmProp(ctx, "health_care_facility");
     if (hcf != null) {

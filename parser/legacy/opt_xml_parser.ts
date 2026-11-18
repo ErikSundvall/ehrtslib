@@ -16,6 +16,7 @@ import {
   type OperationalTemplateWithTermScopes,
 } from "../../generation/term_scope.ts";
 import type { TermDefinitionTable } from "../../am/util/ontology_merge.ts";
+import { attachOptViewConstraints } from "../../generation/opt_view.ts";
 import { setOptPathAnnotationItems } from "../../generation/opt_l10n.ts";
 
 export interface OptXmlParseResult {
@@ -119,6 +120,7 @@ export function parseOptXml(source: string): OptXmlParseResult {
 
   // Path annotations (including Better/AD `L10n.{lang}` name overrides).
   parseOptAnnotations(root, opt);
+  attachOptViewConstraints(opt, root);
 
   if (root.concept) {
     warnings.push(
@@ -147,8 +149,12 @@ function parseOptAnnotations(
       if (!it || typeof it !== "object") continue;
       const item = it as Record<string, unknown>;
       const id = String(item["@_id"] ?? item.id ?? "").trim();
-      const val = textValue(item);
-      if (!id || !val) continue;
+      const rawVal = item.value ?? textValue(item);
+      if (!id || rawVal === undefined || rawVal === null) continue;
+      const val = typeof rawVal === "boolean"
+        ? (rawVal ? "true" : "false")
+        : String(rawVal).trim();
+      if (!val) continue;
       items[id] = val;
     }
     setOptPathAnnotationItems(opt, path, items);

@@ -80,6 +80,16 @@ interface XmlDeserializationConfig {
 }
 ```
 
+**List attributes:** ITS-XML repeats RM list slots (`items`, `events`, …) as sibling
+tags with the same name. The deserializer enables `fast-xml-parser` `isArray` for those
+tags (see `ITS_XML_LIST_ELEMENT_NAMES` in `xml_config.ts`) so order and cardinality survive a single child.
+
+**Primitives:** `parseTagValue` is off so boolean/date text (e.g. `DV_BOOLEAN` under
+`ELEMENT/value`) is not coerced before reconstruction.
+
+**Serialization:** `DV_BOOLEAN` written as an `ELEMENT` value uses element text,
+not a nested `<value>` wrapper (per ITS-XML usage).
+
 ## Examples
 
 ### Example 1: Basic Serialization

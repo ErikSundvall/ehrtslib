@@ -3,6 +3,11 @@
  */
 
 import {
+  composeQuietStructureCss,
+  ZIP_QUIET_STRUCTURE_CSS,
+  buildZipehrPreviewDocument,
+} from "../../../serialization/zipehr/css/compose_quiet_css.ts";
+import {
   createDemoEditor,
   getDemoEditor,
   type DemoEditor,
@@ -94,7 +99,16 @@ async function loadCssIntoEditor(
       cssEditor.value = "";
       return;
     }
-    cssEditor.value = await fetchDefaultCss(file);
+    if (file === ZIP_QUIET_STRUCTURE_CSS) {
+      const base = DEFAULT_CSS_BY_VARIANT[variant];
+      const [baseCss, quiet] = await Promise.all([
+        fetchDefaultCss(base),
+        fetchDefaultCss(file),
+      ]);
+      cssEditor.value = composeQuietStructureCss(baseCss, quiet);
+    } else {
+      cssEditor.value = await fetchDefaultCss(file);
+    }
   } catch (err) {
     cssEditor.value = `/* Error loading CSS: ${
       err instanceof Error ? err.message : String(err)
@@ -109,21 +123,12 @@ async function loadCssIntoEditor(
 }
 
 function buildPreviewDocument(html: string, css: string): string {
-  const body = html.trim() || "<!-- empty ZipEHR markup -->";
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ZipEHR preview</title>
-<style>
-${css}
-</style>
-</head>
-<body>
-${body}
-</body>
-</html>`;
+  const select = cssSelect();
+  const quiet = select?.value === ZIP_QUIET_STRUCTURE_CSS ||
+    css.includes(".zipehr-structure-anchor");
+  return buildZipehrPreviewDocument(html, css, {
+    quietStructureTooltips: quiet,
+  });
 }
 
 function writeToWindow(win: Window, docHtml: string): void {

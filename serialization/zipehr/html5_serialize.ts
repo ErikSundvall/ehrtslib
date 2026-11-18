@@ -14,6 +14,7 @@ import {
 import {
   formatPropertyComment,
   isLocatableLike,
+  isQuietStructuralHeading,
   isZipehrLeafRmType,
   LANGUAGE_CARRIER_TYPES,
   propertySlotAmbiguous,
@@ -24,6 +25,19 @@ import {
   shouldEmitPropertyComment,
   TECHNICAL_ID_TYPES,
 } from "./shared.ts";
+import {
+  formatZsDisplayDateTime,
+  formatZsDisplayDuration,
+} from "./temporal_display.ts";
+import {
+  applyPresentationAttrsAndComments,
+  indexTemplatePresentation,
+  type PresentationIndex,
+} from "./template_annotations.ts";
+import { resolveZipEhrTemplatePresentation } from "./template_presentation_input.ts";
+import type { OptPathAnnotationMap } from "../../generation/opt_l10n.ts";
+import type { WebTemplate } from "../simplified/types.ts";
+import type * as openehr_am from "../../am/openehr_am.ts";
 
 export type Html5Dialect = "short" | "full" | "emoji";
 export type { RmPropertyEmitMode };
@@ -50,6 +64,23 @@ export type Html5SerializeOptions = {
    * Default: `omit` (attribute only when the parent slot is ambiguous).
    */
   propertyMode?: RmPropertyEmitMode;
+  /** OPT path annotations override (else taken from resolved {@link template}). */
+  pathAnnotations?: OptPathAnnotationMap;
+  /**
+   * Template for presentation attrs: OPT 1.4 XML, ADL2, Web Template JSON, or
+   * `{ operationalTemplate, webTemplate? }`. No `template`
+   * ⇒ no `data-antn-*` / `data-opt-*` / `data-rm-*`.
+   */
+  template?: import("./template_presentation_input.ts").ZipEhrTemplatePresentationSource | null;
+  /** Filter on original annotation keys before `data-antn-*` emission. */
+  templateAnnotationFilter?: RegExp | RegExp[];
+  /**
+   * Skip `template` resolution and use this presentation index (tests, tooling).
+   */
+  presentationByObject?: PresentationIndex;
+  /** Language for path annotation bags (default Web Template language). */
+  templateRenderLang?: string;
+  archetypeRepository?: import("../../parser/legacy/archetype_repository.ts").ArchetypeRepository;
 };
 
 export const ZIPEHR_HTML5_URI = {
@@ -280,6 +311,24 @@ function extractNameValue(obj: Record<string, unknown>): string {
   return "";
 }
 
+/** Plain string / DV_TEXT names use leading text; coded or machine names become child nodes. */
+function shouldSerializeNameAsChild(name: unknown): boolean {
+  if (name == null) return false;
+  if (typeof name === "string") return false;
+  if (typeof name !== "object" || Array.isArray(name)) return false;
+  const n = name as Record<string, unknown>;
+  const t = String(n._type ?? "DV_TEXT");
+  if (t === "DV_CODED_TEXT") return true;
+  if (t === "DV_TEXT") {
+    return n.formatting != null ||
+      n.hyperlink != null ||
+      n.mappings != null ||
+      n.encoding != null ||
+      n.language != null;
+  }
+  return true;
+}
+
 function extractArchetypeDetails(obj: Record<string, unknown>): {
   archetypeId?: string;
   templateId?: string;
@@ -443,6 +492,8 @@ type MarkupNode = {
   children: MarkupNode[];
   /** Compact `<!--prop-->` emitted immediately before the open tag. */
   propertyComment?: string;
+  /** `<!-- ehrtslib: … -->` before the open tag (annotation slug collisions). */
+  presentationComments?: string[];
 };
 
 function markup(
@@ -453,6 +504,7 @@ function markup(
     textContent?: string;
     children?: MarkupNode[];
     propertyComment?: string;
+    presentationComments?: string[];
   },
 ): MarkupNode {
   return {
@@ -462,6 +514,7 @@ function markup(
     textContent: opts?.textContent,
     children: opts?.children ?? [],
     propertyComment: opts?.propertyComment,
+    presentationComments: opts?.presentationComments,
   };
 }
 
@@ -508,11 +561,36 @@ function renderDvQuantity(
   });
 }
 
+function renderTemporalLeaf(
+  rmType: string,
+  iso: string,
+  tag: string,
+  attrs: AttrBag[],
+  locale: string,
+): MarkupNode {
+  attrs.push({ name: "data-zs-value", value: iso });
+  attrs.push({ name: "title", value: iso });
+  const display = rmType === "DV_DURATION"
+    ? formatZsDisplayDuration(iso, locale)
+    : formatZsDisplayDateTime(iso, rmType, locale);
+  return markup(tag, attrs, {
+    children: [
+      markup("span", [{ name: "class", value: "zs-canonical-value" }], {
+        textContent: iso,
+      }),
+      markup("span", [{ name: "class", value: "zs-display-value" }], {
+        textContent: display,
+      }),
+    ],
+  });
+}
+
 function renderDvLeaf(
   rmType: string,
   obj: Record<string, unknown>,
   dialect: Html5Dialect,
   extraAttrs: AttrBag[],
+  locale: string,
 ): MarkupNode {
   if (rmType === "DV_QUANTITY") {
     return renderDvQuantity(obj, dialect, extraAttrs);
@@ -557,7 +635,13 @@ function renderDvLeaf(
     case "DV_DATE":
     case "DV_TIME":
     case "DV_DATE_TIME":
-    case "DV_DURATION":
+    case "DV_DURATION": {
+      const iso = obj.value != null ? String(obj.value) : "";
+      if (iso) {
+        return renderTemporalLeaf(rmType, iso, tag, attrs, locale);
+      }
+      return markup(tag, attrs);
+    }
     case "DV_URI":
     case "DV_EHR_URI":
       text = obj.value != null ? String(obj.value) : "";
@@ -595,19 +679,6 @@ function renderDvLeaf(
   return markup(tag, attrs, { textContent: text || undefined });
 }
 
-function orderedKeys(
-  parentType: string | undefined,
-  keys: string[],
-): string[] {
-  if (!parentType) return keys;
-  const preferred = propertyTypesFor(parentType);
-  const order = Object.keys(preferred);
-  if (order.length === 0) return keys;
-  const inOrder = order.filter((k) => keys.includes(k));
-  const rest = keys.filter((k) => !order.includes(k));
-  return [...inOrder, ...rest];
-}
-
 function propertyAttrName(dialect: Html5Dialect): string {
   return dialect === "full" ? "property" : "p";
 }
@@ -641,6 +712,8 @@ function buildNode(
     propertyName?: string;
     lang?: string;
     propertyMode: RmPropertyEmitMode;
+    presentationByObject?: import("./template_annotations.ts").PresentationIndex;
+    templateAnnotationFilter?: RegExp | RegExp[];
   },
 ): MarkupNode | MarkupNode[] | null {
   if (node == null) return null;
@@ -695,9 +768,14 @@ function buildNode(
   );
 
   if (isZipehrLeafRmType(rmType) && !isLocatableLike(rmType)) {
-    const leaf = renderDvLeaf(rmType, obj, dialect, extraAttrs);
+    const leaf = renderDvLeaf(rmType, obj, dialect, extraAttrs, options.lang ?? "en");
     if (propertyCommentName) leaf.propertyComment = propertyCommentName;
     return leaf;
+  }
+
+  let effectiveLang = options.lang;
+  if (LANGUAGE_CARRIER_TYPES.has(rmType)) {
+    effectiveLang = unwrapCodePhrase(obj.language).code ?? effectiveLang;
   }
 
   const tag = tagForType(rmType, dialect);
@@ -729,16 +807,42 @@ function buildNode(
           continue;
         }
       }
-      if (dialect !== "short") {
+      if (dialect === "short") {
+        attrs.push({ name: field === "territory" ? "ter" : "enc", value: cp.code });
+      } else {
         attrs.push({ name: field, value: cp.code });
       }
     }
   }
 
-  const nameText = options.omitLocatableNames ? "" : extractNameValue(obj);
-  const childKeys = orderedKeys(
-    rmType,
-    Object.keys(obj).filter((k) => {
+  const nameText = options.omitLocatableNames ||
+      shouldSerializeNameAsChild(obj.name)
+    ? ""
+    : extractNameValue(obj);
+
+  const nodeId = obj.archetype_node_id != null
+    ? String(obj.archetype_node_id)
+    : undefined;
+  const quietLabel = options.omitLocatableNames ? "" : extractNameValue(obj);
+  if (isQuietStructuralHeading(rmType, nodeId) && quietLabel) {
+    attrs.push({ name: "title", value: quietLabel });
+    attrs.push({ name: "data-zs-quiet-heading", boolean: true });
+    attrs.push({ name: "tabindex", value: "0" });
+  }
+
+  let presentationComments: string[] | undefined;
+  const presentation = options.presentationByObject?.get(obj);
+  if (presentation) {
+    presentationComments = applyPresentationAttrsAndComments(
+      attrs,
+      presentation,
+      options.templateAnnotationFilter,
+    );
+  }
+
+  // Preserve canonical JSON key order (lossless html5 round-trip); do not RM-reorder.
+  const childKeys = Object.keys(obj).filter((k) => {
+      if (k === "name" && shouldSerializeNameAsChild(obj.name)) return true;
       if (SKIP_PROPS.has(k)) return false;
       if (
         LANGUAGE_CARRIER_TYPES.has(rmType) && k === "language" &&
@@ -747,17 +851,24 @@ function buildNode(
         return false;
       }
       if (
-        rmType === "COMPOSITION" && dialect !== "short" &&
+        rmType === "COMPOSITION" &&
         (k === "territory" || k === "encoding") &&
         unwrapCodePhrase(obj[k]).code
       ) {
         return false;
       }
       return true;
-    }),
-  );
+    });
 
-  const children: MarkupNode[] = [];
+  const quietStructural = isQuietStructuralHeading(rmType, nodeId) && !!quietLabel;
+  const children: MarkupNode[] = quietStructural
+    ? [
+      markup("span", [{ name: "class", value: "zs-structural-label" }], {
+        textContent: quietLabel,
+      }),
+    ]
+    : [];
+
   for (const key of childKeys) {
     const child = obj[key];
     const built = buildNode(child, dialect, {
@@ -766,6 +877,9 @@ function buildNode(
       parentType: rmType,
       propertyName: key,
       propertyMode: options.propertyMode,
+      lang: effectiveLang,
+      presentationByObject: options.presentationByObject,
+      templateAnnotationFilter: options.templateAnnotationFilter,
     });
     if (built == null) continue;
     if (Array.isArray(built)) children.push(...built);
@@ -773,9 +887,12 @@ function buildNode(
   }
 
   return markup(tag, attrs, {
-    leadingText: nameText,
+    leadingText: quietStructural ? "" : nameText,
     children,
     propertyComment: propertyCommentName,
+    presentationComments: presentationComments?.length
+      ? presentationComments
+      : undefined,
   });
 }
 
@@ -795,12 +912,20 @@ function propertyCommentPrefix(node: MarkupNode): string {
     : "";
 }
 
+function elementPrefix(node: MarkupNode): string {
+  let out = propertyCommentPrefix(node);
+  if (node.presentationComments?.length) {
+    out += node.presentationComments.join("");
+  }
+  return out;
+}
+
 function isSimpleLeaf(node: MarkupNode): boolean {
   return node.children.length === 0;
 }
 
 function formatCompact(node: MarkupNode): string {
-  const prefix = propertyCommentPrefix(node);
+  const prefix = elementPrefix(node);
   if (isSimpleLeaf(node)) {
     const text = node.textContent != null
       ? escapeXmlText(node.textContent)
@@ -836,7 +961,7 @@ function canInlineLinesaving(node: MarkupNode): boolean {
 
 function formatLinesaving(node: MarkupNode, depth: number): string {
   const pad = "  ".repeat(depth);
-  const prefix = propertyCommentPrefix(node);
+  const prefix = elementPrefix(node);
   if (canInlineLinesaving(node)) {
     return pad + formatCompact(node);
   }
@@ -855,7 +980,7 @@ function formatLinesaving(node: MarkupNode, depth: number): string {
 function formatFluffy(node: MarkupNode, depth: number): string {
   const pad = "  ".repeat(depth);
   const childPad = "  ".repeat(depth + 1);
-  const prefix = propertyCommentPrefix(node);
+  const prefix = elementPrefix(node);
 
   if (isSimpleLeaf(node)) {
     const text = node.textContent != null
@@ -893,6 +1018,30 @@ function formatMarkup(node: MarkupNode, layout: Html5Layout): string {
   return formatLinesaving(node, 0) + "\n";
 }
 
+function resolveHtml5TemplateContext(options: Html5SerializeOptions): {
+  webTemplate?: WebTemplate | null;
+  operationalTemplate?: openehr_am.OPERATIONAL_TEMPLATE | null;
+  pathAnnotations?: OptPathAnnotationMap;
+  templateRenderLang?: string;
+} {
+  if (options.template != null) {
+    const ctx = resolveZipEhrTemplatePresentation(options.template, {
+      archetypeRepository: options.archetypeRepository,
+      defaultRenderLang: options.templateRenderLang ?? options.lang,
+    });
+    if (!ctx) {
+      return { webTemplate: null, operationalTemplate: null };
+    }
+    return {
+      webTemplate: ctx.webTemplate,
+      operationalTemplate: ctx.operationalTemplate,
+      pathAnnotations: ctx.pathAnnotations ?? options.pathAnnotations,
+      templateRenderLang: ctx.renderLang,
+    };
+  }
+  return { webTemplate: null, operationalTemplate: null };
+}
+
 /** Serialize canonical JSON (with `_type`) to ZipEHR HTML5 markup. */
 export function serializeCanonicalToHtml5(
   canonical: unknown,
@@ -900,11 +1049,23 @@ export function serializeCanonicalToHtml5(
 ): string {
   const dialect = options.dialect;
   const layout = resolveLayout(dialect, options);
+  const tpl = resolveHtml5TemplateContext(options);
+  const presentationByObject = options.presentationByObject ??
+    ((tpl.webTemplate && tpl.operationalTemplate)
+      ? indexTemplatePresentation(canonical, {
+        webTemplate: tpl.webTemplate,
+        operationalTemplate: tpl.operationalTemplate,
+        pathAnnotations: tpl.pathAnnotations ?? options.pathAnnotations,
+        renderLang: tpl.templateRenderLang ?? options.lang,
+      })
+      : undefined);
   const built = buildNode(canonical, dialect, {
     omitLocatableNames: options.omitLocatableNames ?? false,
     isRoot: true,
     lang: options.lang,
     propertyMode: options.propertyMode ?? "omit",
+    presentationByObject,
+    templateAnnotationFilter: options.templateAnnotationFilter,
   });
   if (built == null) return "";
   if (Array.isArray(built)) {

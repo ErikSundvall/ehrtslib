@@ -240,6 +240,21 @@ o-u:empty,
   cursor: help;
 }
 
+/* Temporal/duration: default shows canonical ISO (quiet CSS flips to human) */
+o-dt .zs-display-value,
+o-du .zs-display-value,
+o-da .zs-display-value,
+o-ti .zs-display-value {
+  display: none;
+}
+
+o-dt .zs-canonical-value,
+o-du .zs-canonical-value,
+o-da .zs-canonical-value,
+o-ti .zs-canonical-value {
+  display: inline;
+}
+
 @media (max-width: 560px) {
   o-e {
     grid-template-columns: 1fr;

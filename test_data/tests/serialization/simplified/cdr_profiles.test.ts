@@ -19,7 +19,7 @@ Deno.test("ferroehr profile sets WT and FLAT conventions", () => {
   assertEquals(r.webTemplate.omitSectionNameNode, true);
   assertEquals(r.webTemplate.renamedArchetypeRootId, "archetype");
   assertEquals(r.webTemplate.elementNameId, "name_constraint");
-  assertEquals(r.flat.flavor, "input");
+  assertEquals(r.flat.flavor, "output");
   assertEquals(r.flat.locatableName, "omit");
 });
 

@@ -59,16 +59,12 @@ export function flatRootId(
   return templateRootId(webTemplate.templateId ?? "");
 }
 
-/** Roots a FLAT reader or validator should accept for one Web Template. */
+/** Roots a FLAT reader or validator should accept: {@link flatRootId} only. */
 export function acceptedFlatRoots(
   webTemplate: { templateId?: string; tree?: { id?: string } },
 ): Set<string> {
-  const roots = new Set<string>();
-  const canonical = flatRootId(webTemplate);
-  if (canonical) roots.add(canonical);
-  if (webTemplate.tree?.id?.trim()) roots.add(webTemplate.tree.id.trim());
-  if (webTemplate.templateId) roots.add(templateRootId(webTemplate.templateId));
-  return roots;
+  const root = flatRootId(webTemplate);
+  return root ? new Set([root]) : new Set();
 }
 
 /** Join AQL path segments without duplicate slashes. */

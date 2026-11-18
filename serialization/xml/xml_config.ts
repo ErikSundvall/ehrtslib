@@ -103,3 +103,31 @@ export const DEFAULT_XML_DESERIALIZATION_CONFIG: Required<
   ignoreAttributes: false,
   validateAgainstTemplate: undefined,
 };
+
+/**
+ * ITS-XML repeats RM list attributes as multiple sibling tags with the same name.
+ * @see https://specifications.openehr.org/releases/ITS-XML/
+ */
+export const ITS_XML_LIST_ELEMENT_NAMES = new Set([
+  "activities",
+  "attestations",
+  "attested_view",
+  "audit",
+  "content",
+  "events",
+  "identifiers",
+  "items",
+  "languages",
+  "links",
+  "mappings",
+  "other_participations",
+  "parts",
+  "precisions",
+  "revisions",
+  "subject_reviews",
+  "versions",
+]);
+
+export function itsXmlTagIsRepeatingList(tagName: string): boolean {
+  return ITS_XML_LIST_ELEMENT_NAMES.has(tagName.toLowerCase());
+}

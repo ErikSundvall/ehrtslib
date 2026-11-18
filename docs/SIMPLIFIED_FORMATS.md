@@ -60,9 +60,21 @@ The output flavour round-trips every RM-mandatory attribute: the Web Template ha
 
 Background: [research note on FLAT/STRUCTURED input and output flavours and `ctx` defaults (2026-10)](research/flat-input-output-ctx-2026-10.md).
 
+## CDR profiles (`cdrProfile`)
+
+Pass the same `cdrProfile` to `buildWebTemplate`, `serializeToFlat` / `serializeToFlatJson`, and `validateFlatPayload` when targeting one CDR. Default is **`ehrbase`**. Individual options override the bundle.
+
+| Profile | Web Template conventions (evidence) | FLAT conventions (evidence) |
+|---------|-------------------------------------|-----------------------------|
+| `ferroehr` | Archetype `tree.id`; omit SECTION `name` nodes; archetype concept ids on renamed roots; first name-constraint term for ELEMENT ids — from `test_data/fixtures/ferroehr/ferro-flat/wt.json` ([#316](https://github.com/ErikSundvall/ehrtslib/issues/316)) | Default `flavor: output`, `locatableName: omit` (`/_name` rejected by Ferro 5.5.0, #312). Ferro **export** fixtures are input-shaped (`ctx/`); **unverified** which flavour Ferro accepts on live POST — pass `flavor: "input"` to match exports. |
+| `ehrbase` | Same tree root and SECTION omission; EHRbase SDK `OPTParser.buildId` / term-name slugs (`label`, `term`) — [openEHR_SDK `OPTParser.java`](https://github.com/ehrbase/openEHR_SDK/blob/develop/generator/src/main/java/org/ehrbase/openehr/sdk/generator/commons/shareddefinition/OPTParser.java); SECTION `dv_text` vs Ferro: **unverified** in SDK | `flavor: output`, `locatableName: path` — ITS-REST examples and ehrtslib EHRbase fixtures |
+| `better` | Same as `ehrbase` until Better Web Template exports are checked in-tree (**unverified** beyond shared ITS rules) | Same as `ehrbase` (INPUT/OUTPUT map to input/output per spec) |
+
+Full field lists: `serialization/simplified/cdr_profiles.ts`.
+
 ## FLAT format
 
-- Keys are fully qualified from the Web Template root node id (`tree.id`). ehrtslib's own Web Template sets that id to the normalised template id, so those keys are unchanged. A Web Template from FerroEHR, EHRbase or Better uses the root node id (for example `encounter/`), not the template id (`thumb-pain-encounter.v2/`). The reader and `validateFlatPayload` still accept the normalised template id as an alias. RM attributes such as `language`, `composer` or `context/start_time` have their own paths. In the input flavour, composition metadata uses the `ctx/` prefix instead (`ctx/language`, `ctx/territory`, `ctx/composer_name`, …).
+- Keys are fully qualified from the Web Template root node id (`tree.id`). With default `cdrProfile: "ehrbase"`, `tree.id` is the composition archetype concept (`encounter/`). `treeRootId: "template"` sets `tree.id` to the normalised template id instead. Keys must use that root; the template id is not accepted when it differs from `tree.id`. RM attributes such as `language`, `composer` or `context/start_time` have their own paths. In the input flavour, composition metadata uses the `ctx/` prefix instead (`ctx/language`, `ctx/territory`, `ctx/composer_name`, …). Bare `ctx/setting` may be an openEHR setting **code** or rubric (ITS-REST simplified formats); the input serializer prefers the code when present.
 - HISTORY and a single EVENT with max 1 have no path segment (spec "Level Removal").
 - Repeating nodes use zero-based `:n` indices (`blood_pressure:0/any_event:0/...`).
 - Typed attributes use pipe suffixes on the key (`|magnitude`, `|unit`, `|code`, `|value`, `|terminology`).
@@ -119,7 +131,7 @@ Composer PARTY_SELF (ehrtslib convention, pending SEC clarification): the spec e
 
 Times: `HISTORY.origin` comes from its path, else `ctx/history_origin`, else the earliest event time, else `ctx/time`, else the clock. An `EVENT.time` without a value gets `HISTORY.origin`. The spec has two rules for the origin (earliest event time, and `ctx/time`); ehrtslib uses the event time when events have times.
 
-The first path segment may be the template id, the Web Template tree id, or the normalised composition name (as EHRbase writes it).
+The first path segment is the Web Template `tree.id` (some CDR exports also match a normalised tree **name** on read; not the separate `templateId` field when that differs from `tree.id`).
 
 Why options: platforms differ. Some fill defaults from the server clock, some reject what is missing, some keep `ctx/` keys in their output. The defaults suit a converter: lossless output, complete RM on input, and no key dropped without an issue. See the [research note](research/flat-input-output-ctx-2026-10.md).
 

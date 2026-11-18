@@ -1,0 +1,597 @@
+{
+  "_type": "COMPOSITION",
+  "name": {
+    "_type": "DV_TEXT",
+    "value": "Encounter"
+  },
+  "archetype_node_id": "openEHR-EHR-COMPOSITION.encounter.v1",
+  "archetype_details": {
+    "_type": "ARCHETYPED",
+    "archetype_id": {
+      "_type": "ARCHETYPE_ID",
+      "value": "openEHR-EHR-COMPOSITION.encounter.v1"
+    },
+    "template_id": {
+      "_type": "TEMPLATE_ID",
+      "value": "thumb-pain-encounter.v2"
+    },
+    "rm_version": "1.1.0"
+  },
+  "language": {
+    "_type": "CODE_PHRASE",
+    "terminology_id": {
+      "_type": "TERMINOLOGY_ID",
+      "value": "ISO_639-1"
+    },
+    "code_string": "en"
+  },
+  "territory": {
+    "_type": "CODE_PHRASE",
+    "terminology_id": {
+      "_type": "TERMINOLOGY_ID",
+      "value": "ISO_3166-1"
+    },
+    "code_string": "GB"
+  },
+  "category": {
+    "_type": "DV_CODED_TEXT",
+    "value": "event",
+    "defining_code": {
+      "_type": "CODE_PHRASE",
+      "terminology_id": {
+        "_type": "TERMINOLOGY_ID",
+        "value": "openehr"
+      },
+      "code_string": "433"
+    }
+  },
+  "composer": {
+    "_type": "PARTY_IDENTIFIED",
+    "name": "Dr J Brown"
+  },
+  "context": {
+    "_type": "EVENT_CONTEXT",
+    "start_time": {
+      "_type": "DV_DATE_TIME",
+      "value": "2021-10-21T14:21:00+01:00"
+    },
+    "setting": {
+      "_type": "DV_CODED_TEXT",
+      "value": "primary medical care",
+      "defining_code": {
+        "_type": "CODE_PHRASE",
+        "terminology_id": {
+          "_type": "TERMINOLOGY_ID",
+          "value": "openehr"
+        },
+        "code_string": "228"
+      }
+    }
+  },
+  "content": [
+    {
+      "_type": "SECTION",
+      "name": {
+        "_type": "DV_TEXT",
+        "value": "History"
+      },
+      "archetype_node_id": "openEHR-EHR-SECTION.adhoc.v1",
+      "archetype_details": {
+        "_type": "ARCHETYPED",
+        "archetype_id": {
+          "_type": "ARCHETYPE_ID",
+          "value": "openEHR-EHR-SECTION.adhoc.v1"
+        },
+        "rm_version": "1.1.0"
+      },
+      "items": [
+        {
+          "_type": "OBSERVATION",
+          "name": {
+            "_type": "DV_TEXT",
+            "value": "Story/History"
+          },
+          "archetype_node_id": "openEHR-EHR-OBSERVATION.story.v1",
+          "archetype_details": {
+            "_type": "ARCHETYPED",
+            "archetype_id": {
+              "_type": "ARCHETYPE_ID",
+              "value": "openEHR-EHR-OBSERVATION.story.v1"
+            },
+            "rm_version": "1.1.0"
+          },
+          "language": {
+            "_type": "CODE_PHRASE",
+            "terminology_id": {
+              "_type": "TERMINOLOGY_ID",
+              "value": "ISO_639-1"
+            },
+            "code_string": "en"
+          },
+          "encoding": {
+            "_type": "CODE_PHRASE",
+            "terminology_id": {
+              "_type": "TERMINOLOGY_ID",
+              "value": "IANA_character-sets"
+            },
+            "code_string": "UTF-8"
+          },
+          "subject": {
+            "_type": "PARTY_SELF"
+          },
+          "data": {
+            "_type": "HISTORY",
+            "name": {
+              "_type": "DV_TEXT",
+              "value": "Event Series"
+            },
+            "archetype_node_id": "at0001",
+            "origin": {
+              "_type": "DV_DATE_TIME",
+              "value": "2021-10-21T14:21:00+01:00"
+            },
+            "events": [
+              {
+                "_type": "POINT_EVENT",
+                "name": {
+                  "_type": "DV_TEXT",
+                  "value": "Any event"
+                },
+                "archetype_node_id": "at0002",
+                "time": {
+                  "_type": "DV_DATE_TIME",
+                  "value": "2021-10-21T14:21:00+01:00"
+                },
+                "data": {
+                  "_type": "ITEM_TREE",
+                  "name": {
+                    "_type": "DV_TEXT",
+                    "value": "Tree"
+                  },
+                  "archetype_node_id": "at0003",
+                  "items": [
+                    {
+                      "_type": "ELEMENT",
+                      "name": {
+                        "_type": "DV_TEXT",
+                        "value": "Story"
+                      },
+                      "archetype_node_id": "at0004",
+                      "value": {
+                        "_type": "DV_TEXT",
+                        "value": "Possible thumb sprain\nThumb fracture excluded\nParonychia of thumb present"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "_type": "SECTION",
+      "name": {
+        "_type": "DV_TEXT",
+        "value": "Assessment"
+      },
+      "archetype_node_id": "openEHR-EHR-SECTION.adhoc.v1",
+      "archetype_details": {
+        "_type": "ARCHETYPED",
+        "archetype_id": {
+          "_type": "ARCHETYPE_ID",
+          "value": "openEHR-EHR-SECTION.adhoc.v1"
+        },
+        "rm_version": "1.1.0"
+      },
+      "items": [
+        {
+          "_type": "EVALUATION",
+          "name": {
+            "_type": "DV_TEXT",
+            "value": "Problem/Diagnosis"
+          },
+          "archetype_node_id": "openEHR-EHR-EVALUATION.problem_diagnosis.v1",
+          "archetype_details": {
+            "_type": "ARCHETYPED",
+            "archetype_id": {
+              "_type": "ARCHETYPE_ID",
+              "value": "openEHR-EHR-EVALUATION.problem_diagnosis.v1"
+            },
+            "rm_version": "1.1.0"
+          },
+          "language": {
+            "_type": "CODE_PHRASE",
+            "terminology_id": {
+              "_type": "TERMINOLOGY_ID",
+              "value": "ISO_639-1"
+            },
+            "code_string": "en"
+          },
+          "encoding": {
+            "_type": "CODE_PHRASE",
+            "terminology_id": {
+              "_type": "TERMINOLOGY_ID",
+              "value": "IANA_character-sets"
+            },
+            "code_string": "UTF-8"
+          },
+          "subject": {
+            "_type": "PARTY_SELF"
+          },
+          "data": {
+            "_type": "ITEM_TREE",
+            "name": {
+              "_type": "DV_TEXT",
+              "value": "Tree"
+            },
+            "archetype_node_id": "at0001",
+            "items": [
+              {
+                "_type": "ELEMENT",
+                "name": {
+                  "_type": "DV_TEXT",
+                  "value": "Problem/Diagnosis name"
+                },
+                "archetype_node_id": "at0002",
+                "value": {
+                  "_type": "DV_CODED_TEXT",
+                  "value": "Sprain of thumb",
+                  "defining_code": {
+                    "_type": "CODE_PHRASE",
+                    "terminology_id": {
+                      "_type": "TERMINOLOGY_ID",
+                      "value": "Clinergy"
+                    },
+                    "code_string": "ThumbSprain"
+                  },
+                  "mappings": [
+                    {
+                      "_type": "TERM_MAPPING",
+                      "match": "?",
+                      "target": {
+                        "_type": "CODE_PHRASE",
+                        "terminology_id": {
+                          "_type": "TERMINOLOGY_ID",
+                          "value": "SNOMED-CT"
+                        },
+                        "code_string": "263130004"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "_type": "CLUSTER",
+                "name": {
+                  "_type": "DV_TEXT",
+                  "value": "Anatomical location"
+                },
+                "archetype_node_id": "openEHR-EHR-CLUSTER.anatomical_location.v1",
+                "archetype_details": {
+                  "_type": "ARCHETYPED",
+                  "archetype_id": {
+                    "_type": "ARCHETYPE_ID",
+                    "value": "openEHR-EHR-CLUSTER.anatomical_location.v1"
+                  },
+                  "rm_version": "1.1.0"
+                },
+                "items": [
+                  {
+                    "_type": "ELEMENT",
+                    "name": {
+                      "_type": "DV_TEXT",
+                      "value": "Body site name"
+                    },
+                    "archetype_node_id": "at0001",
+                    "value": {
+                      "_type": "DV_CODED_TEXT",
+                      "value": "Thumb",
+                      "defining_code": {
+                        "_type": "CODE_PHRASE",
+                        "terminology_id": {
+                          "_type": "TERMINOLOGY_ID",
+                          "value": "Clinergy"
+                        },
+                        "code_string": "Thumb"
+                      },
+                      "mappings": [
+                        {
+                          "_type": "TERM_MAPPING",
+                          "match": "=",
+                          "target": {
+                            "_type": "CODE_PHRASE",
+                            "terminology_id": {
+                              "_type": "TERMINOLOGY_ID",
+                              "value": "OpenGALEN"
+                            },
+                            "code_string": "Thumb"
+                          }
+                        },
+                        {
+                          "_type": "TERM_MAPPING",
+                          "match": "=",
+                          "target": {
+                            "_type": "CODE_PHRASE",
+                            "terminology_id": {
+                              "_type": "TERMINOLOGY_ID",
+                              "value": "SNOMED-CT"
+                            },
+                            "code_string": "76505004"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "_type": "ELEMENT",
+                "name": {
+                  "_type": "DV_TEXT",
+                  "value": "Diagnostic certainty"
+                },
+                "archetype_node_id": "at0073",
+                "value": {
+                  "_type": "DV_CODED_TEXT",
+                  "value": "Suspected",
+                  "defining_code": {
+                    "_type": "CODE_PHRASE",
+                    "terminology_id": {
+                      "_type": "TERMINOLOGY_ID",
+                      "value": "local"
+                    },
+                    "code_string": "at0074"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "_type": "EVALUATION",
+          "name": {
+            "_type": "DV_TEXT",
+            "value": "Problem/Diagnosis"
+          },
+          "archetype_node_id": "openEHR-EHR-EVALUATION.problem_diagnosis.v1",
+          "archetype_details": {
+            "_type": "ARCHETYPED",
+            "archetype_id": {
+              "_type": "ARCHETYPE_ID",
+              "value": "openEHR-EHR-EVALUATION.problem_diagnosis.v1"
+            },
+            "rm_version": "1.1.0"
+          },
+          "language": {
+            "_type": "CODE_PHRASE",
+            "terminology_id": {
+              "_type": "TERMINOLOGY_ID",
+              "value": "ISO_639-1"
+            },
+            "code_string": "en"
+          },
+          "encoding": {
+            "_type": "CODE_PHRASE",
+            "terminology_id": {
+              "_type": "TERMINOLOGY_ID",
+              "value": "IANA_character-sets"
+            },
+            "code_string": "UTF-8"
+          },
+          "subject": {
+            "_type": "PARTY_SELF"
+          },
+          "data": {
+            "_type": "ITEM_TREE",
+            "name": {
+              "_type": "DV_TEXT",
+              "value": "Tree"
+            },
+            "archetype_node_id": "at0001",
+            "items": [
+              {
+                "_type": "ELEMENT",
+                "name": {
+                  "_type": "DV_TEXT",
+                  "value": "Problem/Diagnosis name"
+                },
+                "archetype_node_id": "at0002",
+                "value": {
+                  "_type": "DV_CODED_TEXT",
+                  "value": "Paronychia",
+                  "defining_code": {
+                    "_type": "CODE_PHRASE",
+                    "terminology_id": {
+                      "_type": "TERMINOLOGY_ID",
+                      "value": "Clinergy"
+                    },
+                    "code_string": "Paronychia"
+                  },
+                  "mappings": [
+                    {
+                      "_type": "TERM_MAPPING",
+                      "match": "=",
+                      "target": {
+                        "_type": "CODE_PHRASE",
+                        "terminology_id": {
+                          "_type": "TERMINOLOGY_ID",
+                          "value": "OpenGALEN"
+                        },
+                        "code_string": "Paronychia"
+                      }
+                    },
+                    {
+                      "_type": "TERM_MAPPING",
+                      "match": "?",
+                      "target": {
+                        "_type": "CODE_PHRASE",
+                        "terminology_id": {
+                          "_type": "TERMINOLOGY_ID",
+                          "value": "SNOMED-CT"
+                        },
+                        "code_string": "71906005"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "_type": "CLUSTER",
+                "name": {
+                  "_type": "DV_TEXT",
+                  "value": "Anatomical location"
+                },
+                "archetype_node_id": "openEHR-EHR-CLUSTER.anatomical_location.v1",
+                "archetype_details": {
+                  "_type": "ARCHETYPED",
+                  "archetype_id": {
+                    "_type": "ARCHETYPE_ID",
+                    "value": "openEHR-EHR-CLUSTER.anatomical_location.v1"
+                  },
+                  "rm_version": "1.1.0"
+                },
+                "items": [
+                  {
+                    "_type": "ELEMENT",
+                    "name": {
+                      "_type": "DV_TEXT",
+                      "value": "Body site name"
+                    },
+                    "archetype_node_id": "at0001",
+                    "value": {
+                      "_type": "DV_CODED_TEXT",
+                      "value": "Thumb",
+                      "defining_code": {
+                        "_type": "CODE_PHRASE",
+                        "terminology_id": {
+                          "_type": "TERMINOLOGY_ID",
+                          "value": "Clinergy"
+                        },
+                        "code_string": "Thumb"
+                      },
+                      "mappings": [
+                        {
+                          "_type": "TERM_MAPPING",
+                          "match": "=",
+                          "target": {
+                            "_type": "CODE_PHRASE",
+                            "terminology_id": {
+                              "_type": "TERMINOLOGY_ID",
+                              "value": "OpenGALEN"
+                            },
+                            "code_string": "Thumb"
+                          }
+                        },
+                        {
+                          "_type": "TERM_MAPPING",
+                          "match": "=",
+                          "target": {
+                            "_type": "CODE_PHRASE",
+                            "terminology_id": {
+                              "_type": "TERMINOLOGY_ID",
+                              "value": "SNOMED-CT"
+                            },
+                            "code_string": "76505004"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "_type": "EVALUATION",
+          "name": {
+            "_type": "DV_TEXT",
+            "value": "Exclusion - specific"
+          },
+          "archetype_node_id": "openEHR-EHR-EVALUATION.exclusion_specific.v1",
+          "archetype_details": {
+            "_type": "ARCHETYPED",
+            "archetype_id": {
+              "_type": "ARCHETYPE_ID",
+              "value": "openEHR-EHR-EVALUATION.exclusion_specific.v1"
+            },
+            "rm_version": "1.1.0"
+          },
+          "language": {
+            "_type": "CODE_PHRASE",
+            "terminology_id": {
+              "_type": "TERMINOLOGY_ID",
+              "value": "ISO_639-1"
+            },
+            "code_string": "en"
+          },
+          "encoding": {
+            "_type": "CODE_PHRASE",
+            "terminology_id": {
+              "_type": "TERMINOLOGY_ID",
+              "value": "IANA_character-sets"
+            },
+            "code_string": "UTF-8"
+          },
+          "subject": {
+            "_type": "PARTY_SELF"
+          },
+          "data": {
+            "_type": "ITEM_TREE",
+            "name": {
+              "_type": "DV_TEXT",
+              "value": "Tree"
+            },
+            "archetype_node_id": "at0001",
+            "items": [
+              {
+                "_type": "ELEMENT",
+                "name": {
+                  "_type": "DV_CODED_TEXT",
+                  "value": "Problem/diagnosis",
+                  "defining_code": {
+                    "_type": "CODE_PHRASE",
+                    "terminology_id": {
+                      "_type": "TERMINOLOGY_ID",
+                      "value": "local"
+                    },
+                    "code_string": "at0004"
+                  }
+                },
+                "archetype_node_id": "at0003",
+                "value": {
+                  "_type": "DV_CODED_TEXT",
+                  "value": "Fracture of thumb",
+                  "defining_code": {
+                    "_type": "CODE_PHRASE",
+                    "terminology_id": {
+                      "_type": "TERMINOLOGY_ID",
+                      "value": "Clinergy"
+                    },
+                    "code_string": "ThumbFracture"
+                  },
+                  "mappings": [
+                    {
+                      "_type": "TERM_MAPPING",
+                      "match": ">",
+                      "target": {
+                        "_type": "CODE_PHRASE",
+                        "terminology_id": {
+                          "_type": "TERMINOLOGY_ID",
+                          "value": "SNOMED-CT"
+                        },
+                        "code_string": "704213001"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
