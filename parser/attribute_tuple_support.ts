@@ -52,14 +52,16 @@ function quantityItemFromPrimitiveTuple(
     if (!cell) continue;
     if (col === "units") {
       const u = unitsFromConstraint(cell);
-      if (u) item.units = u;
+      if (u !== undefined) item.units = u;
     } else if (col === "magnitude") {
       item.magnitude = intervalFromConstraint(cell);
     } else if (col === "precision") {
       item.precision = intervalFromConstraint(cell);
     }
   }
-  return item.units || item.magnitude || item.precision ? item : undefined;
+  return item.units !== undefined || item.magnitude || item.precision
+    ? item
+    : undefined;
 }
 
 export function scaleListFromTuple(
@@ -163,7 +165,7 @@ function unitsFromConstraint(cell: openehr_am.C_OBJECT): string | undefined {
   const body = cell.item;
   if (body instanceof openehr_am.C_STRING) {
     const list = (body as { list?: string[] }).list;
-    if (list?.[0]) return list[0];
+    if (list && list.length > 0 && list[0] !== undefined) return list[0];
     return body.pattern && body.pattern !== "*" ? body.pattern : undefined;
   }
   return undefined;
@@ -277,21 +279,25 @@ function terminologyFromConstraint(
 
 function parseIntervalPattern(expr: string): QuantityItemInterval | undefined {
   const t = expr.trim();
-  if (!t) return undefined;
+  if (!t || t === "*") return undefined;
   const interval: QuantityItemInterval = {};
-  const range = /^(.+)\.\.(<)?(.+)$/.exec(t);
+  const range = /^(.*?)\.\.(<)?(.*)$/.exec(t);
   if (range) {
-    const lowerPart = range[1];
+    const lowerPart = range[1].trim();
     const exclusiveUpper = range[2] === "<";
-    const upperPart = range[3];
-    if (lowerPart.startsWith(">")) {
+    const upperPart = range[3].trim();
+    if (!lowerPart || lowerPart === "*") {
+      interval.lower_unbounded = true;
+    } else if (lowerPart.startsWith(">")) {
       interval.lower_included = false;
       interval.lower = parseFloat(lowerPart.slice(1));
     } else {
       interval.lower_included = true;
       interval.lower = parseFloat(lowerPart);
     }
-    if (exclusiveUpper || upperPart.startsWith("<")) {
+    if (!upperPart || upperPart === "*") {
+      interval.upper_unbounded = true;
+    } else if (exclusiveUpper || upperPart.startsWith("<")) {
       interval.upper_included = false;
       interval.upper = parseFloat(
         exclusiveUpper ? upperPart : upperPart.slice(1),
@@ -300,6 +306,34 @@ function parseIntervalPattern(expr: string): QuantityItemInterval | undefined {
       interval.upper_included = true;
       interval.upper = parseFloat(upperPart);
     }
+    return interval;
+  }
+  const ge = /^>=(.+)$/.exec(t);
+  if (ge) {
+    interval.lower = parseFloat(ge[1]);
+    interval.lower_included = true;
+    interval.upper_unbounded = true;
+    return interval;
+  }
+  const gt = /^>(.+)$/.exec(t);
+  if (gt) {
+    interval.lower = parseFloat(gt[1]);
+    interval.lower_included = false;
+    interval.upper_unbounded = true;
+    return interval;
+  }
+  const le = /^<=(.+)$/.exec(t);
+  if (le) {
+    interval.upper = parseFloat(le[1]);
+    interval.upper_included = true;
+    interval.lower_unbounded = true;
+    return interval;
+  }
+  const lt = /^<(.+)$/.exec(t);
+  if (lt) {
+    interval.upper = parseFloat(lt[1]);
+    interval.upper_included = false;
+    interval.lower_unbounded = true;
     return interval;
   }
   const exact = /^-?\d+(?:\.\d+)?$/.exec(t);
@@ -404,7 +438,7 @@ export function buildQuantityAttributeTuple(
 ): openehr_am.C_ATTRIBUTE_TUPLE | undefined {
   if (!items.length) return undefined;
   const columns: string[] = [];
-  if (items.some((i) => i.units)) columns.push("units");
+  if (items.some((i) => i.units !== undefined)) columns.push("units");
   if (items.some((i) => i.magnitude)) columns.push("magnitude");
   if (items.some((i) => i.precision)) columns.push("precision");
   if (!columns.length) return undefined;
@@ -417,7 +451,7 @@ export function buildQuantityAttributeTuple(
   tuple.tuples = items.map((item) => {
     const row = new openehr_am.C_PRIMITIVE_TUPLE();
     row.members = columns.map((col) => {
-      if (col === "units" && item.units) {
+      if (col === "units" && item.units !== undefined) {
         return unitsConstraintObject(item.units);
       }
       if (col === "magnitude" && item.magnitude) {
@@ -462,7 +496,7 @@ function unitsConstraintObject(units: string): openehr_am.C_PRIMITIVE_OBJECT {
   const prim = new openehr_am.C_PRIMITIVE_OBJECT();
   prim.rm_type_name = "STRING";
   const str = new openehr_am.C_STRING();
-  str.pattern = units;
+  (str as { list?: string[] }).list = [units];
   prim.item = str;
   return prim;
 }

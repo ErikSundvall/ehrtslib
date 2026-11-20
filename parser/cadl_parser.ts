@@ -861,13 +861,42 @@ export class CadlParser {
       }
       if (!this.check(TokenType.DOUBLE_COLON)) return null;
       this.advance(); // '::'
-      let code = "";
+      const codes: string[] = [];
+      let current = "";
+      let assumedCode: string | undefined;
+      let readingAssumed = false;
       while (
         !this.check(TokenType.RBRACKET) &&
         !this.check(TokenType.PIPE) &&
         !this.isAtEnd()
       ) {
-        code += this.advance().value;
+        if (this.check(TokenType.COMMENT)) {
+          this.advance();
+          continue;
+        }
+        if (this.check(TokenType.COMMA)) {
+          this.advance();
+          if (current) {
+            if (readingAssumed) assumedCode = current;
+            else codes.push(current);
+            current = "";
+          }
+          continue;
+        }
+        if (this.check(TokenType.SEMICOLON)) {
+          this.advance();
+          if (current) {
+            codes.push(current);
+            current = "";
+          }
+          readingAssumed = true;
+          continue;
+        }
+        current += this.advance().value;
+      }
+      if (current) {
+        if (readingAssumed) assumedCode = current;
+        else codes.push(current);
       }
       if (this.check(TokenType.PIPE)) {
         this.advance();
@@ -877,10 +906,21 @@ export class CadlParser {
       this.consume(TokenType.RBRACKET, "Expected ']' after terminology code");
       const term = new openehr_am.C_TERMINOLOGY_CODE() as
         & openehr_am.C_TERMINOLOGY_CODE
-        & { terminology_id?: string };
+        & {
+          terminology_id?: string;
+          code_list?: string[];
+          assumed_value?: string;
+        };
       term.rm_type_name = "CODE_PHRASE";
       term.terminology_id = terminologyId;
-      term.constraint = code;
+      if (codes.length > 1) {
+        term.code_list = codes;
+      } else if (codes.length === 1) {
+        term.constraint = codes[0];
+      }
+      if (assumedCode) {
+        term.assumed_value = assumedCode;
+      }
       return term;
     }
     return null;
@@ -971,8 +1011,55 @@ export class CadlParser {
       }
     }
     if (items.length) (q as { list?: openehr_am.C_QUANTITY_ITEM[] }).list = items;
+    const assumed = this.readQuantityAssumedValue(obj, qtyTuple);
+    if (assumed) {
+      q.assumed_value = assumed as unknown as openehr_base.Any;
+    }
     copyAttributeTuples(obj, q);
     return q;
+  }
+
+  private readQuantityAssumedValue(
+    obj: openehr_am.C_COMPLEX_OBJECT,
+    qtyTuple?: openehr_am.C_ATTRIBUTE_TUPLE,
+  ): { units?: string; magnitude?: number; precision?: number } | undefined {
+    const out: { units?: string; magnitude?: number; precision?: number } = {};
+    const applyAssumed = (col: string, cell: openehr_am.C_OBJECT | undefined) => {
+      if (!(cell instanceof openehr_am.C_PRIMITIVE_OBJECT) || !cell.item) return;
+      const val = (cell.item as { assumed_value?: unknown }).assumed_value;
+      if (val === undefined) return;
+      if (col === "units" && typeof val === "string" && out.units === undefined) {
+        out.units = val;
+      } else if (col === "magnitude" && out.magnitude === undefined) {
+        const n = typeof val === "number" ? val : Number(val);
+        if (Number.isFinite(n)) out.magnitude = n;
+      } else if (col === "precision" && out.precision === undefined) {
+        const n = typeof val === "number" ? val : Number(val);
+        if (Number.isFinite(n)) out.precision = n;
+      }
+    };
+    if (qtyTuple) {
+      const cols = tupleColumnNames(qtyTuple);
+      for (const row of qtyTuple.tuples ?? []) {
+        const members = row.members ?? [];
+        for (let i = 0; i < cols.length; i++) {
+          applyAssumed(cols[i], members[i]);
+        }
+      }
+    }
+    for (const attr of obj.attributes ?? []) {
+      const name = attr.rm_attribute_name;
+      if (name !== "units" && name !== "magnitude" && name !== "precision") {
+        continue;
+      }
+      const child = (attr as { children?: openehr_am.C_OBJECT[] }).children?.[0];
+      applyAssumed(name, child);
+    }
+    return out.units !== undefined ||
+        out.magnitude !== undefined ||
+        out.precision !== undefined
+      ? out
+      : undefined;
   }
 
   private reifyOrdinal(
@@ -1172,7 +1259,14 @@ export class CadlParser {
         const prim = new openehr_am.C_PRIMITIVE_OBJECT();
         prim.rm_type_name = "STRING";
         const str = new openehr_am.C_STRING();
-        str.pattern = this.advance().value;
+        const values: string[] = [this.advance().value];
+        while (
+          this.check(TokenType.COMMA) && this.checkAhead(TokenType.STRING, 1)
+        ) {
+          this.advance();
+          values.push(this.advance().value);
+        }
+        (str as { list?: string[] }).list = values;
         prim.item = str;
         obj = prim;
       }
@@ -1185,6 +1279,9 @@ export class CadlParser {
         if (nested) obj = nested;
         else this.position = checkpoint;
       }
+    }
+    if (obj instanceof openehr_am.C_PRIMITIVE_OBJECT) {
+      this.maybeApplyAssumedValueSuffix(obj);
     }
     this.consume(TokenType.RBRACE, "Expected '}' in tuple cell");
     return obj;
@@ -1541,6 +1638,7 @@ export class CadlParser {
       return undefined;
     }
     if (
+      this.check(TokenType.MINUS) ||
       this.check(TokenType.INTEGER) || this.check(TokenType.REAL) ||
       this.check(TokenType.IDENTIFIER)
     ) {
@@ -1549,6 +1647,7 @@ export class CadlParser {
         const t = this.peek();
         if (t.type === TokenType.RBRACE || t.type === TokenType.COMMA) break;
         if (
+          t.type === TokenType.MINUS ||
           t.type === TokenType.IDENTIFIER ||
           t.type === TokenType.INTEGER ||
           t.type === TokenType.REAL ||

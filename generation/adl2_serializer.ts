@@ -547,6 +547,19 @@ export class ADL2Serializer {
       if (code) return `{${this.formatTermCode(tid, code)}}`;
     }
     if (cell instanceof openehr_am.C_PRIMITIVE_OBJECT && cell.item) {
+      const assumed = (cell.item as { assumed_value?: unknown }).assumed_value;
+      const suffix = assumed !== undefined
+        ? `; ${
+          typeof assumed === "string" ? JSON.stringify(assumed) : String(assumed)
+        }`
+        : "";
+      if (
+        cell.item instanceof openehr_am.C_STRING &&
+        !(cell.item as { list?: string[] }).list?.length &&
+        cell.item.pattern === "*"
+      ) {
+        return `{*${suffix}}`;
+      }
       if (
         cell.item instanceof openehr_am.C_INTEGER ||
         cell.item instanceof openehr_am.C_REAL
@@ -555,20 +568,23 @@ export class ADL2Serializer {
         const range = formatInterval(
           (cell.item as { range?: IntervalLike }).range,
         );
-        if (list?.length === 1 && !range) return `{${list[0]}}`;
-        if (range) return `{|${range}|}`;
+        if (list?.length === 1 && !range) return `{${list[0]}${suffix}}`;
+        if (range) return `{|${range}|${suffix}}`;
         if (list?.length) {
-          return `{${list.map((n) => `|${n}|`).join(", ")}}`;
+          return `{${list.map((n) => `|${n}|`).join(", ")}${suffix}}`;
         }
       }
       const inline = this.inlinePrimitiveMatch(cell);
-      if (inline) return `{${inline}}`;
+      if (inline) return `{${inline}${suffix}}`;
       const body = this.primitiveBody(cell.item, cell.rm_type_name);
       if (body) {
-        if (body.startsWith("|") && body.endsWith("|")) return `{${body}}`;
-        if (body.startsWith("/")) return `{${body}}`;
-        return `{${body}}`;
+        if (body.startsWith("|") && body.endsWith("|")) {
+          return `{${body}${suffix}}`;
+        }
+        if (body.startsWith("/")) return `{${body}${suffix}}`;
+        return `{${body}${suffix}}`;
       }
+      if (suffix) return `{*${suffix}}`;
     }
     return "{*}";
   }

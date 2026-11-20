@@ -107,6 +107,10 @@ function aomCellToP(cell: openehr_am.C_OBJECT): PTupleCell {
   if (cell instanceof openehr_am.C_PRIMITIVE_OBJECT) {
     const item = cell.item;
     if (item instanceof openehr_am.C_STRING) {
+      const list = (item as { list?: string[] }).list;
+      if (list?.length) {
+        return { kind: "prim", prim: { type: "string", list: [...list] } };
+      }
       const pattern = item.pattern ?? "";
       if (cell.rm_type_name === "Integer" || cell.rm_type_name === "Real") {
         return {
