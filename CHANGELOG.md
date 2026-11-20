@@ -8,6 +8,8 @@ Add an entry under **Unreleased** in every PR that changes user-visible behaviou
 
 ## [Unreleased]
 
+## [0.15.0] - 2026-11-20
+
 - **ZipEHR.** Display localization when `templateRenderLang` is set: localizes composition root (`/`), `/category`, openEHR terminology rubrics (`openehr::NNN`, e.g. `228`, `433` in `sv`, `es`, `pt`, `en`), and local archetype coded values (`local::atNNNN`) using priority template `L10n.{lang}` → archetype/OPT term definitions → openEHR terminology → RM fallback. Emits paired `.zs-canonical-value` / `.zs-display-value` spans so quiet preview renders localized text while HTML5 deserialization preserves the canonical RM values losslessly ([#323](https://github.com/ErikSundvall/ehrtslib/issues/323)).
 - **ADL 1.4 parser.** Supports ODIN-style `C_DV_QUANTITY < ... >` domain-type blocks in ADL 1.4 archetypes (converting `property`, `list` items with `units`/`magnitude`/`precision`, unbounded intervals, and `assumed_value` to AOM2 `DV_QUANTITY` / `C_QUANTITY` attribute tuples), and splits comma-separated ADL 1.4 code lists in `[local::atNNNN, ...]` terminology constraints ([#324](https://github.com/ErikSundvall/ehrtslib/issues/324)).
 - **Validation.** Format-aware source locations (`sourceLine`, `sourceColumn`, `jsonPointer`, `sourceIsAncestor`, `targetPath`) and missing-content guidance (`expectedExample`) across Canonical JSON, FLAT JSON, and STRUCTURED JSON in `TemplateValidator.validate`, `validateFlatPayload`, and `enrichSimplifiedMessagesWithSource` (supporting [regionstockholm/intehrgrator#373](https://github.com/regionstockholm/intehrgrator/issues/373)).
