@@ -11,6 +11,7 @@
 o-cph.zipehr-tech-quiet,
 o-cnt.zipehr-tech-quiet,
 o-dt.zipehr-tech-quiet,
+/* Template `data-antn-*` hints and view / rm_visibility summary */
 [data-antn-hide-on-form="true"],
 [data-opt-visibility="hide"],
 [data-rm-visibility="hide"] {
@@ -25,18 +26,19 @@ o-dt.zipehr-tech-quiet,
   display: none !important;
 }
 
-o-dt .zs-canonical-value,
-o-du .zs-canonical-value,
-o-da .zs-canonical-value,
-o-ti .zs-canonical-value {
+/* Localized & human temporal/duration labels in quiet view; canonical hidden */
+.zs-canonical-value {
   display: none !important;
+}
+
+.zs-display-value {
+  display: inline;
 }
 
 o-dt .zs-display-value,
 o-du .zs-display-value,
 o-da .zs-display-value,
 o-ti .zs-display-value {
-  display: inline;
   font-variant-numeric: tabular-nums;
 }
 

@@ -217,3 +217,8 @@ export {
   type ZipEhrTemplatePresentationContext,
   type ZipEhrTemplatePresentationSource,
 } from "./template_presentation_input.ts";
+
+export {
+  createZipEhrDisplayLocalizer,
+  type ZipEhrDisplayLocalizer,
+} from "./display_l10n.ts";

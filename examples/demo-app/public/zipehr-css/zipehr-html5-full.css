@@ -228,6 +228,15 @@ o-uuid:empty {
   cursor: help;
 }
 
+/* Display spans: default shows canonical RM text (quiet CSS flips to localized/human) */
+.zs-display-value {
+  display: none;
+}
+
+.zs-canonical-value {
+  display: inline;
+}
+
 @media (max-width: 560px) {
   o-element {
     grid-template-columns: 1fr;

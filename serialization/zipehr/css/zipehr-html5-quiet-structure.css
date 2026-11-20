@@ -26,19 +26,19 @@ o-dt.zipehr-tech-quiet,
   display: none !important;
 }
 
-/* Human temporal/duration labels in quiet view; ISO in title/tooltip */
-o-dt .zs-canonical-value,
-o-du .zs-canonical-value,
-o-da .zs-canonical-value,
-o-ti .zs-canonical-value {
+/* Localized & human temporal/duration labels in quiet view; canonical hidden */
+.zs-canonical-value {
   display: none !important;
+}
+
+.zs-display-value {
+  display: inline;
 }
 
 o-dt .zs-display-value,
 o-du .zs-display-value,
 o-da .zs-display-value,
 o-ti .zs-display-value {
-  display: inline;
   font-variant-numeric: tabular-nums;
 }
 
