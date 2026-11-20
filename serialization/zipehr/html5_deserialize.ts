@@ -20,9 +20,9 @@ import {
   isZipehrLeafRmType,
   LANGUAGE_CARRIER_TYPES,
   languageCodePhrase,
-  parseTerseDvCodedText,
   propertyTypesFor,
   TECHNICAL_ID_TYPES,
+  unescapeWireField,
 } from "./shared.ts";
 import { isSubtypeOf } from "../../meta/mod.ts";
 import {
@@ -544,6 +544,11 @@ function readTerminologyAndCode(
   return {};
 }
 
+/**
+ * Parse the `tm` wire: `match|target_terse[|purpose_terse|purpose_value|]`
+ * items joined by `;`, fields escaped with `escapeWireField`. Unescaped
+ * legacy wire without `|` or `;` inside codes reads the same way.
+ */
 function parseMappingsWire(
   raw: string | undefined,
 ): Record<string, unknown>[] | undefined {
@@ -552,40 +557,40 @@ function parseMappingsWire(
   for (const part of raw.split(";")) {
     const trimmed = part.trim();
     if (!trimmed) continue;
-    const pipe = trimmed.indexOf("|");
-    if (pipe < 0) continue;
-    const match = trimmed.slice(0, pipe);
-    const rest = trimmed.slice(pipe + 1);
-    // rest = target_terse  OR  target_terse|purpose_dv_coded_terse
-    const purposeMatch = rest.match(
-      /^([^|]+::[^|]+)\|([^:]+::[^|]+\|[^|]*\|)$/,
-    );
-    let targetRaw: string;
-    let purpose: Record<string, unknown> | undefined;
-    if (purposeMatch) {
-      targetRaw = purposeMatch[1];
-      const p = parseTerseDvCodedText(expandTerseString(purposeMatch[2]));
-      if (p) {
-        purpose = {
-          _type: "DV_CODED_TEXT",
-          value: p.value,
-          defining_code: canonicalCodePhrase(p.termId, p.code),
-        };
-      }
-    } else {
-      targetRaw = rest;
-    }
-    const target = parseTerseCodePhraseWire(targetRaw);
+    const fields = trimmed.split("|");
+    if (fields.length < 2) continue;
+    const match = unescapeWireField(fields[0]);
+    const target = parseEscapedCodePhraseWire(fields[1]);
     if (!target?.code) continue;
     const row: Record<string, unknown> = {
       _type: "TERM_MAPPING",
       match,
       target: canonicalCodePhrase(target.terminology, target.code),
     };
-    if (purpose) row.purpose = purpose;
+    if (fields.length === 5 && fields[4] === "") {
+      const p = parseEscapedCodePhraseWire(fields[2]);
+      if (p?.code && p.terminology) {
+        row.purpose = {
+          _type: "DV_CODED_TEXT",
+          value: unescapeWireField(fields[3]),
+          defining_code: canonicalCodePhrase(p.terminology, p.code),
+        };
+      }
+    }
     out.push(row);
   }
   return out.length > 0 ? out : undefined;
+}
+
+function parseEscapedCodePhraseWire(
+  raw: string,
+): { terminology?: string; code?: string } | undefined {
+  const parsed = parseTerseCodePhraseWire(raw);
+  if (!parsed) return undefined;
+  return {
+    ...(parsed.terminology != null ? { terminology: unescapeWireField(parsed.terminology) } : {}),
+    ...(parsed.code != null ? { code: unescapeWireField(parsed.code) } : {}),
+  };
 }
 
 function applyDvTextMachineAttrs(

@@ -162,6 +162,8 @@ Prefer **attributes** for technical CODE_PHRASE fields; keep the clinical rubric
 
 (`>` / `<` in `match` are HTML-escaped in attribute values, e.g. `&gt;|ICD10::E11.9`.)
 
+Inside each `tm` field, `%`, `|` and `;` are written as `%25`, `%7C` and `%3B`, so a code may contain them. For example, the SNOMED CT expression `404684003 |Clinical finding| : 363698007 |Finding site| = 39607008 |Lung structure|` is written as `=|SNOMED-CT::404684003 %7CClinical finding%7C : 363698007 %7CFinding site%7C = 39607008 %7CLung structure%7C`.
+
 No per-terminology emoji shortcuts for SNOMED/LOINC/ICD yet — use full `terminology::code` (existing `local` / `openehr` / ISO shortcuts still apply inside terse strings).
 
 Technical identifier types (`OBJECT_VERSION_ID`, `ARCHETYPE_ID`, `TEMPLATE_ID`,
