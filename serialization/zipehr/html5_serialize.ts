@@ -12,6 +12,7 @@ import {
   TERMINOLOGY_SHORTCUTS,
 } from "./symbol_table.ts";
 import {
+  escapeWireField,
   formatPropertyComment,
   isLocatableLike,
   isQuietStructuralHeading,
@@ -230,6 +231,7 @@ function codePhraseToTerseWire(
 /**
  * Compact TERM_MAPPING list for attrs:
  * `match|target_terse` joined by `;`; optional purpose as DV_CODED_TEXT terse after target.
+ * Each field is escaped with `escapeWireField`, so codes may contain `|`, `;` or `%`.
  */
 function mappingsToWire(
   mappings: unknown,
@@ -241,19 +243,34 @@ function mappingsToWire(
     if (m == null || typeof m !== "object" || Array.isArray(m)) continue;
     const row = m as Record<string, unknown>;
     const match = row.match != null ? String(row.match) : "?";
-    const target = codePhraseToTerseWire(row.target, dialect);
+    const target = escapedCodePhraseWire(row.target, dialect);
     if (!target) continue;
-    let part = `${match}|${target}`;
+    let part = `${escapeWireField(match)}|${target}`;
     const purpose = row.purpose;
     if (purpose && typeof purpose === "object" && !Array.isArray(purpose)) {
       const p = purpose as Record<string, unknown>;
-      const pDef = codePhraseToTerseWire(p.defining_code, dialect);
+      const pDef = escapedCodePhraseWire(p.defining_code, dialect);
       const pVal = p.value != null ? String(p.value) : "";
-      if (pDef) part += `|${pDef}|${pVal}|`;
+      if (pDef) part += `|${pDef}|${escapeWireField(pVal)}|`;
     }
     parts.push(part);
   }
   return parts.length > 0 ? parts.join(";") : undefined;
+}
+
+/** Terse CODE_PHRASE wire with terminology and code escaped for the `tm` attribute. */
+function escapedCodePhraseWire(
+  value: unknown,
+  dialect: Html5Dialect,
+): string | undefined {
+  const { terminology, code } = unwrapCodePhrase(value);
+  return codePhraseToTerseWire(
+    {
+      ...(terminology ? { terminology_id: escapeWireField(terminology) } : {}),
+      ...(code != null ? { code_string: escapeWireField(code) } : {}),
+    },
+    dialect,
+  );
 }
 
 function appendDvTextMachineAttrs(

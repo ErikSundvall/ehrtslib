@@ -8,6 +8,8 @@ Add an entry under **Unreleased** in every PR that changes user-visible behaviou
 
 ## [Unreleased]
 
+- **ZipEHR.** The html5 `tm` (TERM_MAPPING) attribute escapes `%`, `|` and `;` in its fields, so codes such as SNOMED CT post-coordinated expressions with terms survive a round-trip. They were previously dropped or truncated. Unescaped wire written by earlier versions still reads ([#325](https://github.com/ErikSundvall/ehrtslib/issues/325)).
+
 ## [0.14.0] - 2026-11-18
 
 - **Release.** Library tags now build the demo and TAAAT and refuse to deploy Pages without `demo/chunks`, so demos no longer break after a library release ([#319](https://github.com/ErikSundvall/ehrtslib/issues/319), [#320](https://github.com/ErikSundvall/ehrtslib/pull/320)).

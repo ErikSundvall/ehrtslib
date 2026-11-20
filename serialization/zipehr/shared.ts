@@ -275,6 +275,21 @@ export function shortenTerseString(
   return str;
 }
 
+/**
+ * Escape one field of a delimited attribute wire such as `tm`
+ * (`match|terminology::code;…`): `%`, `|` and `;` become `%25`, `%7C`, `%3B`.
+ */
+export function escapeWireField(value: string): string {
+  return value.replace(/[%|;]/g, (ch) => ch === "%" ? "%25" : ch === "|" ? "%7C" : "%3B");
+}
+
+/** Reverse {@link escapeWireField}. Other `%` sequences are left as they are. */
+export function unescapeWireField(value: string): string {
+  return value.replace(/%(25|7C|3B)/gi, (_, hex: string) =>
+    hex === "25" ? "%" : hex.toUpperCase() === "7C" ? "|" : ";"
+  );
+}
+
 export function expandTerseString(
   str: string,
   symbolMap?: Record<string, string>,
