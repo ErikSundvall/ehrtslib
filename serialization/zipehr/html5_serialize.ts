@@ -36,7 +36,12 @@ import {
   type PresentationIndex,
 } from "./template_annotations.ts";
 import { resolveZipEhrTemplatePresentation } from "./template_presentation_input.ts";
+import {
+  createZipEhrDisplayLocalizer,
+  type ZipEhrDisplayLocalizer,
+} from "./display_l10n.ts";
 import type { OptPathAnnotationMap } from "../../generation/opt_l10n.ts";
+import type { OptPresentationByPath } from "../../generation/opt_view.ts";
 import type { WebTemplate } from "../simplified/types.ts";
 import type * as openehr_am from "../../am/openehr_am.ts";
 
@@ -578,6 +583,17 @@ function renderDvQuantity(
   });
 }
 
+function localizedLabelSpans(canonical: string, display: string): MarkupNode[] {
+  return [
+    markup("span", [{ name: "class", value: "zs-canonical-value" }], {
+      textContent: canonical,
+    }),
+    markup("span", [{ name: "class", value: "zs-display-value" }], {
+      textContent: display,
+    }),
+  ];
+}
+
 function renderTemporalLeaf(
   rmType: string,
   iso: string,
@@ -591,14 +607,7 @@ function renderTemporalLeaf(
     ? formatZsDisplayDuration(iso, locale)
     : formatZsDisplayDateTime(iso, rmType, locale);
   return markup(tag, attrs, {
-    children: [
-      markup("span", [{ name: "class", value: "zs-canonical-value" }], {
-        textContent: iso,
-      }),
-      markup("span", [{ name: "class", value: "zs-display-value" }], {
-        textContent: display,
-      }),
-    ],
+    children: localizedLabelSpans(iso, display),
   });
 }
 
@@ -608,6 +617,12 @@ function renderDvLeaf(
   dialect: Html5Dialect,
   extraAttrs: AttrBag[],
   locale: string,
+  l10n?: {
+    displayLocalizer?: ZipEhrDisplayLocalizer;
+    presentation?: OptPresentationByPath;
+    archetypeId?: string;
+    propertyName?: string;
+  },
 ): MarkupNode {
   if (rmType === "DV_QUANTITY") {
     return renderDvQuantity(obj, dialect, extraAttrs);
@@ -634,6 +649,21 @@ function renderDvLeaf(
       appendDvTextMachineAttrs(attrs, obj, dialect, {
         definingCode: obj.defining_code,
       });
+      if (text && l10n?.displayLocalizer) {
+        const cp = unwrapCodePhrase(obj.defining_code);
+        const display = l10n.displayLocalizer.localizeCodedText({
+          presentation: l10n.presentation,
+          archetypeId: l10n.archetypeId,
+          terminology: cp.terminology,
+          code: cp.code,
+          propertyName: l10n.propertyName,
+        });
+        if (display && display !== text) {
+          return markup(tag, attrs, {
+            children: localizedLabelSpans(text, display),
+          });
+        }
+      }
       break;
     }
     case "CODE_PHRASE": {
@@ -728,9 +758,12 @@ function buildNode(
     parentType?: string;
     propertyName?: string;
     lang?: string;
+    displayLang?: string;
+    archetypeId?: string;
     propertyMode: RmPropertyEmitMode;
     presentationByObject?: import("./template_annotations.ts").PresentationIndex;
     templateAnnotationFilter?: RegExp | RegExp[];
+    displayLocalizer?: ZipEhrDisplayLocalizer;
   },
 ): MarkupNode | MarkupNode[] | null {
   if (node == null) return null;
@@ -785,8 +818,32 @@ function buildNode(
   );
 
   if (isZipehrLeafRmType(rmType) && !isLocatableLike(rmType)) {
-    const leaf = renderDvLeaf(rmType, obj, dialect, extraAttrs, options.lang ?? "en");
+    const leafPresentation = options.presentationByObject?.get(obj);
+    let leafPresentationComments: string[] | undefined;
+    if (leafPresentation) {
+      leafPresentationComments = applyPresentationAttrsAndComments(
+        extraAttrs,
+        leafPresentation,
+        options.templateAnnotationFilter,
+      );
+    }
+    const leaf = renderDvLeaf(
+      rmType,
+      obj,
+      dialect,
+      extraAttrs,
+      options.displayLang ?? options.lang ?? "en",
+      {
+        displayLocalizer: options.displayLocalizer,
+        presentation: leafPresentation,
+        archetypeId: options.archetypeId,
+        propertyName: options.propertyName,
+      },
+    );
     if (propertyCommentName) leaf.propertyComment = propertyCommentName;
+    if (leafPresentationComments?.length) {
+      leaf.presentationComments = leafPresentationComments;
+    }
     return leaf;
   }
 
@@ -840,6 +897,12 @@ function buildNode(
   const nodeId = obj.archetype_node_id != null
     ? String(obj.archetype_node_id)
     : undefined;
+  const details = extractArchetypeDetails(obj);
+  const ownArchetypeId = details.archetypeId ??
+    (nodeId && /^openEHR-/i.test(nodeId) ? nodeId : undefined);
+  const effectiveArchetypeId = ownArchetypeId ?? options.archetypeId;
+  const isArchetypeRoot = ownArchetypeId != null;
+
   const quietLabel = options.omitLocatableNames ? "" : extractNameValue(obj);
   if (isQuietStructuralHeading(rmType, nodeId) && quietLabel) {
     attrs.push({ name: "title", value: quietLabel });
@@ -878,12 +941,27 @@ function buildNode(
     });
 
   const quietStructural = isQuietStructuralHeading(rmType, nodeId) && !!quietLabel;
+  let localizedName: string | undefined;
+  if (!quietStructural && nameText && options.displayLocalizer) {
+    const candidate = options.displayLocalizer.localizeLocatableName({
+      presentation,
+      archetypeId: effectiveArchetypeId,
+      nodeId,
+      isArchetypeRoot,
+    });
+    if (candidate && candidate !== nameText) {
+      localizedName = candidate;
+    }
+  }
+
   const children: MarkupNode[] = quietStructural
     ? [
       markup("span", [{ name: "class", value: "zs-structural-label" }], {
         textContent: quietLabel,
       }),
     ]
+    : localizedName
+    ? localizedLabelSpans(nameText, localizedName)
     : [];
 
   for (const key of childKeys) {
@@ -895,8 +973,11 @@ function buildNode(
       propertyName: key,
       propertyMode: options.propertyMode,
       lang: effectiveLang,
+      displayLang: options.displayLang,
+      archetypeId: effectiveArchetypeId,
       presentationByObject: options.presentationByObject,
       templateAnnotationFilter: options.templateAnnotationFilter,
+      displayLocalizer: options.displayLocalizer,
     });
     if (built == null) continue;
     if (Array.isArray(built)) children.push(...built);
@@ -904,7 +985,7 @@ function buildNode(
   }
 
   return markup(tag, attrs, {
-    leadingText: quietStructural ? "" : nameText,
+    leadingText: quietStructural || localizedName ? "" : nameText,
     children,
     propertyComment: propertyCommentName,
     presentationComments: presentationComments?.length
@@ -1076,13 +1157,29 @@ export function serializeCanonicalToHtml5(
         renderLang: tpl.templateRenderLang ?? options.lang,
       })
       : undefined);
+  const sourceRenderLang =
+    options.template != null && typeof options.template === "object" &&
+      "renderLang" in options.template &&
+      typeof options.template.renderLang === "string"
+      ? options.template.renderLang
+      : undefined;
+  const displayLang = options.templateRenderLang ?? sourceRenderLang;
+  const displayLocalizer = displayLang
+    ? createZipEhrDisplayLocalizer({
+      renderLang: displayLang,
+      operationalTemplate: tpl.operationalTemplate,
+      archetypeRepository: options.archetypeRepository,
+    })
+    : undefined;
   const built = buildNode(canonical, dialect, {
     omitLocatableNames: options.omitLocatableNames ?? false,
     isRoot: true,
     lang: options.lang,
+    displayLang,
     propertyMode: options.propertyMode ?? "omit",
     presentationByObject,
     templateAnnotationFilter: options.templateAnnotationFilter,
+    displayLocalizer,
   });
   if (built == null) return "";
   if (Array.isArray(built)) {

@@ -12,5 +12,6 @@ export * from "./archetype_validator.ts";
 export * from "./interval_validator.ts";
 export * from "./invariant_evaluator.ts";
 export * from "./rm_specification_validator.ts";
+export * from "./source_location.ts";
 export * from "./template_validator.ts";
 export * from "./temporal_pattern.ts";

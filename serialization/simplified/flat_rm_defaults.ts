@@ -39,6 +39,18 @@ export interface FlatRmDefaultIssue {
     | "missing-mandatory"
     | "context-rule"
     | "element-value";
+  /** JSON Pointer into the original JSON source when enriched via `enrichSimplifiedMessagesWithSource`. */
+  jsonPointer?: string;
+  /** 1-based line in the original JSON source (when available). */
+  sourceLine?: number;
+  /** 1-based column in the original JSON source (when available). */
+  sourceColumn?: number;
+  /** True when the location points to the nearest existing ancestor because the path is missing. */
+  sourceIsAncestor?: boolean;
+  /** Target-format path where the error or missing content belongs. */
+  targetPath?: string;
+  /** Concise example snippet showing approximately what missing content should look like. */
+  expectedExample?: string;
 }
 
 /**

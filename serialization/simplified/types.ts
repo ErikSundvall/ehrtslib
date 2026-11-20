@@ -89,6 +89,18 @@ export interface SimplifiedValidationMessage {
   path: string;
   message: string;
   severity: "error" | "warning";
+  /** JSON Pointer into the original JSON source when `jsonSource` was provided. */
+  jsonPointer?: string;
+  /** 1-based line in the original JSON source (when available). */
+  sourceLine?: number;
+  /** 1-based column in the original JSON source (when available). */
+  sourceColumn?: number;
+  /** True when the location points to the nearest existing ancestor because the path is missing. */
+  sourceIsAncestor?: boolean;
+  /** Target-format path (e.g. FLAT key or `ctx/...`) where the value is or belongs. */
+  targetPath?: string;
+  /** Concise example snippet showing approximately what missing content should look like. */
+  expectedExample?: string;
 }
 
 export interface FlatValidationResult {

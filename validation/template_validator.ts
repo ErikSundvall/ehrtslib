@@ -9,10 +9,10 @@ import * as openehr_am from "../am/openehr_am.ts";
 import { isSubtypeOf } from "../meta/mod.ts";
 import { TypeRegistry } from "../serialization/common/type_registry.ts";
 import {
-  buildJsonSourceIndex,
-  enrichValidationMessageWithSource,
-  type JsonSourceIndex,
-} from "../serialization/common/json_source_index.ts";
+  enrichValidationMessagesWithSource,
+  type ValidationSourceFormat,
+} from "./source_location.ts";
+import type { WebTemplate } from "../serialization/simplified/types.ts";
 import { UcumService } from "../term/ucum_service.ts";
 import { IntervalValidator } from "./interval_validator.ts";
 import { instanceRmType } from "./rm_type.ts";
@@ -56,6 +56,21 @@ export interface ValidationMessage {
   sourceLine?: number;
   /** 1-based column in the original JSON source (when available). */
   sourceColumn?: number;
+  /**
+   * True when `sourceLine`/`sourceColumn`/`jsonPointer` point to the nearest
+   * existing ancestor container because the failing path is missing from the source.
+   */
+  sourceIsAncestor?: boolean;
+  /**
+   * Target-format path where the error or missing content belongs
+   * (e.g. FLAT key `my_template/blood_pressure/systolic|unit` or `ctx/setting`).
+   */
+  targetPath?: string;
+  /**
+   * Concise example of what the missing content should approximately look like
+   * in the target format (`canonical-json`, `flat-json`, or `structured-json`).
+   */
+  expectedExample?: string;
   /** Node id (or archetype id for an archetype root) of the constraint the message is about. */
   constraintNodeId?: string;
 }
@@ -66,6 +81,12 @@ export interface ValidationMessage {
 export interface ValidationOptions {
   /** Original JSON text used to build `rmInstance`; enables source line/column on messages. */
   jsonSource?: string;
+  /** Format of `jsonSource` (auto-detected from `jsonSource` when omitted). */
+  sourceFormat?: ValidationSourceFormat;
+  /** Web Template for mapping RM paths to FLAT / STRUCTURED paths and generating missing-content examples. */
+  webTemplate?: WebTemplate;
+  /** Attach `expectedExample` snippets for missing-content errors (default `true` when `jsonSource` or `webTemplate` is passed). */
+  includeMissingHints?: boolean;
 }
 
 /**
@@ -184,9 +205,6 @@ export class TemplateValidator {
           ),
       });
     }
-    const sourceIndex = options?.jsonSource
-      ? buildJsonSourceIndex(options.jsonSource)
-      : undefined;
     // Validate against definition
     if (!template.definition) {
       errors.push({
@@ -239,10 +257,18 @@ export class TemplateValidator {
       warnings.push(...invariantMsgs.filter((m) => m.severity === "warning"));
     }
 
-    if (sourceIndex) {
-      for (const message of [...errors, ...warnings]) {
-        enrichValidationMessageWithSource(message, sourceIndex);
-      }
+    if (
+      options?.jsonSource || options?.webTemplate ||
+      options?.includeMissingHints
+    ) {
+      enrichValidationMessagesWithSource([...errors, ...warnings], {
+        jsonSource: options.jsonSource,
+        sourceFormat: options.sourceFormat,
+        webTemplate: options.webTemplate,
+        template,
+        rmInstance,
+        includeMissingHints: options.includeMissingHints,
+      });
     }
 
     return {

@@ -195,7 +195,8 @@ function leadingText(node: Html5Element): string {
     if (
       isElement(child) &&
       child.tag === "span" &&
-      child.attrs.class === "zs-structural-label"
+      (child.attrs.class === "zs-structural-label" ||
+        child.attrs.class === "zs-canonical-value")
     ) {
       return elementText(child);
     }

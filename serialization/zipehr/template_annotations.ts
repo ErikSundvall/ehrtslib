@@ -338,13 +338,14 @@ function indexAtPath(
     pres.rmAlias || Object.keys(pres.annotations).length;
   if (!hasMeta) return;
   const navPath = aqlPathForInstanceNav(aqlPath);
-  for (const { value } of resolveAllValuesAtPath(compositionRoot, navPath)) {
-    if (value == null || typeof value !== "object" || Array.isArray(value)) {
+  for (const resolved of resolveAllValuesAtPath(compositionRoot, navPath)) {
+    const target = resolved.element ?? resolved.value;
+    if (target == null || typeof target !== "object" || Array.isArray(target)) {
       continue;
     }
     map.set(
-      value,
-      mergePresentation(map.get(value), {
+      target,
+      mergePresentation(map.get(target), {
         ...pres,
         presentationPath: pres.presentationPath ?? aqlPath,
       }),
@@ -359,15 +360,18 @@ function walkWebTemplate(
   opt: openehr_am.OPERATIONAL_TEMPLATE,
   pathAnnotations: OptPathAnnotationMap,
   renderLang: string,
+  visitedPaths: Set<string>,
 ): void {
   const path = node.aqlPath?.trim();
-  if (path && path !== "/") {
+  if (path) {
+    const stripped = stripLeadingArchetypeId(path);
+    visitedPaths.add(stripped);
     indexAtPath(
       compositionRoot,
       map,
       opt,
       pathAnnotations,
-      stripLeadingArchetypeId(path),
+      stripped,
       node.name,
       renderLang,
     );
@@ -378,17 +382,21 @@ function walkWebTemplate(
         extra[k] = String(v);
       }
       if (Object.keys(extra).length) {
-        for (const { value } of resolveAllValuesAtPath(
+        for (const resolved of resolveAllValuesAtPath(
           compositionRoot,
           aqlPathForInstanceNav(path),
         )) {
-          if (value == null || typeof value !== "object" || Array.isArray(value)) {
+          const target = resolved.element ?? resolved.value;
+          if (
+            target == null || typeof target !== "object" ||
+            Array.isArray(target)
+          ) {
             continue;
           }
-          const prev = map.get(value) ?? {
+          const prev = map.get(target) ?? {
             annotations: {},
           };
-          map.set(value, mergePresentation(prev, {
+          map.set(target, mergePresentation(prev, {
             ...prev,
             annotations: { ...prev.annotations, ...extra },
           }));
@@ -404,8 +412,33 @@ function walkWebTemplate(
       opt,
       pathAnnotations,
       renderLang,
+      visitedPaths,
     );
   }
+}
+
+function collectExtraAnnotationPaths(
+  opt: openehr_am.OPERATIONAL_TEMPLATE,
+  explicitPathAnnotations: OptPathAnnotationMap | undefined,
+): string[] {
+  const paths = new Set<string>(["/", "/category", "/context/setting"]);
+  if (explicitPathAnnotations) {
+    for (const p of Object.keys(explicitPathAnnotations)) {
+      if (p) paths.add(stripLeadingArchetypeId(p.trim()));
+    }
+  }
+  const ann = (opt as { annotations?: { documentation?: Record<string, Record<string, unknown>> } })
+    .annotations;
+  const doc = ann?.documentation;
+  if (doc && typeof doc === "object") {
+    for (const bag of Object.values(doc)) {
+      if (!bag || typeof bag !== "object") continue;
+      for (const p of Object.keys(bag)) {
+        if (p) paths.add(stripLeadingArchetypeId(p.trim()));
+      }
+    }
+  }
+  return [...paths];
 }
 
 /** Index RM nodes → presentation metadata (not propagated to descendants). */
@@ -427,7 +460,21 @@ export function indexTemplatePresentation(
   const lang = options.renderLang ??
     options.webTemplate?.defaultLanguage ??
     "en";
-  walkWebTemplate(tree, composition, map, opt, pathAnnotations, lang);
+  const visitedPaths = new Set<string>();
+  walkWebTemplate(tree, composition, map, opt, pathAnnotations, lang, visitedPaths);
+  for (const extraPath of collectExtraAnnotationPaths(opt, options.pathAnnotations)) {
+    if (visitedPaths.has(extraPath)) continue;
+    visitedPaths.add(extraPath);
+    indexAtPath(
+      composition,
+      map,
+      opt,
+      pathAnnotations,
+      extraPath,
+      undefined,
+      lang,
+    );
+  }
   return map;
 }
 

@@ -81,6 +81,7 @@ export function convertAdl14ToAdl2(
   text = convertTerminologyAcCodes(text, warnings, codeScopes, options);
   text = mergeConstraintDefinitionsIntoTermDefinitions(text, warnings, codeScopes);
   text = migrateValueSetsSection(text, warnings, codeScopes, options);
+  text = convertAdl14DomainTypeBlocks(text, warnings);
   if (coding === "id-coded") {
     text = convertDefinitionNodeIds(text);
   }
@@ -462,6 +463,394 @@ function migrateValueSetsSection(
     );
     return `${indent}value_sets = <\n${inner}${indent}>`;
   });
+}
+
+interface Adl14QuantityListItem {
+  units?: string;
+  magnitude?: string;
+  precision?: string;
+}
+
+interface Adl14QuantityAssumedValue {
+  units?: string;
+  magnitude?: string;
+  precision?: string;
+}
+
+interface ParsedCDvQuantity {
+  property?: string;
+  list: Adl14QuantityListItem[];
+  assumedValue?: Adl14QuantityAssumedValue;
+}
+
+/**
+ * Convert ADL 1.4 domain-type ODIN blocks (`C_DV_QUANTITY < ... >`) inside the
+ * `definition` section to ADL2 `DV_QUANTITY` constraints with attribute tuples.
+ */
+function convertAdl14DomainTypeBlocks(
+  text: string,
+  warnings: string[],
+): string {
+  const sections = splitTopLevelSections(text);
+  let convertedCount = 0;
+  const updated = sections.map((sec) => {
+    if (!/^definition\b/i.test(sec.header.trim())) return sec.raw;
+    const { body, count } = convertCDvQuantityBlocksInBody(sec.body);
+    convertedCount += count;
+    return count > 0 ? sec.header + "\n" + body : sec.raw;
+  });
+  if (convertedCount > 0) {
+    warnings.push(
+      `Converted ${convertedCount} ADL 1.4 C_DV_QUANTITY block(s) to ADL2 DV_QUANTITY tuple form.`,
+    );
+  }
+  return updated.join("\n");
+}
+
+function convertCDvQuantityBlocksInBody(
+  body: string,
+): { body: string; count: number } {
+  let out = "";
+  let pos = 0;
+  let count = 0;
+  const len = body.length;
+
+  while (pos < len) {
+    const ch = body[pos];
+    // Skip line comments (`-- ...`)
+    if (ch === "-" && body[pos + 1] === "-") {
+      const nl = body.indexOf("\n", pos);
+      const end = nl === -1 ? len : nl + 1;
+      out += body.slice(pos, end);
+      pos = end;
+      continue;
+    }
+    // Skip quoted strings
+    if (ch === '"') {
+      const end = skipQuotedString(body, pos);
+      out += body.slice(pos, end);
+      pos = end;
+      continue;
+    }
+
+    if (
+      body.startsWith("C_DV_QUANTITY", pos) &&
+      (pos === 0 || !/[A-Za-z0-9_]/.test(body[pos - 1])) &&
+      (pos + 13 >= len || !/[A-Za-z0-9_]/.test(body[pos + 13]))
+    ) {
+      let cursor = pos + 13;
+      while (cursor < len && /\s/.test(body[cursor])) cursor++;
+      if (body[cursor] === "<") {
+        const closeIdx = findMatchingOdinAngleClose(body, cursor);
+        if (closeIdx > cursor) {
+          const inner = body.slice(cursor + 1, closeIdx);
+          const lineStart = body.lastIndexOf("\n", pos - 1) + 1;
+          const linePrefix = body.slice(lineStart, pos);
+          const baseIndent = /^[ \t]*$/.test(linePrefix)
+            ? linePrefix
+            : (/^[ \t]*/.exec(linePrefix)?.[0] ?? "");
+          const parsed = parseAdl14CDvQuantityOdin(inner);
+          out += formatAdl2DvQuantity(parsed, baseIndent);
+          pos = closeIdx + 1;
+          count++;
+          continue;
+        }
+      }
+    }
+
+    out += ch;
+    pos++;
+  }
+
+  return { body: out, count };
+}
+
+function skipQuotedString(text: string, openQuoteIdx: number): number {
+  let i = openQuoteIdx + 1;
+  while (i < text.length) {
+    if (text[i] === "\\") {
+      i += 2;
+      continue;
+    }
+    if (text[i] === '"') return i + 1;
+    i++;
+  }
+  return text.length;
+}
+
+/**
+ * Find the matching `>` for an ODIN `<` at `openIdx`, skipping `--` comments,
+ * `"..."` string literals, and `|...|` interval literals (which may contain
+ * `<`, `>`, `<=`, `>=`).
+ */
+function findMatchingOdinAngleClose(text: string, openIdx: number): number {
+  let depth = 0;
+  let i = openIdx;
+  while (i < text.length) {
+    const ch = text[i];
+    if (ch === "-" && text[i + 1] === "-") {
+      const nl = text.indexOf("\n", i);
+      i = nl === -1 ? text.length : nl + 1;
+      continue;
+    }
+    if (ch === '"') {
+      i = skipQuotedString(text, i);
+      continue;
+    }
+    if (ch === "|") {
+      const closePipe = text.indexOf("|", i + 1);
+      if (closePipe !== -1) {
+        i = closePipe + 1;
+        continue;
+      }
+    }
+    if (ch === "<") depth++;
+    else if (ch === ">") {
+      depth--;
+      if (depth === 0) return i;
+    }
+    i++;
+  }
+  return -1;
+}
+
+/** Parse top-level `key = <...>` or `["key"] = <...>` assignments in an ODIN block. */
+function parseOdinBlockEntries(
+  inner: string,
+): Array<{ key: string; keyed: boolean; body: string }> {
+  const entries: Array<{ key: string; keyed: boolean; body: string }> = [];
+  let i = 0;
+  const len = inner.length;
+
+  const skipWsAndComments = () => {
+    while (i < len) {
+      if (/\s/.test(inner[i])) {
+        i++;
+      } else if (inner[i] === "-" && inner[i + 1] === "-") {
+        const nl = inner.indexOf("\n", i);
+        i = nl === -1 ? len : nl + 1;
+      } else {
+        break;
+      }
+    }
+  };
+
+  while (i < len) {
+    skipWsAndComments();
+    if (i >= len) break;
+
+    let key = "";
+    let keyed = false;
+    if (inner[i] === "[") {
+      keyed = true;
+      const closeBracket = inner.indexOf("]", i + 1);
+      if (closeBracket === -1) break;
+      key = inner.slice(i + 1, closeBracket).trim().replace(/^["']|["']$/g, "");
+      i = closeBracket + 1;
+    } else if (/[A-Za-z_]/.test(inner[i])) {
+      const start = i;
+      while (i < len && /[A-Za-z0-9_]/.test(inner[i])) i++;
+      key = inner.slice(start, i);
+    } else {
+      i++;
+      continue;
+    }
+
+    skipWsAndComments();
+    if (inner[i] !== "=") continue;
+    i++;
+    skipWsAndComments();
+    if (inner[i] !== "<") continue;
+    const closeIdx = findMatchingOdinAngleClose(inner, i);
+    if (closeIdx === -1) break;
+    entries.push({
+      key,
+      keyed,
+      body: inner.slice(i + 1, closeIdx),
+    });
+    i = closeIdx + 1;
+  }
+
+  return entries;
+}
+
+function unquoteOdinString(raw: string): string | undefined {
+  const trimmed = raw.trim();
+  if (trimmed.length >= 2 && trimmed.startsWith('"') && trimmed.endsWith('"')) {
+    try {
+      return JSON.parse(trimmed);
+    } catch {
+      return trimmed.slice(1, -1).replace(/\\"/g, '"').replace(/\\\\/g, "\\");
+    }
+  }
+  return undefined;
+}
+
+function extractOdinInterval(raw: string): string | undefined {
+  const trimmed = raw.trim();
+  const m = /^\|([\s\S]*)\|$/.exec(trimmed);
+  if (m) return m[1].trim();
+  if (/^-?\d+(?:\.\d+)?$/.test(trimmed)) return trimmed;
+  return undefined;
+}
+
+function extractOdinNumberLiteral(raw: string): string | undefined {
+  const trimmed = raw.trim();
+  if (/^-?\d+(?:\.\d+)?$/.test(trimmed)) return trimmed;
+  return undefined;
+}
+
+function parseAdl14CDvQuantityOdin(inner: string): ParsedCDvQuantity {
+  const parsed: ParsedCDvQuantity = { list: [] };
+  for (const entry of parseOdinBlockEntries(inner)) {
+    const key = entry.key.toLowerCase();
+    if (key === "property") {
+      const trimmed = entry.body.trim();
+      if (trimmed) parsed.property = trimmed;
+    } else if (key === "list") {
+      for (const listEntry of parseOdinBlockEntries(entry.body)) {
+        const item: Adl14QuantityListItem = {};
+        for (const field of parseOdinBlockEntries(listEntry.body)) {
+          const fk = field.key.toLowerCase();
+          if (fk === "units") {
+            const u = unquoteOdinString(field.body);
+            if (u !== undefined) item.units = u;
+          } else if (fk === "magnitude") {
+            const mag = extractOdinInterval(field.body);
+            if (mag !== undefined) item.magnitude = mag;
+          } else if (fk === "precision") {
+            const prc = extractOdinInterval(field.body);
+            if (prc !== undefined) item.precision = prc;
+          }
+        }
+        if (
+          item.units !== undefined ||
+          item.magnitude !== undefined ||
+          item.precision !== undefined
+        ) {
+          parsed.list.push(item);
+        }
+      }
+    } else if (key === "assumed_value") {
+      const av: Adl14QuantityAssumedValue = {};
+      for (const field of parseOdinBlockEntries(entry.body)) {
+        const fk = field.key.toLowerCase();
+        if (fk === "units") {
+          const u = unquoteOdinString(field.body);
+          if (u !== undefined) av.units = u;
+        } else if (fk === "magnitude") {
+          const mag = extractOdinNumberLiteral(field.body);
+          if (mag !== undefined) av.magnitude = mag;
+        } else if (fk === "precision") {
+          const prc = extractOdinNumberLiteral(field.body);
+          if (prc !== undefined) av.precision = prc;
+        }
+      }
+      if (
+        av.units !== undefined ||
+        av.magnitude !== undefined ||
+        av.precision !== undefined
+      ) {
+        parsed.assumedValue = av;
+      }
+    }
+  }
+  return parsed;
+}
+
+function formatAdl2DvQuantity(
+  parsed: ParsedCDvQuantity,
+  baseIndent: string,
+): string {
+  const step = baseIndent.includes("\t") ? "\t" : "    ";
+  const innerIndent = baseIndent + step;
+  const rowIndent = innerIndent + step;
+  const lines: string[] = [];
+
+  if (parsed.property) {
+    lines.push(`${innerIndent}property matches {${parsed.property}}`);
+  }
+
+  const av = parsed.assumedValue;
+  const rowsSource: Adl14QuantityListItem[] = parsed.list.length > 0
+    ? parsed.list
+    : av
+    ? [{}]
+    : [];
+
+  if (rowsSource.length > 0) {
+    const columns: Array<"units" | "magnitude" | "precision"> = [];
+    if (
+      rowsSource.some((i) => i.units !== undefined) || av?.units !== undefined
+    ) {
+      columns.push("units");
+    }
+    if (
+      rowsSource.some((i) => i.magnitude !== undefined) ||
+      av?.magnitude !== undefined
+    ) {
+      columns.push("magnitude");
+    }
+    if (
+      rowsSource.some((i) => i.precision !== undefined) ||
+      av?.precision !== undefined
+    ) {
+      columns.push("precision");
+    }
+
+    if (columns.length > 0) {
+      let assumedIdx = -1;
+      if (av) {
+        if (av.units !== undefined) {
+          assumedIdx = rowsSource.findIndex((i) => i.units === av.units);
+        }
+        if (assumedIdx < 0) assumedIdx = 0;
+      }
+
+      const formattedRows = rowsSource.map((item, idx) => {
+        const isAssumed = idx === assumedIdx;
+        const cells = columns.map((col) => {
+          if (col === "units") {
+            const base = item.units !== undefined
+              ? JSON.stringify(item.units)
+              : "*";
+            const suffix = isAssumed && av?.units !== undefined
+              ? `; ${JSON.stringify(av.units)}`
+              : "";
+            return `{${base}${suffix}}`;
+          }
+          if (col === "magnitude") {
+            const base = item.magnitude !== undefined
+              ? `|${item.magnitude}|`
+              : "*";
+            const suffix = isAssumed && av?.magnitude !== undefined
+              ? `; ${av.magnitude}`
+              : "";
+            return `{${base}${suffix}}`;
+          }
+          const base = item.precision !== undefined
+            ? `|${item.precision}|`
+            : "*";
+          const suffix = isAssumed && av?.precision !== undefined
+            ? `; ${av.precision}`
+            : "";
+          return `{${base}${suffix}}`;
+        });
+        return `${rowIndent}[${cells.join(", ")}]`;
+      });
+
+      lines.push(
+        `${innerIndent}[${columns.join(", ")}] matches {\n${
+          formattedRows.join(",\n")
+        }\n${innerIndent}}`,
+      );
+    }
+  }
+
+  if (lines.length === 0) {
+    return "DV_QUANTITY";
+  }
+  return `DV_QUANTITY matches {\n${lines.join("\n")}\n${baseIndent}}`;
 }
 
 /** Convert node id brackets in definition/rules: [at0001] → [id1]. */

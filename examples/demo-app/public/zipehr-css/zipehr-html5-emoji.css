@@ -157,6 +157,18 @@ o-🔗 {
   cursor: help;
 }
 
+/* Display spans: default shows canonical RM text (quiet CSS flips to localized/human) */
+[fmt] .zs-display-value,
+.zs-display-value {
+  display: none;
+}
+
+[fmt] .zs-canonical-value,
+.zs-canonical-value {
+  display: inline;
+  margin: 0;
+}
+
 @media (max-width: 560px) {
   [fmt] [🆔]:has(№),
   [fmt] [🆔]:has(mag),
