@@ -115,3 +115,8 @@ export { countInstancesAtPath, resolveAtPath } from "./instance_nav.ts";
 export { extractContextField, extractValueFields } from "./value_extract.ts";
 export { applyContextFromFields, buildRmValue } from "./value_build.ts";
 export { assignAtAqlPath } from "./rm_instance_builder.ts";
+export {
+  detectJsonSourceFormat,
+  enrichSimplifiedMessagesWithSource,
+  type ValidationSourceFormat,
+} from "../../validation/source_location.ts";

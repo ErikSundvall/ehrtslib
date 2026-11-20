@@ -24,6 +24,10 @@ import { acceptedFlatRoots, flatRootId } from "./normalize.ts";
 import { getFieldMap } from "./dv_field_maps.ts";
 import { nodeForChain } from "./element_value_choice.ts";
 import { FlatDeserializer } from "./flat_deserializer.ts";
+import {
+  enrichSimplifiedMessagesWithSource,
+  type ValidationSourceFormat,
+} from "../../validation/source_location.ts";
 
 const CTX_FIELDS = new Set([
   "language",
@@ -97,6 +101,12 @@ export interface FlatValidatorOptions {
    * `false` reports them as warnings.
    */
   strictUnknownKeys?: boolean;
+  /** Original JSON text (FLAT or STRUCTURED) to enrich messages with line/column numbers. */
+  jsonSource?: string;
+  /** Format of `jsonSource` (auto-detected when omitted). */
+  sourceFormat?: ValidationSourceFormat;
+  /** Attach `expectedExample` snippets for missing mandatory fields (default `true` when `jsonSource` is provided). */
+  includeMissingHints?: boolean;
 }
 
 export function validateFlatPayload(
@@ -269,6 +279,18 @@ export function validateFlatPayload(
       message: `FLAT reader failed: ${e instanceof Error ? e.message : String(e)}`,
       severity: "error",
     });
+  }
+
+  if (options.jsonSource) {
+    enrichSimplifiedMessagesWithSource(
+      [...errors, ...warnings],
+      options.jsonSource,
+      {
+        webTemplate,
+        sourceFormat: options.sourceFormat,
+        includeMissingHints: options.includeMissingHints,
+      },
+    );
   }
 
   return {
