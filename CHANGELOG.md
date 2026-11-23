@@ -8,6 +8,8 @@ Add an entry under **Unreleased** in every PR that changes user-visible behaviou
 
 ## [Unreleased]
 
+- **ADL parser.** `parseAdl` accepts header metadata values such as `uid` and `build_uid` that start with `at`, `ac` or `id` followed by a digit (for example `uid=ac331b21-71f6-...`). The lexer had tokenized the prefix as a term code, and the header parser then rejected it ([#328](https://github.com/ErikSundvall/ehrtslib/issues/328)).
+
 ## [0.15.0] - 2026-11-20
 
 - **ZipEHR.** Display localization when `templateRenderLang` is set: localizes composition root (`/`), `/category`, openEHR terminology rubrics (`openehr::NNN`, e.g. `228`, `433` in `sv`, `es`, `pt`, `en`), and local archetype coded values (`local::atNNNN`) using priority template `L10n.{lang}` → archetype/OPT term definitions → openEHR terminology → RM fallback. Emits paired `.zs-canonical-value` / `.zs-display-value` spans so quiet preview renders localized text while HTML5 deserialization preserves the canonical RM values losslessly ([#323](https://github.com/ErikSundvall/ehrtslib/issues/323)).

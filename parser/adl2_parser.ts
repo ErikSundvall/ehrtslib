@@ -210,17 +210,7 @@ export class ADL2Parser {
       let value: string;
       if (this.check(TokenType.EQUALS)) {
         this.advance();
-        if (this.check(TokenType.STRING)) {
-          value = this.advance().value;
-        } else if (this.check(TokenType.REAL)) {
-          value = this.advance().value;
-        } else if (this.check(TokenType.INTEGER)) {
-          value = this.advance().value;
-        } else if (this.check(TokenType.IDENTIFIER)) {
-          value = this.advance().value;
-        } else {
-          throw this.error("Expected metadata value");
-        }
+        value = this.parseMetadataValue();
       } else {
         value = "true";
       }
@@ -236,6 +226,36 @@ export class ADL2Parser {
     this.consume(TokenType.RPAREN, "Expected ')' to close metadata");
 
     return metadata;
+  }
+
+  /**
+   * Header metadata value. Quoted strings keep their decoded STRING token.
+   * Any other value is the concatenation of tokens up to the next `;`, `,`
+   * or `)`, so GUIDs such as `uid=ac331b21-...` are accepted even when the
+   * lexer emits an at/ac/id code plus the rest of the identifier (#328).
+   */
+  private parseMetadataValue(): string {
+    if (this.check(TokenType.STRING)) {
+      return this.advance().value;
+    }
+    if (
+      this.isAtEnd() ||
+      this.check(TokenType.SEMICOLON) ||
+      this.check(TokenType.COMMA) ||
+      this.check(TokenType.RPAREN)
+    ) {
+      throw this.error("Expected metadata value");
+    }
+    let value = "";
+    while (
+      !this.isAtEnd() &&
+      !this.check(TokenType.SEMICOLON) &&
+      !this.check(TokenType.COMMA) &&
+      !this.check(TokenType.RPAREN)
+    ) {
+      value += this.advance().value;
+    }
+    return value;
   }
 
   private parseArchetypeId(): string {
