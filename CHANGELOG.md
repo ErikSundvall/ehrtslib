@@ -8,6 +8,8 @@ Add an entry under **Unreleased** in every PR that changes user-visible behaviou
 
 ## [Unreleased]
 
+## [0.16.0] - 2026-11-23
+
 - **ADL parser.** `parseAdl` accepts header metadata values such as `uid` and `build_uid` that start with `at`, `ac` or `id` followed by a digit (for example `uid=ac331b21-71f6-...`). The lexer had tokenized the prefix as a term code, and the header parser then rejected it ([#328](https://github.com/ErikSundvall/ehrtslib/issues/328)).
 
 ## [0.15.0] - 2026-11-20
