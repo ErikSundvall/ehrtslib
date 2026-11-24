@@ -26,9 +26,12 @@ export type {
 export {
   applyOperationalTemplateTermScopes,
   archetypeTermBagsForLanguage,
+  isGenericRmFallbackLabel,
   lookupTermEntryInBag,
   lookupTermInBag,
+  overlayParentScopes,
   resolveLocatableLabel,
+  resolveScopeChain,
   resolveTermEntry,
   COMPONENT_TERM_DEFINITIONS_KEY,
   TERM_ARCHETYPE_SCOPE_KEY,
@@ -42,6 +45,19 @@ export type {
   TermEntry,
   TermScopeMeta,
 } from "./term_scope.ts";
+
+export {
+  createTemplateLabelResolver,
+  fixedNameConstraint,
+  resolveTemplateNodeLabel,
+} from "./template_label_resolver.ts";
+export type {
+  NodeLabelResolveOptions,
+  ResolvedCodeLabels,
+  ResolvedTemplateNodeLabel,
+  TemplateLabelResolver,
+  TemplateLabelResolverOptions,
+} from "./template_label_resolver.ts";
 
 export { TypeScriptGenerator } from "./typescript_generator.ts";
 export type { TypeScriptGeneratorConfig } from "./typescript_generator.ts";
@@ -83,7 +99,9 @@ export {
 } from "./opt_l10n.ts";
 export type {
   AnnotationDocumentation,
+  AnnotationLookupOptions,
   OptPathAnnotationMap,
+  WebTemplateL10nNode,
 } from "./opt_l10n.ts";
 
 export {
