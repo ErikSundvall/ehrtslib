@@ -8,6 +8,8 @@ Add an entry under **Unreleased** in every PR that changes user-visible behaviou
 
 ## [Unreleased]
 
+## [0.17.0] - 2026-11-24
+
 - **Template label resolution.** Exported `createTemplateLabelResolver`, `resolveTemplateNodeLabel`, `fixedNameConstraint`, `isGenericRmFallbackLabel`, `overlayParentScopes`, and `resolveScopeChain` from `generation` (and delegated `WebTemplateBuilder` to it) with consistent precedence across `L10n.{lang}` path annotations, fixed `name/value` constraints, occurrence scopes (`#n`), archetype scopes with Better `ovl-*` overlay-to-parent fallback, and template-level language fallback without downgrading clinical labels to generic RM placeholders ([#330](https://github.com/ErikSundvall/ehrtslib/issues/330)).
 - **Web Template & OPT L10n.** `webTemplateToOpt()` skips prohibited (`max === 0`) nodes when populating term bags and L10n annotations, prevents generic RM placeholders from overwriting clinical labels, and isolates non-`openEHR-*` bare `at`-code subtrees (OPT2-derived Web Templates) in synthetic `wt:*` term scopes so `webTemplateToOpt()` → `buildWebTemplate()` preserves node names without collisions. `annotationsForAqlPath()` matches leaf `name/value` predicates already carried on `aqlPath` (including `, 'Name'` comma-space spelling) and supports ancestor disambiguation on repeated renamed archetypes ([#330](https://github.com/ErikSundvall/ehrtslib/issues/330)).
 
