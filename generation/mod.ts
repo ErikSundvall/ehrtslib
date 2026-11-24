@@ -27,6 +27,7 @@ export {
   applyOperationalTemplateTermScopes,
   archetypeTermBagsForLanguage,
   isGenericRmFallbackLabel,
+  isPathArchetypeRef,
   lookupTermEntryInBag,
   lookupTermInBag,
   overlayParentScopes,

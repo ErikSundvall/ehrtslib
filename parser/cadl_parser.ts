@@ -159,15 +159,30 @@ export class CadlParser {
       this.advance();
       this.consume(TokenType.LBRACE, "Expected '{'");
       while (!this.check(TokenType.RBRACE) && !this.isAtEnd()) {
+        this.skipComments();
+        if (this.check(TokenType.LBRACKET)) {
+          const tuple = this.tryParseAttributeTuple();
+          if (tuple) {
+            if (!root.attribute_tuples) root.attribute_tuples = [];
+            root.attribute_tuples.push(tuple);
+            continue;
+          }
+          this.skipTupleAttribute();
+          continue;
+        }
+        const posBefore = this.position;
         const attribute = this.parseAttribute();
         if (attribute) {
           if (!root.attributes) root.attributes = [];
           root.attributes.push(attribute);
+        } else if (this.position === posBefore) {
+          this.rejectUnexpectedInMatches();
         }
       }
       this.consume(TokenType.RBRACE, "Expected '}'");
     }
 
+    syncDomainListsFromAttributeTuples(root);
     return root;
   }
 
@@ -443,16 +458,34 @@ export class CadlParser {
   }
 
   private consumeArchetypeRef(): string {
+    if (this.check(TokenType.STRING)) {
+      return this.advance().value;
+    }
     const parts: string[] = [];
+    let prev: Token | undefined;
     while (!this.check(TokenType.RBRACKET) && !this.isAtEnd()) {
       const t = this.peek();
       if (
         t.type === TokenType.IDENTIFIER ||
         t.type === TokenType.DOT ||
         t.type === TokenType.INTEGER ||
-        t.type === TokenType.REAL
+        t.type === TokenType.REAL ||
+        t.type === TokenType.DOUBLE_COLON ||
+        t.type === TokenType.MINUS ||
+        t.type === TokenType.AT_CODE ||
+        t.type === TokenType.AC_CODE ||
+        t.type === TokenType.ID_CODE
       ) {
-        parts.push(this.advance().value);
+        const tok = this.advance();
+        if (
+          prev &&
+          tok.line === prev.line &&
+          tok.column > prev.column + prev.value.length
+        ) {
+          parts.push(" ");
+        }
+        parts.push(tok.value);
+        prev = tok;
       } else {
         break;
       }

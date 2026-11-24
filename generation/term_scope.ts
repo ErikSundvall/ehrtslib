@@ -293,46 +293,75 @@ export function resolveTermEntry(
     : [];
 
   if (nodeId && isTemplateSlotId(nodeId)) {
-    // An exact entry inside the node's own scope (e.g. OPT2/WT synthetic scope)
-    // wins over the flat template bag; Better .t.json template slots fall back
-    // to the flat template bag when absent from the archetype's own bag.
+    // An exact entry (or specialized parent such as `at0.1.1` -> `at0.1` in
+    // specialized archetypes like `CLUSTER.exam-uterus`) inside the node's own
+    // scope wins over the flat template bag, without fuzzy-padding `at0.6` to
+    // `at0000`/`at0006`. Better .t.json template slots fall back to exact
+    // lookup in the flat template bag when absent from the archetype's own bag.
+    const slotCodes = zeroPrefixCodeCandidates(nodeId);
     for (const scope of scopeChain) {
-      const scopedSlot = lookupExactTermEntryInBag(archetypeTerms[scope], nodeId);
-      if (scopedSlot?.text) return scopedSlot;
+      for (const code of slotCodes) {
+        const scopedSlot = lookupExactTermEntryInBag(archetypeTerms[scope], code);
+        if (scopedSlot?.text) return scopedSlot;
+      }
     }
     const slot = lookupExactTermEntryInBag(templateTerms, nodeId);
     if (slot?.text) return slot;
   }
 
-  const codes = [nodeId, nameFallbackNodeId].filter(
-    (c): c is string => typeof c === "string" && c.length > 0,
-  );
-
   if (scopeChain.length > 0) {
-    for (const scope of scopeChain) {
-      const scopedBag = archetypeTerms[scope];
-      for (const code of codes) {
-        const entry = lookupTermEntryInBag(scopedBag, code);
+    if (nameFallbackNodeId) {
+      // On an inlined archetype/overlay root (e.g. SECTION[at0.6] or
+      // CLUSTER[at0021.1] with fallback at0000.1), prefer the archetype/overlay
+      // root concept (`nameFallbackNodeId`) before fuzzy-matching the parent
+      // slot/use-site node id (`at0.6` -> `at0000` or `at0021.1` -> `at0021`).
+      if (nodeId && isRootConceptCode(nodeId)) {
+        for (const scope of scopeChain) {
+          const exact = lookupExactTermEntryInBag(archetypeTerms[scope], nodeId);
+          if (exact?.text) return exact;
+        }
+      }
+      for (const scope of scopeChain) {
+        const fallback = lookupTermEntryInBag(
+          archetypeTerms[scope],
+          nameFallbackNodeId,
+        );
+        if (fallback?.text) return fallback;
+      }
+      if (nodeId && !isTemplateSlotId(nodeId)) {
+        for (const scope of scopeChain) {
+          const entry = lookupTermEntryInBag(archetypeTerms[scope], nodeId);
+          if (entry?.text) return entry;
+        }
+      }
+    } else if (nodeId && !isTemplateSlotId(nodeId)) {
+      for (const scope of scopeChain) {
+        const entry = lookupTermEntryInBag(archetypeTerms[scope], nodeId);
         if (entry?.text) return entry;
       }
     }
     // Archetype-local at-codes must not fall back to flat merged template terms.
-    // Specialised at-codes (at0089.1) are safer to recover by exact key than
-    // base at-codes (at0001), which frequently collide across archetypes.
-    for (const code of codes) {
-      if (isSpecialisedAtCode(code)) {
-        const entry = lookupExactTermEntryInBag(templateTerms, code);
-        if (entry?.text) return entry;
-      }
+    // Specialised non-root at-codes (at0089.1) are safer to recover by exact key
+    // than base at-codes (at0001) or root concept codes (at0000.1), which
+    // collide across archetypes and the root template.
+    if (nodeId && isSpecialisedAtCode(nodeId) && !isRootConceptCode(nodeId)) {
+      const entry = lookupExactTermEntryInBag(templateTerms, nodeId);
+      if (entry?.text) return entry;
     }
     const localId = nodeId ?? nameFallbackNodeId;
     if (localId && isArchetypeLocalCode(localId)) return undefined;
+    if (nodeId && isTemplateSlotId(nodeId)) return undefined;
   }
 
+  const codes = [nodeId, nameFallbackNodeId].filter(
+    (c): c is string => typeof c === "string" && c.length > 0,
+  );
   for (const code of codes) {
     if (isTemplateSlotId(code)) {
-      const entry = lookupExactTermEntryInBag(templateTerms, code);
-      if (entry?.text) return entry;
+      for (const cand of zeroPrefixCodeCandidates(code)) {
+        const entry = lookupExactTermEntryInBag(templateTerms, cand);
+        if (entry?.text) return entry;
+      }
       continue;
     }
     const entry = lookupTermEntryInBag(templateTerms, code);
@@ -493,6 +522,43 @@ function termsDiffer(a: TermBag, b: TermBag): boolean {
   );
 }
 
+function deepestRootConceptCode(
+  table: TermDefinitionTable | undefined,
+): string | undefined {
+  if (!table) return undefined;
+  const candidates = new Set<string>();
+  for (const bag of Object.values(table)) {
+    if (!bag) continue;
+    for (const code of Object.keys(bag)) {
+      if (isRootConceptCode(code)) candidates.add(code);
+    }
+  }
+  if (!candidates.size) return undefined;
+  // Prefer deepest specialization (e.g. at0000.1.1 > at0000.1 > at0000),
+  // then deterministic ascending order.
+  return [...candidates].sort((a, b) => {
+    const depthDiff = b.split(".").length - a.split(".").length;
+    if (depthDiff !== 0) return depthDiff;
+    return a.localeCompare(b, undefined, { numeric: true });
+  })[0];
+}
+
+function inferRootConceptFallbackCode(
+  nodeId: string | undefined,
+  table: TermDefinitionTable | undefined,
+  allTables: Record<string, TermDefinitionTable>,
+  scope: string,
+): string | undefined {
+  if (nodeId && isRootConceptCode(nodeId)) return undefined;
+  const direct = deepestRootConceptCode(table);
+  if (direct) return direct;
+  for (const parentScope of overlayParentScopes(scope, Object.keys(allTables))) {
+    const parentCode = deepestRootConceptCode(allTables[parentScope]);
+    if (parentCode) return parentCode;
+  }
+  return undefined;
+}
+
 function walkTermScopes(
   obj: openehr_am.C_OBJECT,
   inheritedScope: string | undefined,
@@ -501,10 +567,11 @@ function walkTermScopes(
 ): void {
   let scope = inheritedScope;
   let occurrence = inheritedOccurrence;
+  const meta = obj as TermScopeMeta;
   if (obj instanceof openehr_am.C_ARCHETYPE_ROOT && obj.archetype_ref) {
     scope = obj.archetype_ref;
     occurrence = undefined;
-    const local = (obj as TermScopeMeta)[COMPONENT_TERM_DEFINITIONS_KEY];
+    const local = meta[COMPONENT_TERM_DEFINITIONS_KEY];
     if (local && Object.keys(local).length) {
       const first = walk.first.get(scope);
       if (first && termsDiffer(first, local)) {
@@ -528,8 +595,23 @@ function walkTermScopes(
         };
       }
     }
+    // When an OPT2 `use_archetype` / `C_ARCHETYPE_ROOT` carries a slot/use-site
+    // node id (`at0.6`, `at0002.3`, `at0021.1`, `at0039.1`, `id0.1`), infer the
+    // archetype/overlay root concept code (`at0000.1.1` / `at0000.1` / `at0000`
+    // or `id1.1` / `id1`) from `component_terminologies` (#334).
+    if (!meta[TERM_NAME_FALLBACK_NODE_ID_KEY]) {
+      const activeTable = occurrence
+        ? walk.occurrences[occurrence]
+        : walk.index[scope];
+      const inferred = inferRootConceptFallbackCode(
+        obj.node_id,
+        activeTable,
+        walk.index,
+        scope,
+      );
+      if (inferred) meta[TERM_NAME_FALLBACK_NODE_ID_KEY] = inferred;
+    }
   }
-  const meta = obj as TermScopeMeta;
   if (scope) meta[TERM_ARCHETYPE_SCOPE_KEY] = scope;
   if (occurrence) meta[TERM_OCCURRENCE_SCOPE_KEY] = occurrence;
   else delete meta[TERM_OCCURRENCE_SCOPE_KEY];
@@ -544,6 +626,36 @@ function walkTermScopes(
   }
 }
 
+const STANDARD_ARCHETYPE_HRID_RE =
+  /^(?:[a-zA-Z0-9_.-]+::)?[a-zA-Z][a-zA-Z0-9_]*-[a-zA-Z][a-zA-Z0-9_]*-[A-Z][A-Z0-9_]*\.[a-zA-Z0-9_-]+\.v\d+(?:\.\d+)*(?:-[a-zA-Z0-9_.-]+)?$/;
+
+/**
+ * True when a `C_ARCHETYPE_ROOT`'s `archetype_ref` should be used as its AQL
+ * path / Web Template `nodeId` / RM `archetype_node_id` (OPT 1.4 archetype
+ * roots such as `openEHR-EHR-OBSERVATION.blood_pressure.v2` with root
+ * `at0000`/`id1` node id, or Web Template roots whose `node_id === archetype_ref`).
+ * Returns `false` for ADL2/Better `.t.json` slot-filled overlay roots (`ovl-*`),
+ * nested template ids (`Care unit v2`, `ChemoQ-fatigue`), or roots carrying a
+ * non-root slot node id (`at0.6`, `at0002.3`, `at0039.1`, `id2.1`), which keep
+ * their slot `node_id` in paths while using `archetype_ref` for terminology scope.
+ */
+export function isPathArchetypeRef(
+  obj: openehr_am.C_ARCHETYPE_ROOT,
+): boolean {
+  const ref = obj.archetype_ref?.trim();
+  if (!ref) return false;
+  if (obj.node_id === ref) return true;
+  if (/\.ovl-/i.test(ref)) return false;
+  if (!STANDARD_ARCHETYPE_HRID_RE.test(ref)) return false;
+  if (obj.node_id && !isRootConceptCode(obj.node_id)) return false;
+  return true;
+}
+
+/** Root concept code of an archetype or specialization (`at0000`, `at0000.1`, `id1`, `id1.1`). */
+function isRootConceptCode(code: string): boolean {
+  return /^(?:at0000|id1)(?:\.\d+)*$/i.test(code);
+}
+
 /** Archetype node or value code, in either ADL2 coding system (not a template slot id). */
 function isArchetypeLocalCode(code: string): boolean {
   if (/^(?:at|id)0\.\d/i.test(code)) return false;
@@ -555,5 +667,21 @@ function isSpecialisedAtCode(code: string): boolean {
 }
 
 function isTemplateSlotId(code: string): boolean {
-  return /^at0\.\d/i.test(code);
+  return /^(?:at|id)0\.\d/i.test(code);
+}
+
+/**
+ * Parent chain for zero-prefix codes (e.g. `at0.1.1` -> `["at0.1.1", "at0.1"]`,
+ * `at0.6` -> `["at0.6"]`), stopping before bare `at0`/`id0`.
+ */
+function zeroPrefixCodeCandidates(code: string): string[] {
+  const out = [code];
+  let cur = code;
+  while (cur.includes(".")) {
+    const parent = cur.replace(/\.\d+$/, "");
+    if (parent === cur || /^(?:at|id)0$/i.test(parent)) break;
+    out.push(parent);
+    cur = parent;
+  }
+  return out;
 }

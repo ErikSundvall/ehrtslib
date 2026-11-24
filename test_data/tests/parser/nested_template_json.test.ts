@@ -125,8 +125,9 @@ Deno.test("flatten expands a Better template referenced by template id", () => {
   const inlined = (opt.definition?.attributes?.[0] as {
     children?: openehr_am.C_OBJECT[];
   })?.children?.[0];
-  assert(inlined instanceof openehr_am.C_COMPLEX_OBJECT);
-  assert(!(inlined instanceof openehr_am.C_ARCHETYPE_ROOT));
+  assert(inlined instanceof openehr_am.C_ARCHETYPE_ROOT);
+  assertEquals(inlined.archetype_ref, NESTED_ID);
+  assert((inlined.attributes?.length ?? 0) > 0);
 });
 
 Deno.test("template lookup accepts the file basename without .t.json", () => {
