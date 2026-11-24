@@ -14,6 +14,7 @@ import { resolveDvCodedTextValue } from "./coded_text_value.ts";
 import { hasRmAttribute, isSubtypeOf } from "../meta/mod.ts";
 import { resolveTemplateLanguage } from "./term_codes.ts";
 import {
+  isPathArchetypeRef,
   lookupTermInBag,
   type OperationalTemplateWithTermScopes,
   resolveLocatableLabel,
@@ -183,9 +184,12 @@ export class RMInstanceGenerator {
     const instance: Record<string, unknown> = { _type: rmType };
 
     // Archetype roots carry the archetype id as their node id in RM instances
-    const archetypeRef = cObject instanceof openehr_am.C_ARCHETYPE_ROOT
-      ? cObject.archetype_ref
-      : undefined;
+    // when they are OPT 1.4 roots; ADL2/Better slot-filled overlays and nested
+    // templates keep their slot node id (#334).
+    const archetypeRef =
+      cObject instanceof openehr_am.C_ARCHETYPE_ROOT && isPathArchetypeRef(cObject)
+        ? cObject.archetype_ref
+        : undefined;
     // Only LOCATABLEs carry archetype_node_id (EVENT_CONTEXT, for example,
     // has a node id in the template but none in the RM).
     if (

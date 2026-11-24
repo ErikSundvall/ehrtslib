@@ -277,8 +277,15 @@ export class ADL2Serializer {
     const indent = this.getIndent(level);
     // Both the node id and the archetype id sit inside one bracket pair:
     // `use_archetype COMPOSITION[id1, openEHR-EHR-COMPOSITION.encounter.v1]`.
+    // Nested template ids containing spaces (e.g. `Care unit v2`) are quoted so
+    // cADL round-trips them losslessly into `component_terminologies` keys.
     const id = this.formatNodeId(root.node_id);
-    const ref = root.archetype_ref;
+    const rawRef = root.archetype_ref;
+    const ref = rawRef
+      ? (/^[A-Za-z0-9_.:-]+$/.test(rawRef)
+        ? rawRef
+        : `"${rawRef.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`)
+      : undefined;
     const inside = id && ref ? `${id}, ${ref}` : id || ref || "";
     const bracket = inside ? `[${inside}]` : "";
     let line = `${indent}use_archetype ${root.rm_type_name}${bracket}`;
@@ -286,10 +293,14 @@ export class ADL2Serializer {
     line += this.occurrencesClause(root.occurrences);
 
     const attrs = root.attributes;
-    if (attrs && attrs.length > 0) {
+    const tuples = (root as AttributeTupleHost).attribute_tuples ?? [];
+    if ((attrs && attrs.length > 0) || tuples.length > 0) {
       let adl = line + " matches {\n";
-      for (const attr of attrs) {
+      for (const attr of attrs ?? []) {
         adl += this.serializeAttribute(attr, level + 1);
+      }
+      for (const tuple of tuples) {
+        adl += this.serializeAttributeTuple(tuple, level + 1);
       }
       adl += `${indent}}\n`;
       return adl;

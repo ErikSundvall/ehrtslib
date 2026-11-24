@@ -7,8 +7,19 @@ import { nodeIdToAtCode } from "../serialization/simplified/normalize.ts";
 /** Candidate term codes to try for a template node id. */
 export function termCodeCandidates(nodeId: string): string[] {
   const out = new Set<string>();
+  const addParentChain = (code: string) => {
+    let cur = code;
+    while (cur.includes(".")) {
+      const parent = cur.replace(/\.\d+$/, "");
+      if (parent === cur) break;
+      cur = parent;
+      if (!/^(?:at|id)0$/i.test(cur)) out.add(cur);
+    }
+  };
+
   out.add(nodeId);
-  out.add(nodeIdToAtCode(nodeId));
+  const asAt = nodeIdToAtCode(nodeId);
+  out.add(asAt);
 
   // Template slot ids (at0.2) are not archetype at-codes (at0002).
   const dotted = /^at(\d+)\.(\d+(?:\.\d+)*)$/i.exec(nodeId);
@@ -22,8 +33,8 @@ export function termCodeCandidates(nodeId: string): string[] {
     }
   }
 
-  const base = nodeId.replace(/\.\d+(?:\.\d+)*$/, "");
-  if (base !== nodeId) out.add(base);
+  addParentChain(nodeId);
+  if (asAt !== nodeId) addParentChain(asAt);
 
   return [...out];
 }

@@ -3,6 +3,7 @@
  */
 
 import * as openehr_am from "../../am/openehr_am.ts";
+import { isPathArchetypeRef } from "../../generation/term_scope.ts";
 import { isDataValueType, isSubtypeOf } from "../../meta/mod.ts";
 
 const CONTAINER_ATTRIBUTES = new Set([
@@ -23,8 +24,9 @@ const CONTAINER_ATTRIBUTES = new Set([
 ]);
 
 function constraintNodeId(obj: openehr_am.C_OBJECT): string | undefined {
-  const ref = (obj as openehr_am.C_ARCHETYPE_ROOT).archetype_ref;
-  if (obj instanceof openehr_am.C_ARCHETYPE_ROOT && ref) return ref;
+  if (obj instanceof openehr_am.C_ARCHETYPE_ROOT && isPathArchetypeRef(obj)) {
+    return obj.archetype_ref;
+  }
   const nodeId = obj.node_id;
   if (!nodeId) return undefined;
   if (/^at\d/i.test(nodeId) || nodeId.startsWith("openEHR-")) return nodeId;

@@ -130,6 +130,21 @@ export function cloneComplexObject(
   return out;
 }
 
+/**
+ * Clone a complex object as a `C_ARCHETYPE_ROOT` carrying `archetype_ref`,
+ * preserving inlined archetype/overlay/template scope metadata across
+ * OPT2 / OPT XML serialization and parsing (#334).
+ */
+export function promoteToArchetypeRoot(
+  obj: openehr_am.C_COMPLEX_OBJECT,
+  archetypeRef: string,
+): openehr_am.C_ARCHETYPE_ROOT {
+  const root = new openehr_am.C_ARCHETYPE_ROOT();
+  copyComplexFields(obj, root);
+  root.archetype_ref = archetypeRef;
+  return root;
+}
+
 export function cloneAttribute(
   attr: openehr_am.C_ATTRIBUTE,
 ): openehr_am.C_ATTRIBUTE {

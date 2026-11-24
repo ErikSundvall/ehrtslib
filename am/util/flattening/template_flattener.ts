@@ -6,7 +6,11 @@
 
 import * as openehr_am from "../../openehr_am.ts";
 import * as openehr_base from "../../../base/openehr_base.ts";
-import { cloneAttribute, cloneComplexObject } from "../aom_clone.ts";
+import {
+  cloneAttribute,
+  cloneComplexObject,
+  promoteToArchetypeRoot,
+} from "../aom_clone.ts";
 import {
   applyMergedTerminology,
   buildArchetypeBindingIndex,
@@ -195,11 +199,11 @@ function resolveArchetypeSlot(
   const filler =
     flattenArchetypeDefinition(arch, resolver, inlined, scopeKeys) ??
       arch.definition;
-  const result = cloneComplexObject(filler);
+  const archId = archetypeIdString(arch) ?? pattern;
+  const result = promoteToArchetypeRoot(filler, archId);
   result.node_id = slot.node_id ?? result.node_id;
   result.rm_type_name = slot.rm_type_name ?? result.rm_type_name;
   if (slot.occurrences) result.occurrences = slot.occurrences;
-  const archId = archetypeIdString(arch) ?? pattern;
   tagInlinedArchetype(result, archId, arch.definition?.node_id);
   return result;
 }
@@ -220,19 +224,20 @@ function inlineArchetypeRoot(
   const filler =
     flattenArchetypeDefinition(arch, resolver, inlined, scopeKeys) ??
       arch.definition;
-  const result = cloneComplexObject(filler);
+  const archId = archetypeIdFromRef(ref) ?? archetypeIdString(arch);
+  const result = archId
+    ? promoteToArchetypeRoot(filler, archId)
+    : cloneComplexObject(filler);
   result.node_id = root.node_id ?? result.node_id;
   result.rm_type_name = root.rm_type_name ?? result.rm_type_name;
   if (root.occurrences) result.occurrences = root.occurrences;
   if (root.attributes?.length) {
     const specialized = specializeComplexObject(result, root);
-    const archId = archetypeIdFromRef(ref) ?? archetypeIdString(arch);
     if (archId) {
       tagInlinedArchetype(specialized, archId, arch.definition?.node_id);
     }
     return specialized;
   }
-  const archId = archetypeIdFromRef(ref) ?? archetypeIdString(arch);
   if (archId) tagInlinedArchetype(result, archId, arch.definition?.node_id);
   return result;
 }

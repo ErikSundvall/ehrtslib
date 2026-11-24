@@ -40,6 +40,7 @@ import {
 } from "./element_value_choice.ts";
 import {
   isGenericRmFallbackLabel,
+  isPathArchetypeRef,
   type OperationalTemplateWithTermScopes,
   COMPONENT_TERM_DEFINITIONS_KEY,
   TERM_ARCHETYPE_SCOPE_KEY,
@@ -543,8 +544,9 @@ function archetypeRefOf(obj: openehr_am.C_OBJECT): string | undefined {
 }
 
 function constraintNodeId(obj: openehr_am.C_OBJECT): string | undefined {
-  const ref = (obj as openehr_am.C_ARCHETYPE_ROOT).archetype_ref;
-  if (obj instanceof openehr_am.C_ARCHETYPE_ROOT && ref) return ref;
+  if (obj instanceof openehr_am.C_ARCHETYPE_ROOT && isPathArchetypeRef(obj)) {
+    return obj.archetype_ref;
+  }
   // Data values are not LOCATABLE: no node id in RM data or AQL paths (ADL2
   // still gives their constraints one). Node ids minted on OPT 1.4
   // up-conversion are not in the OPT 1.4 a CDR holds.
