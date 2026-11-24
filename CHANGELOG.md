@@ -8,6 +8,9 @@ Add an entry under **Unreleased** in every PR that changes user-visible behaviou
 
 ## [Unreleased]
 
+- **Template label resolution.** Exported `createTemplateLabelResolver`, `resolveTemplateNodeLabel`, `fixedNameConstraint`, `isGenericRmFallbackLabel`, `overlayParentScopes`, and `resolveScopeChain` from `generation` (and delegated `WebTemplateBuilder` to it) with consistent precedence across `L10n.{lang}` path annotations, fixed `name/value` constraints, occurrence scopes (`#n`), archetype scopes with Better `ovl-*` overlay-to-parent fallback, and template-level language fallback without downgrading clinical labels to generic RM placeholders ([#330](https://github.com/ErikSundvall/ehrtslib/issues/330)).
+- **Web Template & OPT L10n.** `webTemplateToOpt()` skips prohibited (`max === 0`) nodes when populating term bags and L10n annotations, prevents generic RM placeholders from overwriting clinical labels, and isolates non-`openEHR-*` bare `at`-code subtrees (OPT2-derived Web Templates) in synthetic `wt:*` term scopes so `webTemplateToOpt()` → `buildWebTemplate()` preserves node names without collisions. `annotationsForAqlPath()` matches leaf `name/value` predicates already carried on `aqlPath` (including `, 'Name'` comma-space spelling) and supports ancestor disambiguation on repeated renamed archetypes ([#330](https://github.com/ErikSundvall/ehrtslib/issues/330)).
+
 ## [0.16.0] - 2026-11-23
 
 - **ADL parser.** `parseAdl` accepts header metadata values such as `uid` and `build_uid` that start with `at`, `ac` or `id` followed by a digit (for example `uid=ac331b21-71f6-...`). The lexer had tokenized the prefix as a term code, and the header parser then rejected it ([#328](https://github.com/ErikSundvall/ehrtslib/issues/328)).

@@ -19,6 +19,7 @@ import type { OptPresentationByPath } from "../../generation/opt_view.ts";
 import {
   lookupTermEntryInBag,
   type OperationalTemplateWithTermScopes,
+  overlayParentScopes,
   termTablesByScope,
 } from "../../generation/term_scope.ts";
 import { adl14AtToId } from "../../parser/adl14_to_adl2_converter.ts";
@@ -145,12 +146,20 @@ function findScopedTables(
   archetypeId: string,
 ): TermDefinitionTable[] {
   const out: TermDefinitionTable[] = [];
-  if (scoped[archetypeId]) out.push(scoped[archetypeId]);
+  const seen = new Set<string>();
+  const addKey = (key: string) => {
+    if (seen.has(key) || !scoped[key]) return;
+    seen.add(key);
+    out.push(scoped[key]);
+  };
+  addKey(archetypeId);
   const base = stripArchetypeVersion(archetypeId);
-  for (const [key, table] of Object.entries(scoped)) {
-    if (key === archetypeId) continue;
+  for (const key of Object.keys(scoped)) {
     const keyBase = stripArchetypeVersion(key.replace(/#\d+$/, ""));
-    if (keyBase === base) out.push(table);
+    if (keyBase === base) addKey(key);
+  }
+  for (const parentKey of overlayParentScopes(archetypeId, Object.keys(scoped))) {
+    addKey(parentKey);
   }
   return out;
 }

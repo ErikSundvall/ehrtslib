@@ -9,7 +9,7 @@ import type {
   QuantityItemInterval,
   QuantityItemRuntime,
 } from "../../parser/legacy/xml_aom_mapper.ts";
-import * as openehr_base from "../../base/openehr_base.ts";
+import type * as openehr_base from "../../base/openehr_base.ts";
 import { isDataValueType as metaIsDataValueType } from "../../meta/mod.ts";
 import {
   adl2CodingSystemOf,
@@ -26,6 +26,7 @@ import type {
 import type { CdrProfile } from "./cdr_profiles.ts";
 import { mergeWebTemplateBuilderOptions } from "./cdr_profiles.ts";
 import {
+  aqlPathSegments,
   archetypeConceptFromHrid,
   joinAqlPath,
   nodeIdToAtCode,
@@ -38,8 +39,8 @@ import {
   valueChoiceId,
 } from "./element_value_choice.ts";
 import {
+  isGenericRmFallbackLabel,
   type OperationalTemplateWithTermScopes,
-  resolveTermEntry,
   COMPONENT_TERM_DEFINITIONS_KEY,
   TERM_ARCHETYPE_SCOPE_KEY,
   TERM_NAME_FALLBACK_NODE_ID_KEY,
@@ -49,6 +50,11 @@ import {
   type TermScopeMeta,
   termTablesByScope,
 } from "../../generation/term_scope.ts";
+import {
+  createTemplateLabelResolver,
+  fixedNameConstraint,
+  type TemplateLabelResolver,
+} from "../../generation/template_label_resolver.ts";
 import { languageCode } from "../../generation/term_codes.ts";
 import {
   instructionStateCodes,
@@ -56,7 +62,6 @@ import {
 } from "../../term/openehr_group_rubrics.ts";
 import {
   readTemplateId,
-  type TermBag,
   type TermDefinitionTable,
 } from "../../am/util/ontology_merge.ts";
 import {
@@ -69,6 +74,8 @@ import {
   useRmAttributeAsWebTemplateId,
   webTemplateChildIdHint,
 } from "./web_template_id_hints.ts";
+
+export { fixedNameConstraint };
 
 /** Empty complex shell so a slot still appears as a node, as it did when OPT XML mapped slots to `C_COMPLEX_OBJECT`. */
 function complexShellFromSlot(
@@ -361,13 +368,6 @@ function singleConstrainedCode(
   return (phrase as { constraint?: string } | undefined)?.constraint;
 }
 
-function lookupTerm(
-  terms: TermBag,
-  nodeId?: string,
-): TermEntry {
-  return resolveTermEntry(nodeId, undefined, terms, {}, undefined) ?? {};
-}
-
 type TerminologyCodeRuntime = openehr_am.C_TERMINOLOGY_CODE & {
   code_list?: string[];
   terminology_id?: string;
@@ -521,18 +521,6 @@ function applyTerminologyInputs(
   if (terminology) codeInput.terminology = terminology;
 }
 
-/**
- * Archetype term bag for a node's scope. When it exists, a code missing from
- * it must not be read from the flat template terms: base at-codes collide
- * across archetypes (for example a node id minted on up-conversion).
- */
-function scopedBagFor(
-  archetype: Record<string, TermBag>,
-  scope: string | undefined,
-): TermBag | undefined {
-  return scope ? archetype[scope] : undefined;
-}
-
 function isDataValueType(rmType: string): boolean {
   // Web Template also treats AM constraint types (C_*) as "value-like" leaves.
   // Generic names (`DV_INTERVAL<DV_COUNT>`) count by their base type.
@@ -564,31 +552,6 @@ function constraintNodeId(obj: openehr_am.C_OBJECT): string | undefined {
     return undefined;
   }
   return nodeIdToAtCode(obj.node_id) || undefined;
-}
-
-/**
- * Single fixed value of a `name` constraint (`name/value matches {"X"}`), as
- * written by template tools for renamed archetype occurrences.
- */
-export function fixedNameConstraint(
-  obj: openehr_am.C_OBJECT,
-): string | undefined {
-  const attrs = (obj as { attributes?: openehr_am.C_ATTRIBUTE[] }).attributes;
-  const nameAttr = attrs?.find((a) => a.rm_attribute_name === "name");
-  const dv = (nameAttr as { children?: openehr_am.C_OBJECT[] } | undefined)
-    ?.children?.[0] as { attributes?: openehr_am.C_ATTRIBUTE[] } | undefined;
-  const valueAttr = dv?.attributes?.find((a) =>
-    a.rm_attribute_name === "value"
-  );
-  const prim = (valueAttr as { children?: unknown[] } | undefined)
-    ?.children?.[0] as
-      | { list?: unknown; item?: { list?: unknown } }
-      | undefined;
-  const list = prim?.item?.list ?? prim?.list;
-  if (Array.isArray(list) && list.length === 1 && typeof list[0] === "string") {
-    return list[0];
-  }
-  return undefined;
 }
 
 /**
@@ -675,7 +638,6 @@ export class WebTemplateBuilder {
   /** RM objects without a node of their own, by AQL path. */
   private collapsed: Record<string, CollapsedRmObject> = {};
   private applyL10n: boolean;
-  private templateTerms: Record<string, TermBag> = {};
   private archetypeTerms: Record<string, TermDefinitionTable> = {};
   /** The template being built, when it is id-coded (value codes are mapped). */
   private opt?: openehr_am.OPERATIONAL_TEMPLATE;
@@ -686,12 +648,15 @@ export class WebTemplateBuilder {
   private omitSectionNameNode: boolean;
   private renamedArchetypeRootId: "archetype" | "label";
   private elementNameId: "name_constraint" | "term";
-  private bagCache = new Map<
-    string,
-    { template: TermBag; archetype: Record<string, TermBag> }
-  >();
   private pathAnnotations: OptPathAnnotationMap = {};
   private originalLang = "en";
+  private labelResolver!: TemplateLabelResolver;
+  /**
+   * Candidate names (fixed name, original-language name, localised names) for
+   * each currently active ancestor path during tree traversal, used to
+   * disambiguate repeated renamed ancestors in OPT path annotations.
+   */
+  private activeAncestorNames = new Map<string, string[]>();
 
   constructor(options?: WebTemplateBuilderOptions) {
     const merged = mergeWebTemplateBuilderOptions(options);
@@ -720,7 +685,7 @@ export class WebTemplateBuilder {
     for (const id of Object.keys(
       termTablesByScope(opt as OperationalTemplateWithTermScopes),
     )) {
-      if (id.includes("COMPOSITION.")) {
+      if (!id.startsWith("wt:") && id.includes("COMPOSITION.")) {
         compositionArchetype = id;
         break;
       }
@@ -786,57 +751,16 @@ export class WebTemplateBuilder {
     if (!codes || codes.length < 2) return undefined;
     const first = codes[0];
     const scope = termScopeOf(element as TermScopeMeta);
-  for (const lang of this.fallbackLanguages()) {
+    for (const lang of this.fallbackLanguages()) {
       const text = this.textForCode(first, lang, scope)?.text;
       if (text) return normalizeWebTemplateId(text);
     }
     return undefined;
   }
 
-  private bags(lang: string): {
-    template: TermBag;
-    archetype: Record<string, TermBag>;
-  } {
-    const cached = this.bagCache.get(lang);
-    if (cached) return cached;
-    const archetype: Record<string, TermBag> = {};
-    for (const [id, table] of Object.entries(this.archetypeTerms)) {
-      const bag = table?.[lang];
-      if (bag && Object.keys(bag).length) archetype[id] = bag;
-    }
-    const built = {
-      template: this.templateTerms[lang] ?? {},
-      archetype,
-    };
-    this.bagCache.set(lang, built);
-    return built;
-  }
-
-  private resolveIn(
-    obj: openehr_am.C_OBJECT,
-    lang: string,
-  ): TermEntry | undefined {
-    const bags = this.bags(lang);
-    const meta = obj as TermScopeMeta;
-    return resolveTermEntry(
-      obj.node_id,
-      meta[TERM_NAME_FALLBACK_NODE_ID_KEY],
-      bags.template,
-      bags.archetype,
-      termScopeOf(meta),
-    ) ?? (scopedBagFor(bags.archetype, termScopeOf(meta))
-      ? undefined
-      : lookupTerm(bags.template, obj.node_id));
-  }
-
   /** Term in one language. The original language also applies a fixed name. */
   private labelTerm(obj: openehr_am.C_OBJECT, lang: string): TermEntry {
-    const resolved = this.resolveIn(obj, lang) ?? {};
-    if (lang === this.originalLang) {
-      const fixed = fixedNameConstraint(obj);
-      if (fixed) return { ...resolved, text: fixed };
-    }
-    return resolved;
+    return this.labelResolver.resolveNodeTermInLanguage(obj, lang);
   }
 
   /**
@@ -855,31 +779,25 @@ export class WebTemplateBuilder {
    * filled from the next language in `fallbackLanguages()`.
    */
   private displayTerm(obj: openehr_am.C_OBJECT): TermEntry {
-    let text: string | undefined;
-    let description: string | undefined;
-    for (const lang of this.fallbackLanguages()) {
-      const term = this.labelTerm(obj, lang);
-      if (!text && term.text) text = term.text;
-      if (!description && term.description) description = term.description;
-      if (text && description) break;
-    }
-    return { text, description };
+    const resolved = this.labelResolver.resolveNode(obj, undefined, {
+      applyL10nAnnotations: false,
+    });
+    return {
+      text: resolved.primaryName,
+      description: resolved.description,
+    };
   }
 
   private localizedMaps(obj: openehr_am.C_OBJECT): {
     names?: Record<string, string>;
     descriptions?: Record<string, string>;
   } {
-    const names: Record<string, string> = {};
-    const descriptions: Record<string, string> = {};
-    for (const lang of this.selectedLanguages) {
-      const term = this.labelTerm(obj, lang);
-      if (term.text) names[lang] = term.text;
-      if (term.description) descriptions[lang] = term.description;
-    }
+    const resolved = this.labelResolver.resolveNode(obj, undefined, {
+      applyL10nAnnotations: false,
+    });
     return {
-      names: Object.keys(names).length ? names : undefined,
-      descriptions: Object.keys(descriptions).length ? descriptions : undefined,
+      names: resolved.localizedNames,
+      descriptions: resolved.localizedDescriptions,
     };
   }
 
@@ -902,14 +820,19 @@ export class WebTemplateBuilder {
     WebTemplateNode,
     "id" | "name" | "localizedName" | "localizedNames" | "localizedDescriptions"
   > {
-    const display = this.displayTerm(obj);
-    const maps = this.localizedMaps(obj);
+    const resolved = this.labelResolver.resolveNode(obj, undefined, {
+      applyL10nAnnotations: false,
+    });
+    const display: TermEntry = {
+      text: resolved.primaryName,
+      description: resolved.description,
+    };
     return {
       id: this.nodeIdSlug(obj, display, idHint),
       name: display.text ?? (nameFallback ? idHint : undefined),
       localizedName: display.text,
-      localizedNames: maps.names,
-      localizedDescriptions: maps.descriptions,
+      localizedNames: resolved.localizedNames,
+      localizedDescriptions: resolved.localizedDescriptions,
     };
   }
 
@@ -918,22 +841,7 @@ export class WebTemplateBuilder {
     lang: string,
     scope?: string,
   ): TermEntry | undefined {
-    const bags = this.bags(lang);
-    return resolveTermEntry(
-      code,
-      undefined,
-      bags.template,
-      bags.archetype,
-      scope,
-    );
-  }
-
-  private labelForCode(code: string, scope?: string): string | undefined {
-    for (const lang of this.fallbackLanguages()) {
-      const text = this.textForCode(code, lang, scope)?.text;
-      if (text) return text;
-    }
-    return undefined;
+    return this.labelResolver.resolveCodeInLanguage(code, lang, scope);
   }
 
   private codeLabels(
@@ -944,24 +852,19 @@ export class WebTemplateBuilder {
     localizedLabels?: Record<string, string>;
     localizedDescriptions?: Record<string, string>;
   } {
-    const localizedLabels: Record<string, string> = {};
-    const localizedDescriptions: Record<string, string> = {};
-    for (const lang of this.selectedLanguages) {
-      const entry = this.textForCode(code, lang, scope);
-      if (entry?.text) localizedLabels[lang] = entry.text;
-      if (entry?.description) localizedDescriptions[lang] = entry.description;
-    }
+    const resolved = this.labelResolver.resolveCode(code, scope);
     // One language keeps the previous `{ value, label }` item. Extra maps
     // are the EHRbase shape and only appear when another language exists.
-    const multi = Object.keys(localizedLabels).length > 1 ||
-      Object.keys(localizedDescriptions).length > 1;
+    const multi =
+      Object.keys(resolved.localizedLabels ?? {}).length > 1 ||
+      Object.keys(resolved.localizedDescriptions ?? {}).length > 1;
     return {
-      label: this.labelForCode(code, scope),
-      localizedLabels: multi && Object.keys(localizedLabels).length
-        ? localizedLabels
+      label: resolved.label,
+      localizedLabels: multi && resolved.localizedLabels
+        ? resolved.localizedLabels
         : undefined,
-      localizedDescriptions: multi && Object.keys(localizedDescriptions).length
-        ? localizedDescriptions
+      localizedDescriptions: multi && resolved.localizedDescriptions
+        ? resolved.localizedDescriptions
         : undefined,
     };
   }
@@ -1027,13 +930,78 @@ export class WebTemplateBuilder {
     }
   }
 
+  private candidateNamesFor(
+    node: WebTemplateNode,
+    obj?: openehr_am.C_OBJECT,
+  ): string[] {
+    const out: string[] = [];
+    const seen = new Set<string>();
+    const add = (val: string | undefined) => {
+      const t = val?.trim();
+      if (!t || seen.has(t)) return;
+      seen.add(t);
+      out.push(t);
+    };
+    if (obj) {
+      add(fixedNameConstraint(obj));
+      add(this.labelTerm(obj, this.originalLang).text);
+    }
+    add(node.name);
+    add(node.localizedName);
+    for (const v of Object.values(node.localizedNames ?? {})) add(v);
+    return out;
+  }
+
+  private ancestorNamesForPath(
+    aqlPath: string,
+  ): Array<readonly string[] | undefined> | undefined {
+    if (!this.activeAncestorNames.size) return undefined;
+    const segs = aqlPathSegments(aqlPath);
+    if (segs.length <= 1) return undefined;
+    const out: Array<readonly string[] | undefined> = [];
+    let prefix = "";
+    let any = false;
+    for (let i = 0; i < segs.length - 1; i++) {
+      prefix += segs[i].raw;
+      const names = this.activeAncestorNames.get(prefix);
+      if (names?.length) any = true;
+      out.push(names);
+    }
+    return any ? out : undefined;
+  }
+
+  private withActiveAncestor<T>(
+    aqlPath: string,
+    obj: openehr_am.C_OBJECT,
+    node: WebTemplateNode,
+    fn: () => T,
+  ): T {
+    const names = this.candidateNamesFor(node, obj);
+    if (!names.length || !aqlPath || aqlPath === "/") return fn();
+    const prev = this.activeAncestorNames.get(aqlPath);
+    this.activeAncestorNames.set(aqlPath, names);
+    try {
+      return fn();
+    } finally {
+      if (prev !== undefined) this.activeAncestorNames.set(aqlPath, prev);
+      else this.activeAncestorNames.delete(aqlPath);
+    }
+  }
+
   /** Attach OPT path annotations and promote L10n.* into localizedNames. */
-  private decorateWithAnnotations(node: WebTemplateNode): WebTemplateNode {
+  private decorateWithAnnotations(
+    node: WebTemplateNode,
+    obj?: openehr_am.C_OBJECT,
+  ): WebTemplateNode {
     if (!this.applyL10n) return node;
     const items = annotationsForAqlPath(
       this.pathAnnotations,
       node.aqlPath,
       node.name ?? node.localizedName,
+      {
+        candidateNames: this.candidateNamesFor(node, obj),
+        ancestorNames: this.ancestorNamesForPath(node.aqlPath),
+      },
     );
     if (!items) return node;
     const localizedNames = applyL10nToLocalizedNames(
@@ -1041,17 +1009,24 @@ export class WebTemplateBuilder {
       items,
     );
     const forLang = localizedNames?.[this.lang];
+    const currentName = node.name ?? node.localizedName;
+    const keepCurrent = forLang &&
+      isGenericRmFallbackLabel(forLang, node.rmType) &&
+      currentName &&
+      !isGenericRmFallbackLabel(currentName, node.rmType);
     return {
       ...node,
       annotations: { ...(node.annotations ?? {}), ...items },
       localizedNames,
-      // Prefer L10n for the active language when present; keep id stable.
-      ...(forLang ? { name: forLang, localizedName: forLang } : {}),
+      // Prefer L10n for the active language when present (without downgrading
+      // a real clinical label to a generic RM fallback); keep id stable.
+      ...(forLang && !keepCurrent ? { name: forLang, localizedName: forLang } : {}),
     };
   }
 
   build(opt: openehr_am.OPERATIONAL_TEMPLATE): WebTemplate {
     this.collapsed = {};
+    this.activeAncestorNames.clear();
     const templateId = readTemplateId(opt) ?? opt.archetype_id?.value ??
       "template.en.v1";
 
@@ -1065,14 +1040,14 @@ export class WebTemplateBuilder {
     const listed = orderedLanguages(this.options?.languages);
     this.selectedLanguages = listed.length ? listed : [this.originalLang];
     this.lang = this.selectedLanguages[0];
-    this.templateTerms = (opt.ontology?.term_definitions ?? {}) as Record<
-      string,
-      TermBag
-    >;
     this.archetypeTerms = termTablesByScope(scoped);
     this.opt = adl2CodingSystemOf(opt) === "id-coded" ? opt : undefined;
-    this.bagCache.clear();
     this.pathAnnotations = this.applyL10n ? flattenOptPathAnnotations(opt) : {};
+    this.labelResolver = createTemplateLabelResolver(opt, {
+      languages: this.selectedLanguages,
+      applyL10nAnnotations: this.applyL10n,
+      pathAnnotations: this.pathAnnotations,
+    });
 
     if (!opt.definition) {
       throw new Error("Operational template has no definition");
@@ -1334,139 +1309,141 @@ export class WebTemplateBuilder {
       return this.buildElement(obj, aqlPath, node);
     }
 
-    for (const attr of obj.attributes ?? []) {
-      const attrName = attr.rm_attribute_name;
-      if (!attrName) continue;
+    this.withActiveAncestor(aqlPath, obj, node, () => {
+      for (const attr of obj.attributes ?? []) {
+        const attrName = attr.rm_attribute_name;
+        if (!attrName) continue;
 
-      if (
-        this.omitSectionNameNode &&
-        rmType === "SECTION" &&
-        attrName === "name" &&
-        fixedNameConstraint(obj)
-      ) {
-        continue;
-      }
-
-      if (
-        isCompositionRoot && this.includeContext && CONTEXT_ATTRS.has(attrName)
-      ) {
-        const ctxNode = this.buildCompositionAttributeNode(attr);
-        if (ctxNode) node.children!.push(ctxNode);
-        continue;
-      }
-
-      const children =
-        (attr as { children?: openehr_am.C_OBJECT[] }).children ?? [];
-
-      if (attrName === "ism_transition") {
-        const ismObjects = children.filter(
-          (c): c is openehr_am.C_COMPLEX_OBJECT =>
-            c instanceof openehr_am.C_COMPLEX_OBJECT &&
-            c.rm_type_name === "ISM_TRANSITION",
-        );
-        if (ismObjects.length) {
-          node.children!.push(
-            this.buildIsmTransitionAttribute(attr, aqlPath, ismObjects),
-          );
+        if (
+          this.omitSectionNameNode &&
+          rmType === "SECTION" &&
+          attrName === "name" &&
+          fixedNameConstraint(obj)
+        ) {
           continue;
         }
-      }
 
-      const attrBounds = attributeExistenceBounds(attr);
-
-      for (const child of children) {
-        const childId = childPathPredicate(child, children);
-        const childPath = joinAqlPath(
-          aqlPath,
-          childId ? `${attrName}[${childId}]` : attrName,
-        );
-        const childLabel = webTemplateChildIdHint(rmType, attrName, child);
         if (
-          child instanceof openehr_am.C_COMPLEX_OBJECT ||
-          child instanceof openehr_am.ARCHETYPE_SLOT
+          isCompositionRoot && this.includeContext && CONTEXT_ATTRS.has(attrName)
         ) {
-          const complex = child instanceof openehr_am.C_COMPLEX_OBJECT
-            ? child
-            : child instanceof openehr_am.ARCHETYPE_SLOT
-            ? complexShellFromSlot(child)
-            : undefined;
-          if (!complex) continue;
-          if (useRmAttributeAsWebTemplateId(rmType, attrName, complex)) {
+          const ctxNode = this.buildCompositionAttributeNode(attr);
+          if (ctxNode) node.children!.push(ctxNode);
+          continue;
+        }
+
+        const children =
+          (attr as { children?: openehr_am.C_OBJECT[] }).children ?? [];
+
+        if (attrName === "ism_transition") {
+          const ismObjects = children.filter(
+            (c): c is openehr_am.C_COMPLEX_OBJECT =>
+              c instanceof openehr_am.C_COMPLEX_OBJECT &&
+              c.rm_type_name === "ISM_TRANSITION",
+          );
+          if (ismObjects.length) {
             node.children!.push(
-              this.buildRmAttributeLeaf(complex, childPath, attrName, attrBounds),
+              this.buildIsmTransitionAttribute(attr, aqlPath, ismObjects),
             );
-          } else if (SKIP_RM_TYPES.has(complex.rm_type_name ?? "")) {
-            const flattened = this.flattenDataStructure(
-              complex,
-              childPath,
-              node,
-            );
-            node.children!.push(...flattened.children ?? []);
-          } else if (complex.rm_type_name === "HISTORY") {
-            // Spec "Level Removal": HISTORY is always collapsed; an EVENT is
-            // collapsed too when it is the only event node and max = 1.
-            const history = this.flattenHistory(
-              complex,
-              childPath,
-              nodeShell(node, {
-                id: normalizeWebTemplateId(attrName),
-                rmType: "HISTORY",
-                aqlPath: childPath,
-              }),
-            );
-            this.registerCollapsed(complex, childPath, "HISTORY");
-            const events = history.children ?? [];
-            if (events.length === 1 && events[0].max === 1) {
-              this.registerCollapsed(events[0], events[0].aqlPath, events[0].rmType);
-              node.children!.push(...events[0].children ?? []);
-            } else {
-              node.children!.push(...events);
-            }
-            if (this.includeContext) {
+            continue;
+          }
+        }
+
+        const attrBounds = attributeExistenceBounds(attr);
+
+        for (const child of children) {
+          const childId = childPathPredicate(child, children);
+          const childPath = joinAqlPath(
+            aqlPath,
+            childId ? `${attrName}[${childId}]` : attrName,
+          );
+          const childLabel = webTemplateChildIdHint(rmType, attrName, child);
+          if (
+            child instanceof openehr_am.C_COMPLEX_OBJECT ||
+            child instanceof openehr_am.ARCHETYPE_SLOT
+          ) {
+            const complex = child instanceof openehr_am.C_COMPLEX_OBJECT
+              ? child
+              : child instanceof openehr_am.ARCHETYPE_SLOT
+              ? complexShellFromSlot(child)
+              : undefined;
+            if (!complex) continue;
+            if (useRmAttributeAsWebTemplateId(rmType, attrName, complex)) {
               node.children!.push(
-                rmContextNode(
-                  "history_origin",
-                  "DV_DATE_TIME",
-                  joinAqlPath(childPath, "origin"),
-                ),
+                this.buildRmAttributeLeaf(complex, childPath, attrName, attrBounds),
               );
-            }
-          } else if (complex.rm_type_name === "ELEMENT") {
-            node.children!.push(
-              this.buildElement(
+            } else if (SKIP_RM_TYPES.has(complex.rm_type_name ?? "")) {
+              const flattened = this.flattenDataStructure(
                 complex,
                 childPath,
-                this.elementShell(complex, childPath),
-              ),
-            );
-          } else if (complex.rm_type_name === "ISM_TRANSITION") {
+                node,
+              );
+              node.children!.push(...flattened.children ?? []);
+            } else if (complex.rm_type_name === "HISTORY") {
+              // Spec "Level Removal": HISTORY is always collapsed; an EVENT is
+              // collapsed too when it is the only event node and max = 1.
+              const history = this.flattenHistory(
+                complex,
+                childPath,
+                nodeShell(node, {
+                  id: normalizeWebTemplateId(attrName),
+                  rmType: "HISTORY",
+                  aqlPath: childPath,
+                }),
+              );
+              this.registerCollapsed(complex, childPath, "HISTORY");
+              const events = history.children ?? [];
+              if (events.length === 1 && events[0].max === 1) {
+                this.registerCollapsed(events[0], events[0].aqlPath, events[0].rmType);
+                node.children!.push(...events[0].children ?? []);
+              } else {
+                node.children!.push(...events);
+              }
+              if (this.includeContext) {
+                node.children!.push(
+                  rmContextNode(
+                    "history_origin",
+                    "DV_DATE_TIME",
+                    joinAqlPath(childPath, "origin"),
+                  ),
+                );
+              }
+            } else if (complex.rm_type_name === "ELEMENT") {
+              node.children!.push(
+                this.buildElement(
+                  complex,
+                  childPath,
+                  this.elementShell(complex, childPath),
+                ),
+              );
+            } else if (complex.rm_type_name === "ISM_TRANSITION") {
+              node.children!.push(
+                this.buildIsmTransitionObject(complex, childPath, attrBounds),
+              );
+            } else {
+              node.children!.push(this.buildFromComplex(
+                complex,
+                childPath,
+                childLabel,
+              ));
+            }
+          } else if (
+            isDataValueType(child.rm_type_name ?? "") &&
+            useRmAttributeAsWebTemplateId(rmType, attrName, child)
+          ) {
             node.children!.push(
-              this.buildIsmTransitionObject(complex, childPath, attrBounds),
+              this.buildRmAttributeLeaf(child, childPath, attrName, attrBounds),
             );
-          } else {
-            node.children!.push(this.buildFromComplex(
-              complex,
-              childPath,
-              childLabel,
-            ));
+          } else if (isDataValueType(child.rm_type_name ?? "")) {
+            node.children!.push(this.buildLeaf(child, childPath, childLabel));
           }
-        } else if (
-          isDataValueType(child.rm_type_name ?? "") &&
-          useRmAttributeAsWebTemplateId(rmType, attrName, child)
-        ) {
-          node.children!.push(
-            this.buildRmAttributeLeaf(child, childPath, attrName, attrBounds),
-          );
-        } else if (isDataValueType(child.rm_type_name ?? "")) {
-          node.children!.push(this.buildLeaf(child, childPath, childLabel));
         }
       }
-    }
+    });
 
     if (this.includeContext) this.appendRmContextNodes(node, obj);
 
     if (!node.children?.length) delete node.children;
-    return this.decorateWithAnnotations(node);
+    return this.decorateWithAnnotations(node, obj);
   }
 
   /** RM-mandatory attributes of entries and activities as `inContext` nodes. */
@@ -1590,30 +1567,35 @@ export class WebTemplateBuilder {
         pathSegment("events", childPathPredicate(ev, events)),
       );
       const { min, max } = multiplicityBounds(ev.occurrences);
-      const eventShell: WebTemplateNode = this.decorateWithAnnotations({
-        ...this.termFields(ev, "event", false),
-        rmType: ev.rm_type_name ?? "EVENT",
-        nodeId: constraintNodeId(ev),
-        min,
-        max,
-        aqlPath: evPath,
-        children: [],
-      });
+      const eventShell: WebTemplateNode = this.decorateWithAnnotations(
+        {
+          ...this.termFields(ev, "event", false),
+          rmType: ev.rm_type_name ?? "EVENT",
+          nodeId: constraintNodeId(ev),
+          min,
+          max,
+          aqlPath: evPath,
+          children: [],
+        },
+        ev,
+      );
       const eventChildren: WebTemplateNode[] = [];
-      for (const attrName of ["data", "state", "protocol"] as const) {
-        const attr = ev.attributes?.find((a) =>
-          a.rm_attribute_name === attrName
-        );
-        const child = (attr as { children?: openehr_am.C_OBJECT[] })
-          ?.children?.[0];
-        if (!(child instanceof openehr_am.C_COMPLEX_OBJECT)) continue;
-        const flattened = this.flattenDataStructure(
-          child,
-          joinAqlPath(evPath, pathSegment(attrName, constraintNodeId(child))),
-          eventShell,
-        );
-        eventChildren.push(...flattened.children ?? []);
-      }
+      this.withActiveAncestor(evPath, ev, eventShell, () => {
+        for (const attrName of ["data", "state", "protocol"] as const) {
+          const attr = ev.attributes?.find((a) =>
+            a.rm_attribute_name === attrName
+          );
+          const child = (attr as { children?: openehr_am.C_OBJECT[] })
+            ?.children?.[0];
+          if (!(child instanceof openehr_am.C_COMPLEX_OBJECT)) continue;
+          const flattened = this.flattenDataStructure(
+            child,
+            joinAqlPath(evPath, pathSegment(attrName, constraintNodeId(child))),
+            eventShell,
+          );
+          eventChildren.push(...flattened.children ?? []);
+        }
+      });
       if (this.includeContext) {
         const ctx = [rmContextNode("time", "DV_DATE_TIME", joinAqlPath(evPath, "time"))];
         if (ev.rm_type_name === "INTERVAL_EVENT") {
@@ -1672,7 +1654,7 @@ export class WebTemplateBuilder {
     }
     const valueChild = alternatives[0];
     if (valueChild) {
-      const leaf = this.buildLeaf(valueChild, aqlPath, shell.id);
+      const leaf = this.buildLeaf(valueChild, aqlPath, shell.id, false);
       // The collapsed node is the ELEMENT: its occurrences, not the value's
       // (always 1..1 under an existing ELEMENT), as Better and EHRbase give.
       leaf.min = shell.min;
@@ -1696,7 +1678,7 @@ export class WebTemplateBuilder {
           leaf.localizedDescriptions = fields.localizedDescriptions;
         }
       }
-      return leaf;
+      return this.decorateWithAnnotations(leaf, obj);
     }
     return this.buildUnconstrainedElement(obj, aqlPath, shell);
   }
@@ -1711,8 +1693,14 @@ export class WebTemplateBuilder {
     aqlPath: string,
     shell: WebTemplateNode,
   ): WebTemplateNode {
-    const element = nodeShell(shell, { aqlPath, rmType: "ELEMENT" });
+    const element = this.decorateWithAnnotations(
+      nodeShell(shell, { aqlPath, rmType: "ELEMENT" }),
+      obj,
+    );
     const fields = this.termFields(obj, shell.id);
+    const name = element.name ?? fields.name;
+    const localizedName = element.localizedName ?? fields.localizedName;
+    const localizedNames = element.localizedNames ?? fields.localizedNames;
     element.children = UNCONSTRAINED_ELEMENT_VALUE_TYPES.map((rmType) => {
       const child: WebTemplateNode = {
         id: valueChoiceId(rmType),
@@ -1722,10 +1710,10 @@ export class WebTemplateBuilder {
         aqlPath: `${aqlPath}/value`,
         inputs: inputsForRmType(rmType),
       };
-      if (fields.localizedName) {
-        child.name = fields.name;
-        child.localizedName = fields.localizedName;
-        child.localizedNames = fields.localizedNames;
+      if (localizedName) {
+        child.name = name;
+        child.localizedName = localizedName;
+        child.localizedNames = localizedNames;
       }
       if (fields.localizedDescriptions) {
         child.localizedDescriptions = fields.localizedDescriptions;
@@ -1747,8 +1735,14 @@ export class WebTemplateBuilder {
     shell: WebTemplateNode,
     alternatives: openehr_am.C_OBJECT[],
   ): WebTemplateNode {
-    const element = nodeShell(shell, { aqlPath, rmType: "ELEMENT" });
+    const element = this.decorateWithAnnotations(
+      nodeShell(shell, { aqlPath, rmType: "ELEMENT" }),
+      obj,
+    );
     const fields = this.termFields(obj, shell.id);
+    const name = element.name ?? fields.name;
+    const localizedName = element.localizedName ?? fields.localizedName;
+    const localizedNames = element.localizedNames ?? fields.localizedNames;
     element.children = alternatives.map((alternative) => {
       const leaf = this.buildLeaf(alternative, `${aqlPath}/value`, shell.id);
       const named: WebTemplateNode = {
@@ -1757,10 +1751,10 @@ export class WebTemplateBuilder {
         min: 0,
         max: 1,
       };
-      if (fields.localizedName) {
-        named.name = fields.name;
-        named.localizedName = fields.localizedName;
-        named.localizedNames = fields.localizedNames;
+      if (localizedName) {
+        named.name = name;
+        named.localizedName = localizedName;
+        named.localizedNames = localizedNames;
       }
       if (fields.localizedDescriptions && !named.localizedDescriptions) {
         named.localizedDescriptions = fields.localizedDescriptions;
@@ -1774,6 +1768,7 @@ export class WebTemplateBuilder {
     obj: openehr_am.C_OBJECT,
     aqlPath: string,
     idHint: string,
+    decorate = true,
   ): WebTemplateNode {
     const rmType = obj.rm_type_name ?? "DV_TEXT";
     // ADL2 primitive constraints carry no occurrences; like the OPT 1.4
@@ -1781,7 +1776,7 @@ export class WebTemplateBuilder {
     const { min, max } = !obj.occurrences && obj instanceof openehr_am.C_PRIMITIVE_OBJECT
       ? { min: 1, max: 1 }
       : multiplicityBounds(obj.occurrences);
-    return this.decorateWithAnnotations({
+    const leaf: WebTemplateNode = {
       ...this.termFields(obj, idHint),
       rmType,
       nodeId: constraintNodeId(obj),
@@ -1789,7 +1784,8 @@ export class WebTemplateBuilder {
       max,
       aqlPath,
       inputs: this.buildInputs(rmType, obj),
-    });
+    };
+    return decorate ? this.decorateWithAnnotations(leaf, obj) : leaf;
   }
 
   /**

@@ -35,9 +35,10 @@
 
 import * as openehr_am from "../../am/openehr_am.ts";
 import * as openehr_base from "../../base/openehr_base.ts";
+import { isDataValueType as metaIsDataValueType } from "../../meta/mod.ts";
 import { aqlPathSegments } from "./normalize.ts";
 import { isUnconstrainedElement } from "./element_value_choice.ts";
-import { fixedNameConstraint } from "./web_template_builder.ts";
+import { fixedNameConstraint } from "../../generation/template_label_resolver.ts";
 import type {
   QuantityItemInterval,
   QuantityItemRuntime,
@@ -48,6 +49,7 @@ import type {
   WebTemplateNode,
 } from "./types.ts";
 import {
+  isGenericRmFallbackLabel,
   type OperationalTemplateWithTermScopes,
   TERM_ARCHETYPE_SCOPE_KEY,
   TERM_OCCURRENCE_SCOPE_KEY,
@@ -57,6 +59,7 @@ import type { TermDefinitionTable } from "../../am/util/ontology_merge.ts";
 import {
   applyPathAnnotationsToOpt,
   collectL10nAnnotationsFromWebTemplateTree,
+  stripLeadingArchetypeId,
 } from "../../generation/opt_l10n.ts";
 
 const MULTIPLE_ATTRS = new Set([
@@ -67,6 +70,13 @@ const MULTIPLE_ATTRS = new Set([
   "rows",
   "other_participations",
 ]);
+
+function isDataValueRmType(rmType?: string): boolean {
+  if (!rmType) return false;
+  const base = rmType.split("<")[0].trim();
+  return metaIsDataValueType(base) || base === "CODE_PHRASE" ||
+    base.startsWith("C_");
+}
 
 function intervalFromValidationRange(
   range: unknown,
@@ -93,13 +103,15 @@ interface AqlSegment {
   nodeId?: string;
   /** `name/value` predicate: a name-constrained sibling (e.g. two SECTION.adhoc). */
   nameValue?: string;
+  raw: string;
 }
 
 function parseAqlPath(aqlPath: string): AqlSegment[] {
-  return aqlPathSegments(aqlPath).map(({ attr, nodeId, nameValue }) => ({
+  return aqlPathSegments(aqlPath).map(({ attr, nodeId, nameValue, raw }) => ({
     attr,
     nodeId,
     nameValue,
+    raw,
   }));
 }
 
@@ -131,7 +143,7 @@ function wrapperRmType(parentRmType: string, attr: string): string {
   if (attr === "events") return "POINT_EVENT";
   if (
     attr === "data" || attr === "state" || attr === "protocol" ||
-    attr === "description"
+    attr === "description" || attr === "other_context"
   ) return "ITEM_TREE";
   if (attr === "items") return "CLUSTER";
   if (attr === "content") return "OBSERVATION";
@@ -216,13 +228,13 @@ export class WebTemplateToOptConverter {
       if (isArchetypeId(tree.nodeId)) root.archetype_ref = tree.nodeId;
     }
     root.occurrences = multiplicity(tree.min ?? 1, tree.max ?? 1);
-    if (tree.nodeId && isArchetypeId(tree.nodeId)) {
-      (root as TermScopeMeta)[TERM_ARCHETYPE_SCOPE_KEY] = tree.nodeId;
+    const rootScope = tree.nodeId && isArchetypeId(tree.nodeId)
+      ? tree.nodeId
+      : "wt:/";
+    this.stampScope(root, rootScope);
+    if (tree.max !== 0) {
+      this.recordTerms(tree, rootScope, tree.nodeId);
     }
-    this.recordTerms(
-      tree,
-      tree.nodeId && isArchetypeId(tree.nodeId) ? tree.nodeId : undefined,
-    );
 
     for (const child of tree.children ?? []) {
       // Template-specific context nodes (e.g. category, other_context) carry
@@ -235,7 +247,7 @@ export class WebTemplateToOptConverter {
         child.rmType === "EVENT_CONTEXT" &&
         !(child.children ?? []).some((c) => !c.inContext)
       ) continue;
-      this.insertNode(root, child, 0);
+      this.insertNode(root, child, 0, tree.max === 0);
     }
 
     moveNameConstraintsLast(root);
@@ -263,7 +275,9 @@ export class WebTemplateToOptConverter {
     // emit Better/AD L10n.{lang} path annotations from localizedNames.
     applyPathAnnotationsToOpt(
       opt,
-      collectL10nAnnotationsFromWebTemplateTree(tree),
+      collectL10nAnnotationsFromWebTemplateTree(tree, {}, {
+        defaultLanguage: this.defaultLang,
+      }),
     );
 
     return opt;
@@ -275,6 +289,10 @@ export class WebTemplateToOptConverter {
    * only while the path is still inside that archetype. A nested archetype
    * (collapsed ITEM_TREE under an activity, for example) keeps its own bag,
    * so `at0002` is not taken from the parent or from the flat last-wins map.
+   *
+   * Synthetic `wt:*` scopes (used for non-`openEHR-*` OPT2-derived Web Template
+   * nodes) are not inherited across sibling/child boundaries so each node keeps
+   * its own collision-free scope.
    */
   private termScopeFor(
     node: WebTemplateNode,
@@ -283,6 +301,11 @@ export class WebTemplateToOptConverter {
     const own = this.occurrenceOf.get(node);
     if (own) return own;
     if (node.nodeId && isArchetypeId(node.nodeId)) return node.nodeId;
+    const effectiveParent = parentScope?.startsWith("wt:")
+      ? undefined
+      : parentScope?.includes("#wt:")
+      ? parentScope.slice(0, parentScope.indexOf("#wt:"))
+      : parentScope;
     const segs = parseAqlPath(node.aqlPath);
     let nearest: string | undefined;
     for (let i = segs.length - 1; i >= 0; i--) {
@@ -292,11 +315,18 @@ export class WebTemplateToOptConverter {
         break;
       }
     }
-    if (parentScope?.includes("#")) {
-      const arch = parentScope.slice(0, parentScope.indexOf("#"));
-      if (!nearest || nearest === arch) return parentScope;
+    if (effectiveParent?.includes("#")) {
+      const arch = effectiveParent.slice(0, effectiveParent.indexOf("#"));
+      if (!nearest || nearest === arch) return effectiveParent;
     }
-    return nearest ?? parentScope;
+    return nearest ?? effectiveParent;
+  }
+
+  private allocateSyntheticScope(baseKey: string): string {
+    if (!this.scopedTerms[baseKey]) return baseKey;
+    let n = 2;
+    while (this.scopedTerms[`${baseKey}#${n}`]) n++;
+    return `${baseKey}#${n}`;
   }
 
   /**
@@ -311,59 +341,167 @@ export class WebTemplateToOptConverter {
     return undefined;
   }
 
-  private recordTerms(node: WebTemplateNode, archetypeScope?: string): void {
-    const scope = this.termScopeFor(node, archetypeScope);
-    const code = node.nodeId;
-    if (!code) return;
+  private nodeTermEntries(
+    node: WebTemplateNode,
+  ): Array<{ lang: string; text?: string; description?: string }> {
+    const langs = new Set<string>();
+    for (const lang of Object.keys(node.localizedNames ?? {})) langs.add(lang);
+    for (const lang of Object.keys(node.localizedDescriptions ?? {})) {
+      langs.add(lang);
+    }
+    if (
+      !langs.size ||
+      (!langs.has(this.defaultLang) && (node.name != null || node.localizedName != null))
+    ) {
+      langs.add(this.defaultLang);
+    }
+    const out: Array<{ lang: string; text?: string; description?: string }> = [];
+    for (const lang of langs) {
+      const text = node.localizedNames?.[lang] ??
+        (lang === this.defaultLang ? (node.name ?? node.localizedName) : undefined);
+      const description = node.localizedDescriptions?.[lang];
+      if (text == null && description == null) continue;
+      out.push({ lang, text, description });
+    }
+    return out;
+  }
+
+  private codesForNode(
+    node: WebTemplateNode,
+    explicitNodeId?: string,
+  ): string[] {
+    const out: string[] = [];
+    if (explicitNodeId) out.push(explicitNodeId);
+    if (node.nodeId && !out.includes(node.nodeId)) out.push(node.nodeId);
+    return out;
+  }
+
+  /**
+   * True when writing this node's terms (or coded input option labels) into
+   * `scope` would collide with a different non-generic clinical label already
+   * stored in `scope`.
+   */
+  private scopeCollides(
+    scope: string,
+    node: WebTemplateNode,
+    explicitNodeId?: string,
+  ): boolean {
+    const table = this.scopedTerms[scope];
+    if (!table) return false;
+    const codes = this.codesForNode(node, explicitNodeId);
+    const entries = this.nodeTermEntries(node);
+    for (const code of codes) {
+      if (isArchetypeId(code) && code !== scope.split("#")[0]) continue;
+      for (const { lang, text } of entries) {
+        if (!text || isGenericRmFallbackLabel(text, node.rmType)) continue;
+        const existing = table[lang]?.[code]?.text;
+        if (
+          existing &&
+          existing !== text &&
+          !isGenericRmFallbackLabel(existing, node.rmType)
+        ) {
+          return true;
+        }
+      }
+    }
+    for (const input of node.inputs ?? []) {
+      for (const item of input.list ?? []) {
+        if (!item.value || isArchetypeId(item.value)) continue;
+        if (item.label) {
+          const existing = table[this.defaultLang]?.[item.value]?.text;
+          if (existing && existing !== item.label) return true;
+        }
+        for (const [lang, label] of Object.entries(item.localizedLabels ?? {})) {
+          if (!label) continue;
+          const existing = table[lang]?.[item.value]?.text;
+          if (existing && existing !== label) return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  private recordTerms(
+    node: WebTemplateNode,
+    resolvedScope?: string,
+    explicitNodeId?: string,
+  ): void {
+    if (node.max === 0) return;
+    const codes = this.codesForNode(node, explicitNodeId);
+    if (!codes.length) return;
+    const scope = resolvedScope;
     // Renamed siblings share an at-code. Their text belongs on the name
     // constraint; writing it here would make the other sibling slug that name.
     const nameConstrained = this.nameValueOf(node) != null;
+    const entries = this.nodeTermEntries(node);
 
-    const languages = node.localizedNames &&
-        Object.keys(node.localizedNames).length
-      ? Object.keys(node.localizedNames)
-      : [this.defaultLang];
-    for (const lang of languages) {
-      const text = node.localizedNames?.[lang] ?? node.name ??
-        node.localizedName;
-      const description = node.localizedDescriptions?.[lang];
-      if (text == null && description == null) continue;
-      this.terms[lang] ??= {};
-      this.terms[lang][code] ??= {};
-      if (text != null) this.terms[lang][code].text = text;
-      if (description != null) {
-        this.terms[lang][code].description = description;
-      }
-      // An archetype root's own name goes in its own scope only.
-      if (scope && (!isArchetypeId(code) || code === scope.split("#")[0])) {
-        this.scopedTerms[scope] ??= {};
-        this.scopedTerms[scope][lang] ??= {};
-        this.scopedTerms[scope][lang][code] ??= {};
-        this.writeScopedTerm(
-          this.scopedTerms[scope][lang][code],
+    for (const code of codes) {
+      for (const { lang, text, description } of entries) {
+        this.terms[lang] ??= {};
+        this.terms[lang][code] ??= {};
+        this.writeFlatTerm(
+          this.terms[lang][code],
           text,
           description,
-          nameConstrained,
+          node.rmType,
         );
+        // An archetype root's own name goes in its own scope only.
+        if (scope && (!isArchetypeId(code) || code === scope.split("#")[0])) {
+          this.scopedTerms[scope] ??= {};
+          this.scopedTerms[scope][lang] ??= {};
+          this.scopedTerms[scope][lang][code] ??= {};
+          this.writeScopedTerm(
+            this.scopedTerms[scope][lang][code],
+            text,
+            description,
+            nameConstrained,
+            node.rmType,
+          );
+        }
       }
     }
   }
 
+  /** Write into flat `ontology.term_definitions` without downgrading a real clinical label to a generic RM placeholder. */
+  private writeFlatTerm(
+    cell: { text?: string; description?: string },
+    text: string | undefined,
+    description: string | undefined,
+    rmType?: string,
+  ): void {
+    if (text != null) {
+      const incomingGeneric = isGenericRmFallbackLabel(text, rmType);
+      const existingGeneric = isGenericRmFallbackLabel(cell.text, rmType);
+      if (cell.text == null || !incomingGeneric || existingGeneric) {
+        cell.text = text;
+      }
+    }
+    if (description != null) cell.description = description;
+  }
+
   /**
    * Keep the first text for a code, and let a node that is not
-   * name-constrained replace a different one. That node is the archetype
-   * term (including a fallback name such as "cluster"); the renamed
-   * sibling keeps its text on the name constraint.
+   * name-constrained replace a different one — unless doing so would downgrade
+   * a real clinical label to a generic RM placeholder (`"element"`, `"cluster"`).
    */
   private writeScopedTerm(
     cell: { text?: string; description?: string },
     text: string | undefined,
     description: string | undefined,
     nameConstrained: boolean,
+    rmType?: string,
   ): void {
     if (text != null) {
+      const incomingGeneric = isGenericRmFallbackLabel(text, rmType);
+      const existingGeneric = isGenericRmFallbackLabel(cell.text, rmType);
+      if (cell.text != null && !existingGeneric && incomingGeneric) {
+        if (description != null && cell.description == null && !nameConstrained) {
+          cell.description = description;
+        }
+        return;
+      }
       const replace = cell.text != null && cell.text !== text &&
-        !nameConstrained;
+        (!nameConstrained || (existingGeneric && !incomingGeneric));
       if (cell.text == null || replace) {
         cell.text = text;
         if (description != null) cell.description = description;
@@ -384,21 +522,66 @@ export class WebTemplateToOptConverter {
     parent: openehr_am.C_COMPLEX_OBJECT,
     node: WebTemplateNode,
     parentAqlDepth: number,
+    inheritedProhibited = false,
   ): void {
     const allSegments = parseAqlPath(node.aqlPath);
     const segments = allSegments.slice(parentAqlDepth);
     if (!segments.length) return;
 
-    this.recordTerms(node, this.scopeOf(parent));
-
-    const isLeaf = !!node.inputs?.length && !node.children?.length;
+    const prohibited = inheritedProhibited || node.max === 0;
+    const isLeaf = !node.children?.length &&
+      (!!node.inputs?.length || isDataValueRmType(node.rmType));
     // Spec-style leaves address ELEMENT.value; the element is the
     // second-to-last segment.
     const leafValueStyle = isLeaf &&
       segments[segments.length - 1].attr === "value" &&
       !segments[segments.length - 1].nodeId &&
       segments.length >= 2;
+    const isValueChoiceChild = isLeaf &&
+      segments.length === 1 &&
+      segments[0].attr === "value" &&
+      !segments[0].nodeId;
     const walkSegments = leafValueStyle ? segments.slice(0, -1) : segments;
+    const lastSeg = walkSegments[walkSegments.length - 1];
+    const objNodeId = lastSeg.nodeId ?? (node.nodeId || undefined);
+
+    const elementSegments = leafValueStyle
+      ? allSegments.slice(0, -1)
+      : allSegments;
+    const elementPath = elementSegments.length
+      ? elementSegments.map((s) => s.raw).join("")
+      : "/";
+
+    let nodeScope: string | undefined;
+    if (isValueChoiceChild) {
+      nodeScope = this.scopeOf(parent);
+    } else {
+      const baseScope = this.termScopeFor(node, this.scopeOf(parent));
+      if (prohibited) {
+        nodeScope = baseScope;
+      } else if (!baseScope) {
+        nodeScope = this.allocateSyntheticScope(
+          `wt:${stripLeadingArchetypeId(elementPath)}`,
+        );
+      } else if (
+        !isArchetypeId(objNodeId) &&
+        this.nameValueOf(node) == null &&
+        this.scopeCollides(baseScope, node, objNodeId)
+      ) {
+        const archBase = baseScope.includes("#")
+          ? baseScope.slice(0, baseScope.indexOf("#"))
+          : baseScope;
+        nodeScope = this.allocateSyntheticScope(
+          `${archBase}#wt:${stripLeadingArchetypeId(elementPath)}`,
+        );
+      } else {
+        nodeScope = baseScope;
+      }
+    }
+
+    if (!prohibited && !isValueChoiceChild) {
+      this.recordTerms(node, nodeScope, objNodeId);
+    }
 
     let current = parent;
     for (let i = 0; i < walkSegments.length; i++) {
@@ -433,10 +616,12 @@ export class WebTemplateToOptConverter {
             attr,
             seg.nodeId ?? node.nodeId,
             "ELEMENT",
-            false,
-            this.scopeOf(current),
+            /* forceUnclaimed */ true,
+            nodeScope ?? this.scopeOf(current),
             seg.nameValue,
           );
+          this.claimed.add(element);
+          if (nodeScope) this.stampScope(element, nodeScope);
           element.occurrences = multiplicity(node.min ?? 0, node.max ?? 1);
           const valueAttr = this.ensureAttribute(element, "value");
           this.createLeafConstraint(
@@ -444,7 +629,8 @@ export class WebTemplateToOptConverter {
             node,
             undefined,
             multiplicity(1, 1),
-            this.scopeOf(element),
+            nodeScope ?? this.scopeOf(element),
+            prohibited,
           );
         } else {
           this.createLeafConstraint(
@@ -452,7 +638,8 @@ export class WebTemplateToOptConverter {
             node,
             seg.nodeId ?? node.nodeId,
             multiplicity(node.min ?? 0, node.max ?? 1),
-            this.scopeOf(current),
+            nodeScope ?? this.scopeOf(current),
+            prohibited,
           );
         }
         return;
@@ -463,18 +650,17 @@ export class WebTemplateToOptConverter {
         seg.nodeId ?? node.nodeId,
         node.rmType,
         /* forceUnclaimed */ true,
-        this.scopeOf(current),
+        nodeScope ?? this.scopeOf(current),
         seg.nameValue,
       );
       this.claimed.add(obj);
-      const occurrence = this.occurrenceOf.get(node);
-      if (occurrence) this.stampScope(obj, occurrence);
+      if (nodeScope) this.stampScope(obj, nodeScope);
       obj.occurrences = multiplicity(node.min ?? 0, node.max ?? 1);
       for (const child of node.children ?? []) {
         if (child.inContext) continue;
         // The shared `<type>_value` list is not a value choice (#267).
         if (isUnconstrainedElement(node)) continue;
-        this.insertNode(obj, child, allSegments.length);
+        this.insertNode(obj, child, allSegments.length, prohibited);
       }
       return;
     }
@@ -486,6 +672,7 @@ export class WebTemplateToOptConverter {
     nodeId: string | undefined,
     occ: openehr_base.Multiplicity_interval,
     inheritedScope?: string,
+    prohibited = false,
   ): openehr_am.C_OBJECT {
     const rmType = node.rmType || "DV_TEXT";
     if (rmType === "DV_QUANTITY") {
@@ -503,7 +690,7 @@ export class WebTemplateToOptConverter {
       const t = this.newTerminologyCode(inheritedScope);
       if (nodeId) t.node_id = nodeId;
       t.occurrences = occ;
-      this.applyTerminologyInputs(t, node.inputs, inheritedScope);
+      this.applyTerminologyInputs(t, node.inputs, inheritedScope, prohibited);
       attr.children ??= [];
       attr.children.push(t);
       return t;
@@ -517,7 +704,7 @@ export class WebTemplateToOptConverter {
     );
     dv.occurrences = occ;
     if (rmType === "DV_CODED_TEXT") {
-      this.applyCodedTextInputs(dv, node.inputs, inheritedScope);
+      this.applyCodedTextInputs(dv, node.inputs, inheritedScope, prohibited);
     }
     return dv;
   }
@@ -599,6 +786,7 @@ export class WebTemplateToOptConverter {
     obj: openehr_am.C_COMPLEX_OBJECT,
     inputs?: WebTemplateInput[],
     scope?: string,
+    prohibited = false,
   ): void {
     const code = inputs?.find((i) => i.suffix === "code");
     if (
@@ -609,7 +797,7 @@ export class WebTemplateToOptConverter {
     const defining = this.ensureAttribute(obj, "defining_code");
     const t = this.newTerminologyCode(scope);
     t.occurrences = multiplicity(1, 1);
-    this.applyTerminologyInputs(t, inputs, scope);
+    this.applyTerminologyInputs(t, inputs, scope, prohibited);
     defining.children ??= [];
     defining.children.push(t);
   }
@@ -618,6 +806,7 @@ export class WebTemplateToOptConverter {
     t: openehr_am.C_TERMINOLOGY_CODE,
     inputs?: WebTemplateInput[],
     scope?: string,
+    prohibited = false,
   ): void {
     const code = inputs?.find((i) => i.suffix === "code") ??
       inputs?.find((i) => !i.suffix) ??
@@ -637,26 +826,38 @@ export class WebTemplateToOptConverter {
       if (code.terminology) assumed.terminology_id = code.terminology;
       runtime.assumed_value = assumed;
     }
+    if (prohibited) return;
     for (const item of code.list ?? []) {
-      if (!item.label) continue;
-      this.recordCodeTerm(item.value, item.label, scope);
+      if (!item.value) continue;
+      const langs = new Set<string>();
+      for (const l of Object.keys(item.localizedLabels ?? {})) langs.add(l);
+      for (const l of Object.keys(item.localizedDescriptions ?? {})) langs.add(l);
+      if (item.label) langs.add(this.defaultLang);
+      for (const lang of langs) {
+        const text = item.localizedLabels?.[lang] ??
+          (lang === this.defaultLang ? item.label : undefined);
+        const description = item.localizedDescriptions?.[lang];
+        if (text == null && description == null) continue;
+        this.recordCodeTerm(item.value, text, scope, lang, description);
+      }
     }
   }
 
   private recordCodeTerm(
     code: string,
-    text: string,
+    text: string | undefined,
     scope?: string,
+    lang = this.defaultLang,
+    description?: string,
   ): void {
-    const lang = this.defaultLang;
     this.terms[lang] ??= {};
     this.terms[lang][code] ??= {};
-    this.terms[lang][code].text = text;
+    this.writeFlatTerm(this.terms[lang][code], text, description);
     if (scope && !isArchetypeId(code)) {
       this.scopedTerms[scope] ??= {};
       this.scopedTerms[scope][lang] ??= {};
       this.scopedTerms[scope][lang][code] ??= {};
-      this.scopedTerms[scope][lang][code].text = text;
+      this.writeFlatTerm(this.scopedTerms[scope][lang][code], text, description);
     }
   }
 
@@ -771,12 +972,15 @@ function occurrenceNames(
 ): Map<string, string> {
   const names = new Map<string, string>();
   const visit = (node: WebTemplateNode) => {
+    if (node.max === 0) return;
     const name = node.localizedNames?.[lang] ?? node.name;
     if (node.nodeId && name != null && !names.has(node.nodeId)) {
       names.set(node.nodeId, name);
     }
     for (const child of node.children ?? []) {
-      if (child.inContext || isArchetypeId(child.nodeId)) continue;
+      if (child.inContext || child.max === 0 || isArchetypeId(child.nodeId)) {
+        continue;
+      }
       visit(child);
     }
   };
@@ -798,6 +1002,7 @@ function occurrenceScopes(
   const first = new Map<string, Map<string, string>>();
   const counts = new Map<string, number>();
   const visit = (node: WebTemplateNode) => {
+    if (node.max === 0) return;
     const id = node.nodeId;
     if (id && isArchetypeId(id)) {
       const names = occurrenceNames(node, lang);
@@ -814,7 +1019,7 @@ function occurrenceScopes(
       }
     }
     for (const child of node.children ?? []) {
-      if (!child.inContext) visit(child);
+      if (!child.inContext && child.max !== 0) visit(child);
     }
   };
   visit(tree);

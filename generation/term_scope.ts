@@ -127,7 +127,160 @@ export function lookupExactTermInBag(
   return lookupExactTermEntryInBag(bag, code)?.text;
 }
 
-/** Resolve a term entry using optional archetype scope then template-level terms. */
+const GENERIC_RM_FALLBACK_LABELS = new Set([
+  "element",
+  "cluster",
+  "section",
+  "composition",
+  "observation",
+  "evaluation",
+  "instruction",
+  "action",
+  "admin_entry",
+  "activity",
+  "history",
+  "event",
+  "point_event",
+  "interval_event",
+  "item_tree",
+  "item_list",
+  "item_single",
+  "item_table",
+  "item_structure",
+  "event_context",
+  "ism_transition",
+  "complex",
+  "entry",
+  "care_entry",
+  "content_item",
+  "data_structure",
+]);
+
+/**
+ * True when `label` is a generic RM-type placeholder (such as `"element"`,
+ * `"cluster"`, `"section"`, `"ELEMENT"`, `"dv_text"`) rather than a clinical
+ * display label. Capitalised clinical terms like `"Action"` or `"Event"` return
+ * `false`.
+ */
+export function isGenericRmFallbackLabel(
+  label: string | undefined,
+  rmType?: string,
+): boolean {
+  if (!label) return false;
+  const trimmed = label.trim();
+  if (!trimmed) return false;
+  if (GENERIC_RM_FALLBACK_LABELS.has(trimmed)) return true;
+  if (/^dv_[a-z_]+$/.test(trimmed)) return true;
+  if (rmType) {
+    const rm = rmType.trim();
+    if (rm && (trimmed === rm || trimmed === rm.toLowerCase())) return true;
+  }
+  if (
+    trimmed === trimmed.toUpperCase() &&
+    GENERIC_RM_FALLBACK_LABELS.has(trimmed.toLowerCase())
+  ) {
+    return true;
+  }
+  return false;
+}
+
+const BETTER_OVERLAY_RE =
+  /^((?:[^:]+::)?[^.]+\.)ovl-(.+?)(?:-\d+)?(\.v[\d.]+(?:-[^#]*)?)$/i;
+
+/**
+ * Derive candidate parent archetype scope keys for a Better `ovl-*` overlay
+ * scope (e.g. `openEHR-EHR-OBSERVATION.ovl-blood_pressure-001.v2` →
+ * `openEHR-EHR-OBSERVATION.blood_pressure.v2`, or another version of the same
+ * base concept present in `availableScopes`).
+ */
+export function overlayParentScopes(
+  scope: string,
+  availableScopes?: Iterable<string>,
+): string[] {
+  const baseScope = scope.replace(/#.*$/, "");
+  const m = BETTER_OVERLAY_RE.exec(baseScope);
+  if (!m) return [];
+
+  const [, prefix, concept, version] = m;
+  const out: string[] = [];
+  const seen = new Set<string>();
+  const add = (key: string) => {
+    if (!key || key === baseScope || seen.has(key)) return;
+    seen.add(key);
+    out.push(key);
+  };
+
+  // 1. Exact version match (with and without optional namespace prefix).
+  const exact = `${prefix}${concept}${version}`;
+  add(exact);
+  const nsIdx = prefix.indexOf("::");
+  const barePrefix = nsIdx >= 0 ? prefix.slice(nsIdx + 2) : prefix;
+  if (barePrefix !== prefix) add(`${barePrefix}${concept}${version}`);
+
+  // 2. Fallback to any matching base-concept version present in `availableScopes`.
+  if (availableScopes) {
+    const conceptPrefixes = new Set([
+      `${prefix}${concept}.v`.toLowerCase(),
+      `${barePrefix}${concept}.v`.toLowerCase(),
+    ]);
+    const matching: string[] = [];
+    for (const candidate of availableScopes) {
+      if (candidate.includes("#")) continue;
+      const lower = candidate.toLowerCase();
+      if (lower.includes(".ovl-")) continue;
+      for (const cp of conceptPrefixes) {
+        if (lower.startsWith(cp)) {
+          matching.push(candidate);
+          break;
+        }
+      }
+    }
+    // Prefer higher versions deterministically when multiple versions exist.
+    matching.sort((a, b) => b.localeCompare(a, undefined, { numeric: true }));
+    for (const key of matching) add(key);
+  }
+
+  return out;
+}
+
+/**
+ * Ordered scope lookup chain for `scope`:
+ * 1. `scope` itself (e.g. `openEHR-EHR-OBSERVATION.ovl-blood_pressure-001.v2#2`)
+ * 2. Un-suffixed base scope if `scope` is an occurrence scope (`<id>#...`)
+ * 3. Better `ovl-*` parent archetype scope(s) (exact version, then base concept)
+ *
+ * When `availableScopes` is provided, only keys present in `availableScopes`
+ * are returned.
+ */
+export function resolveScopeChain(
+  scope: string,
+  availableScopes?: Iterable<string>,
+): string[] {
+  const available = availableScopes ? new Set(availableScopes) : undefined;
+  const out: string[] = [];
+  const seen = new Set<string>();
+  const add = (key: string) => {
+    if (!key || seen.has(key)) return;
+    if (available && !available.has(key)) return;
+    seen.add(key);
+    out.push(key);
+  };
+
+  add(scope);
+  const hashIdx = scope.indexOf("#");
+  if (hashIdx > 0) {
+    add(scope.slice(0, hashIdx));
+  }
+  for (const parent of overlayParentScopes(scope, available)) {
+    add(parent);
+  }
+  return out;
+}
+
+/**
+ * Resolve a term entry using optional occurrence/archetype scope (including
+ * Better `ovl-*` parent archetype fallback) then template-level terms.
+ */
 export function resolveTermEntry(
   nodeId: string | undefined,
   nameFallbackNodeId: string | undefined,
@@ -135,7 +288,18 @@ export function resolveTermEntry(
   archetypeTerms: Record<string, TermBag>,
   archetypeScope?: string,
 ): TermEntry | undefined {
+  const scopeChain = archetypeScope
+    ? resolveScopeChain(archetypeScope, Object.keys(archetypeTerms))
+    : [];
+
   if (nodeId && isTemplateSlotId(nodeId)) {
+    // An exact entry inside the node's own scope (e.g. OPT2/WT synthetic scope)
+    // wins over the flat template bag; Better .t.json template slots fall back
+    // to the flat template bag when absent from the archetype's own bag.
+    for (const scope of scopeChain) {
+      const scopedSlot = lookupExactTermEntryInBag(archetypeTerms[scope], nodeId);
+      if (scopedSlot?.text) return scopedSlot;
+    }
     const slot = lookupExactTermEntryInBag(templateTerms, nodeId);
     if (slot?.text) return slot;
   }
@@ -144,11 +308,13 @@ export function resolveTermEntry(
     (c): c is string => typeof c === "string" && c.length > 0,
   );
 
-  if (archetypeScope && archetypeTerms[archetypeScope]) {
-    const scopedBag = archetypeTerms[archetypeScope];
-    for (const code of codes) {
-      const entry = lookupTermEntryInBag(scopedBag, code);
-      if (entry?.text) return entry;
+  if (scopeChain.length > 0) {
+    for (const scope of scopeChain) {
+      const scopedBag = archetypeTerms[scope];
+      for (const code of codes) {
+        const entry = lookupTermEntryInBag(scopedBag, code);
+        if (entry?.text) return entry;
+      }
     }
     // Archetype-local at-codes must not fall back to flat merged template terms.
     // Specialised at-codes (at0089.1) are safer to recover by exact key than

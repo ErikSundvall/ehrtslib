@@ -7,9 +7,10 @@
  * (see discourse.openehr.org/t/2760).
  */
 
-import * as openehr_am from "../am/openehr_am.ts";
+import type * as openehr_am from "../am/openehr_am.ts";
 import * as openehr_base from "../base/openehr_base.ts";
 import { getAnnotationsDocumentation } from "../parser/aom_odin_sections.ts";
+import { isGenericRmFallbackLabel } from "./term_scope.ts";
 
 /** language → path → annotation key → value (RESOURCE_ANNOTATIONS.documentation). */
 export type AnnotationDocumentation = Record<
@@ -65,29 +66,76 @@ export function stripNamePredicates(path: string): string {
   return path
     .replace(/\s+and\s+name\/value\s*=\s*'[^']*'/gi, "")
     .replace(/\s+and\s+name\/value\s*=\s*"[^"]*"/gi, "")
-    .replace(/,'[^']*'/g, "")
-    .replace(/,"[^"]*"/g, "");
-}
-
-/** `[id and name/value='X']` → `[id,'X']`. */
-function shortNamePredicates(path: string): string {
-  return path.replace(/\s+and\s+name\/value\s*=\s*'([^']*)'/gi, ",'$1'");
-}
-
-/** `[id,'X']` → `[id and name/value='X']`. */
-function aqlNamePredicates(path: string): string {
-  return path.replace(/\s*,\s*'([^']*)'\s*\]/g, " and name/value='$1']");
+    .replace(/\s*,\s*'[^']*'/g, "")
+    .replace(/\s*,\s*"[^"]*"/g, "");
 }
 
 export function normalizeAnnotationPath(path: string): string {
-  return stripNamePredicates(stripLeadingArchetypeId(path.trim()));
+  const stripped = stripNamePredicates(stripLeadingArchetypeId(path.trim()));
+  return stripped || "/";
+}
+
+interface ParsedAnnotationSegment {
+  attr: string;
+  nodeId?: string;
+  nameValue?: string;
+}
+
+const ANNOTATION_PREDICATE_RE =
+  /^\s*([^\s,]+)\s*(?:(?:,|\band\s+name\/value\s*=)\s*(['"])((?:(?!\2).)*)\2)?\s*$/is;
+
+/**
+ * Quote- and bracket-aware AQL / OPT annotation path splitter.
+ * Keeps `/` inside `[...]` name predicates (e.g. `name/value='A/B'`) intact.
+ */
+function parseAnnotationPathSegments(path: string): ParsedAnnotationSegment[] {
+  const stripped = stripLeadingArchetypeId(path.trim());
+  if (!stripped || stripped === "/") return [];
+  const parts: string[] = [];
+  let buf = "";
+  let depth = 0;
+  let quote: string | null = null;
+  for (const ch of stripped) {
+    if (quote) {
+      buf += ch;
+      if (ch === quote) quote = null;
+      continue;
+    }
+    if (depth > 0 && (ch === "'" || ch === '"')) quote = ch;
+    else if (ch === "[") depth++;
+    else if (ch === "]") depth = Math.max(0, depth - 1);
+    else if (ch === "/" && depth === 0) {
+      if (buf) parts.push(buf);
+      buf = "";
+      continue;
+    }
+    buf += ch;
+  }
+  if (buf) parts.push(buf);
+
+  const out: ParsedAnnotationSegment[] = [];
+  for (const part of parts) {
+    const m = /^([^[]+)(?:\[(.*)\])?$/s.exec(part);
+    if (!m) continue;
+    const seg: ParsedAnnotationSegment = { attr: m[1] };
+    if (m[2] !== undefined) {
+      const p = ANNOTATION_PREDICATE_RE.exec(m[2]);
+      if (p) {
+        seg.nodeId = p[1];
+        if (p[3] !== undefined) seg.nameValue = p[3];
+      } else {
+        seg.nodeId = m[2].trim();
+      }
+    }
+    out.push(seg);
+  }
+  return out;
 }
 
 /**
  * Flatten RESOURCE_ANNOTATIONS.documentation into a path → items map.
  * Keys keep name predicates (after stripping the leading archetype id) so
- * repeated occurrences stay distinct. A name-stripped fallback is added only
- * when that key is still free.
+ * repeated occurrences stay distinct.
  */
 export function flattenOptPathAnnotations(
   opt: openehr_am.OPERATIONAL_TEMPLATE,
@@ -103,71 +151,196 @@ export function flattenOptPathAnnotations(
       const withRoot = stripLeadingArchetypeId(path);
       out[path] ??= {};
       Object.assign(out[path], items);
-      out[withRoot] ??= {};
-      Object.assign(out[withRoot], items);
-      const norm = stripNamePredicates(withRoot);
-      if (norm !== withRoot && !out[norm]) {
-        out[norm] = { ...items };
+      if (withRoot !== path) {
+        out[withRoot] ??= {};
+        Object.assign(out[withRoot], items);
       }
     }
   }
   return out;
 }
 
-/** Look up annotations for a Web Template / AQL path (optional node name). */
+export interface AnnotationLookupOptions {
+  /**
+   * Additional candidate names for the target node (e.g. original-language
+   * name or `fixedNameConstraint` value), used when `aqlPath` does not carry
+   * an explicit leaf `name/value` predicate.
+   */
+  candidateNames?: ReadonlyArray<string | undefined>;
+  /**
+   * Optional ancestor node names aligned to the segments of `aqlPath`
+   * (0-indexed after stripping any leading `[archetypeId]`). Each entry may be
+   * a single name or multiple candidate names (e.g. fixed name + localised
+   * names) to disambiguate repeated renamed ancestor archetypes.
+   */
+  ancestorNames?: ReadonlyArray<string | ReadonlyArray<string | undefined> | undefined>;
+}
+
+interface IndexedAnnotationEntry {
+  key: string;
+  segs: ParsedAnnotationSegment[];
+}
+
+const annotationIndexCache = new WeakMap<
+  OptPathAnnotationMap,
+  Map<string, IndexedAnnotationEntry[]>
+>();
+
+function getAnnotationBucketIndex(
+  map: OptPathAnnotationMap,
+): Map<string, IndexedAnnotationEntry[]> {
+  let byNorm = annotationIndexCache.get(map);
+  if (byNorm) return byNorm;
+  byNorm = new Map();
+  for (const key of Object.keys(map)) {
+    const norm = normalizeAnnotationPath(key);
+    const segs = parseAnnotationPathSegments(key);
+    let list = byNorm.get(norm);
+    if (!list) {
+      list = [];
+      byNorm.set(norm, list);
+    }
+    list.push({ key, segs });
+  }
+  annotationIndexCache.set(map, byNorm);
+  return byNorm;
+}
+
+function normalizedNameSet(
+  input: string | ReadonlyArray<string | undefined> | undefined,
+): Set<string> {
+  const out = new Set<string>();
+  if (!input) return out;
+  if (typeof input === "string") {
+    const t = input.trim().toLowerCase();
+    if (t) out.add(t);
+    return out;
+  }
+  for (const item of input) {
+    if (!item) continue;
+    const t = item.trim().toLowerCase();
+    if (t) out.add(t);
+  }
+  return out;
+}
+
+/**
+ * Look up annotations for a Web Template / AQL path (optional node name and
+ * ancestor/candidate disambiguation).
+ *
+ * Matches explicit `name/value` predicates already present on `aqlPath`
+ * (regardless of the display-language `nodeName`), supports both
+ * `[id and name/value='X']` and `[id, 'X']` spellings, and disambiguates
+ * ancestor name predicates when `ancestorNames` are supplied while remaining
+ * compatible when `aqlPath` omits non-colliding ancestor predicates.
+ */
 export function annotationsForAqlPath(
   map: OptPathAnnotationMap,
   aqlPath: string,
   nodeName?: string,
+  options?: AnnotationLookupOptions,
 ): Record<string, string> | undefined {
   if (!aqlPath) return undefined;
 
-  const candidates: string[] = [aqlPath, stripLeadingArchetypeId(aqlPath)];
-  // The same name predicates in the other spelling (`and name/value='X'` ⇄ `,'X'`).
-  for (const spelled of [shortNamePredicates(aqlPath), aqlNamePredicates(aqlPath)]) {
-    if (spelled !== aqlPath) candidates.push(spelled, stripLeadingArchetypeId(spelled));
-  }
-  if (nodeName) {
-    // OPT-style name predicate on the last path segment.
-    const named = aqlPath.replace(
-      /\]$/,
-      ` and name/value='${nodeName}']`,
-    );
-    if (named !== aqlPath) candidates.push(named, stripLeadingArchetypeId(named));
-    // Ocean-style short name qualifier: [archetypeId,'Name']
-    const shortNamed = aqlPath.replace(
-      /\[([^\]]+)\]$/,
-      `[$1,'${nodeName}']`,
-    );
-    if (shortNamed !== aqlPath) {
-      candidates.push(shortNamed, stripLeadingArchetypeId(shortNamed));
-    }
-  }
-  candidates.push(normalizeAnnotationPath(aqlPath));
-
-  for (const key of candidates) {
-    const items = map[key];
-    if (items && Object.keys(items).length) return { ...items };
-  }
-
   const norm = normalizeAnnotationPath(aqlPath);
-  for (const [path, items] of Object.entries(map)) {
-    if (normalizeAnnotationPath(path) !== norm) continue;
-    if (nodeName) {
-      const lower = path.toLowerCase();
-      const n = nodeName.toLowerCase();
-      if (
-        lower.includes(`name/value='${n}'`) ||
-        lower.includes(`,'${n}'`) ||
-        lower.includes(`,"${n}"`)
-      ) {
-        return { ...items };
-      }
-      continue;
-    }
-    if (Object.keys(items).length) return { ...items };
+  const index = getAnnotationBucketIndex(map);
+  let bucket = index.get(norm);
+
+  // If caller mutated `map` after initial indexing, refresh the cache once.
+  const direct = map[aqlPath] ?? map[stripLeadingArchetypeId(aqlPath)];
+  if (direct && (!bucket || !bucket.some((e) => map[e.key] === direct))) {
+    annotationIndexCache.delete(map);
+    bucket = getAnnotationBucketIndex(map).get(norm);
   }
-  return undefined;
+
+  if (!bucket || bucket.length === 0) return undefined;
+
+  const querySegs = parseAnnotationPathSegments(aqlPath);
+  if (querySegs.length === 0) {
+    for (const entry of bucket) {
+      const items = map[entry.key];
+      if (items && Object.keys(items).length) return { ...items };
+    }
+    return undefined;
+  }
+
+  const targetCandidateNames = normalizedNameSet([
+    nodeName,
+    ...(options?.candidateNames ?? []),
+  ]);
+  const ancestorNames = options?.ancestorNames;
+  const len = querySegs.length;
+
+  let bestScore = -1;
+  let bestItems: Record<string, string> | undefined;
+
+  for (const entry of bucket) {
+    const items = map[entry.key];
+    if (!items || Object.keys(items).length === 0) continue;
+    const entrySegs = entry.segs;
+    if (entrySegs.length !== len) continue;
+
+    let score = 0;
+    let rejected = false;
+
+    for (let i = 0; i < len; i++) {
+      const qPred = querySegs[i].nameValue?.trim().toLowerCase();
+      const ePred = entrySegs[i].nameValue?.trim().toLowerCase();
+      const isLast = i === len - 1;
+
+      if (qPred) {
+        if (ePred) {
+          if (ePred === qPred) {
+            score += isLast ? 1000 : 500;
+          } else {
+            rejected = true;
+            break;
+          }
+        } else {
+          score += isLast ? 1 : 2;
+        }
+      } else if (isLast) {
+        if (ePred) {
+          if (targetCandidateNames.size > 0) {
+            if (targetCandidateNames.has(ePred)) {
+              score += 800;
+            } else {
+              rejected = true;
+              break;
+            }
+          } else {
+            score += 10;
+          }
+        } else {
+          score += 100;
+        }
+      } else {
+        // Ancestor segment without an explicit predicate on the queried aqlPath.
+        if (ePred) {
+          const ancSet = normalizedNameSet(ancestorNames?.[i]);
+          if (ancSet.size > 0) {
+            if (ancSet.has(ePred)) {
+              score += 400;
+            } else {
+              rejected = true;
+              break;
+            }
+          } else {
+            score += 5;
+          }
+        } else {
+          score += 50;
+        }
+      }
+    }
+
+    if (!rejected && score > bestScore) {
+      bestScore = score;
+      bestItems = items;
+    }
+  }
+
+  return bestItems ? { ...bestItems } : undefined;
 }
 
 /**
@@ -248,38 +421,71 @@ export function l10nItemsFromLocalizedNames(
   return out;
 }
 
+export interface WebTemplateL10nNode {
+  aqlPath?: string;
+  rmType?: string;
+  name?: string;
+  localizedName?: string;
+  localizedNames?: Record<string, string>;
+  max?: number;
+  inputs?: unknown[];
+  children?: unknown[];
+}
+
 /**
  * Collect path → L10n items from a Web Template tree for OPT export.
  * Always emits L10n keys for every language present so repeated renamed
  * nodes keep translations that cannot live in component_ontologies.
+ *
+ * Skips prohibited (`max === 0`) nodes and never emits or overwrites clinical
+ * labels with generic RM-type fallback names (`"element"`, `"cluster"`, ...).
  */
 export function collectL10nAnnotationsFromWebTemplateTree(
-  node: {
-    aqlPath?: string;
-    localizedNames?: Record<string, string>;
-    children?: unknown[];
-  },
+  node: WebTemplateL10nNode,
   out: OptPathAnnotationMap = {},
+  options?: { defaultLanguage?: string; parentRmType?: string },
 ): OptPathAnnotationMap {
-  const path = node.aqlPath;
-  if (path && path !== "/") {
-    const items = l10nItemsFromLocalizedNames(node.localizedNames);
+  if (node.max === 0) return out;
+
+  const rawPath = node.aqlPath?.trim();
+  if (rawPath && rawPath !== "/") {
+    const names: Record<string, string> = {};
+    for (const [lang, text] of Object.entries(node.localizedNames ?? {})) {
+      if (!text || isGenericRmFallbackLabel(text, node.rmType)) continue;
+      names[lang] = text;
+    }
+    const defaultLang = options?.defaultLanguage;
+    if (defaultLang && !names[defaultLang]) {
+      const fallbackText = node.localizedName ?? node.name;
+      if (fallbackText && !isGenericRmFallbackLabel(fallbackText, node.rmType)) {
+        names[defaultLang] = fallbackText;
+      }
+    }
+
+    const items = l10nItemsFromLocalizedNames(names);
     if (Object.keys(items).length) {
       // Keep name predicates: name-constrained siblings (two SECTION.adhoc)
-      // share the predicate-free path.
-      const key = stripLeadingArchetypeId(path.trim());
+      // share the predicate-free path. Strip trailing `/value` on collapsed
+      // ELEMENT leaves so annotation paths align with OPT ELEMENT paths.
+      let key = stripLeadingArchetypeId(rawPath);
+      const isCollapsedElementLeaf = key.endsWith("/value") &&
+        options?.parentRmType !== "ELEMENT" &&
+        !node.children?.length;
+      if (isCollapsedElementLeaf) {
+        key = key.slice(0, -"/value".length) || "/";
+      }
       out[key] = { ...(out[key] ?? {}), ...items };
     }
   }
   for (const child of node.children ?? []) {
     if (child && typeof child === "object") {
       collectL10nAnnotationsFromWebTemplateTree(
-        child as {
-          aqlPath?: string;
-          localizedNames?: Record<string, string>;
-          children?: unknown[];
-        },
+        child as WebTemplateL10nNode,
         out,
+        {
+          defaultLanguage: options?.defaultLanguage,
+          parentRmType: node.rmType,
+        },
       );
     }
   }
