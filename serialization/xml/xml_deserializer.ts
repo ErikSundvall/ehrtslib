@@ -1,4 +1,5 @@
 import { XMLParser } from "fast-xml-parser";
+import { attributesFor } from "../../meta/rm_attributes.ts";
 import { TypeRegistry } from "../common/type_registry.ts";
 import { DeserializationError, TypeNotFoundError } from "../common/errors.ts";
 import {
@@ -184,16 +185,16 @@ export class XmlDeserializer {
       if (typeof value === 'object' && value !== null) {
         if (Array.isArray(value)) {
           instance[key] = value.map(item =>
-            typeof item === 'object'
+            typeof item === 'object' && item !== null
               ? this.reconstructObject(item, key)
-              : item
+              : this.coerceXmlLeaf(typeName, key, item)
           );
         } else {
           const nested = this.reconstructObject(value, key);
           instance[key] = itsXmlTagIsRepeatingList(key) ? [nested] : nested;
         }
       } else {
-        instance[key] = value;
+        instance[key] = this.coerceXmlLeaf(typeName, key, value);
       }
     }
     
@@ -232,6 +233,21 @@ export class XmlDeserializer {
     return result;
   }
 
+  /**
+   * Coerce an XML text leaf to a JS number or boolean when BMM declares
+   * that attribute as Integer/Integer64/Real/Double/Boolean (or a list of
+   * those). Invalid text is left as a string so later RM/template
+   * validation fails loudly instead of accepting NaN.
+   */
+  private coerceXmlLeaf(rmType: string, attrName: string, value: unknown): unknown {
+    if (typeof value !== "string") return value;
+    const declared = declaredPrimitiveBmmType(rmType, attrName);
+    if (!declared) return value;
+    if (declared === "Boolean") return parseXmlBoolean(value);
+    const numeric = parseXmlNumber(value, declared);
+    return numeric === undefined ? value : numeric;
+  }
+
   private maybeValidateAgainstTemplate<T>(instance: T): T {
     const template = this.config.validateAgainstTemplate;
     if (!template) return instance;
@@ -249,4 +265,67 @@ export class XmlDeserializer {
     }
     return instance;
   }
+}
+
+const NUMERIC_BMM_TYPES = new Set([
+  "Integer",
+  "Integer64",
+  "Real",
+  "Double",
+  "Numeric",
+  "Ordered_Numeric",
+  "Byte",
+  "Octet",
+]);
+
+const INTEGER_BMM_TYPES = new Set([
+  "Integer",
+  "Integer64",
+  "Byte",
+  "Octet",
+]);
+
+/** Strip a single generic argument list: `DV_INTERVAL<DV_QUANTITY>` → `DV_INTERVAL`. */
+function rmTypeBaseName(typeName: string): string {
+  const lt = typeName.indexOf("<");
+  return lt > 0 ? typeName.slice(0, lt).trim() : typeName;
+}
+
+function unwrapContainerType(typeName: string): string {
+  const match = typeName.trim().match(/^(?:List|Array|Set)<\s*(.+)\s*>$/);
+  return match ? match[1].trim() : typeName.trim();
+}
+
+function declaredPrimitiveBmmType(
+  rmType: string,
+  attrName: string,
+): string | undefined {
+  const attrs = attributesFor(rmTypeBaseName(rmType));
+  const attr = attrs.find((item) => item.name === attrName);
+  if (!attr) return undefined;
+  const declared = unwrapContainerType(attr.typeName);
+  if (declared === "Boolean" || NUMERIC_BMM_TYPES.has(declared)) return declared;
+  return undefined;
+}
+
+/** XML decimal / scientific literals only. Rejects NaN, Infinity, and junk. */
+function parseXmlNumber(text: string, bmmType: string): number | undefined {
+  const trimmed = text.trim();
+  if (INTEGER_BMM_TYPES.has(bmmType)) {
+    if (!/^[+-]?\d+$/.test(trimmed)) return undefined;
+    const value = Number(trimmed);
+    return Number.isInteger(value) && Number.isFinite(value) ? value : undefined;
+  }
+  if (!/^[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?$/.test(trimmed)) {
+    return undefined;
+  }
+  const value = Number(trimmed);
+  return Number.isFinite(value) ? value : undefined;
+}
+
+function parseXmlBoolean(text: string): boolean | string {
+  const trimmed = text.trim().toLowerCase();
+  if (trimmed === "true") return true;
+  if (trimmed === "false") return false;
+  return text;
 }
