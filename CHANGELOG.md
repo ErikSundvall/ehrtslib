@@ -8,6 +8,8 @@ Add an entry under **Unreleased** in every PR that changes user-visible behaviou
 
 ## [Unreleased]
 
+- **Serialization (XML).** `XmlDeserializer` now coerces integer, real, and boolean RM leaves to JavaScript `number`/`boolean` using BMM attribute types, so an XML round-trip of `DV_QUANTITY`, `DV_COUNT`, `DV_ORDINAL`, `DV_PROPORTION`, `DV_SCALE`, and other numeric attributes validates the same way as the JSON path. Invalid numeric text is left as a string and fails validation rather than becoming `NaN` ([#336](https://github.com/ErikSundvall/ehrtslib/issues/336)).
+
 ## [0.18.0] - 2026-11-24
 
 - **OPT2 flattening, parsing, and term scopes.** `flattenToOperationalTemplate()` now keeps inlined archetype, overlay (`ovl-*`), and nested-template roots as `C_ARCHETYPE_ROOT` carrying `archetype_ref` so `OPT2Serializer` emits `use_archetype` markers (quoting nested template IDs that contain spaces such as `"Care unit v2"`), and `CadlParser` parses quoted, spaced, and namespaced (`::`) `use_archetype` references. `applyOperationalTemplateTermScopes()` infers root concept fallbacks (`at0000.1.1` / `at0000.1` / `at0000` or `id1.1` / `id1`) from `component_terminologies` on slot-coded `C_ARCHETYPE_ROOT` nodes, `resolveTermEntry()` resolves overlay root concepts before parent slot codes and supports zero-prefix specialized parent fallback (`at0.1.1` → `at0.1`), and `termCodeCandidates()` steps through multi-level specialized parent codes (`at0011.1.2` → `at0011.1` → `at0011`). Slot-filled overlay and nested-template roots keep their slot `node_id` in Web Template AQL paths and RM instances while OPT 1.4 archetype roots continue using `archetype_ref` ([#334](https://github.com/ErikSundvall/ehrtslib/issues/334)).
