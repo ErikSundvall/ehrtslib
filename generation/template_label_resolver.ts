@@ -33,8 +33,8 @@ import {
   resolveTermEntry,
   TERM_NAME_FALLBACK_NODE_ID_KEY,
   type TermEntry,
-  termScopeOf,
   type TermScopeMeta,
+  termScopeOf,
   termTablesByScope,
 } from "./term_scope.ts";
 
@@ -256,6 +256,10 @@ export function createTemplateLabelResolver(
   const archetypeTerms: Record<string, TermDefinitionTable> = termTablesByScope(
     scoped,
   );
+  // Scope existence is language-independent: a wt:* / archetype bag that is
+  // missing only in a fallback language must not fall through to the flat
+  // root ontology (see #338).
+  const allScopeKeys = Object.keys(archetypeTerms);
   const availableLanguages = availableTemplateLanguages(opt);
   const pathAnnotations: OptPathAnnotationMap = options?.pathAnnotations ??
     (applyL10nDefault ? flattenOptPathAnnotations(opt) : {});
@@ -274,7 +278,10 @@ export function createTemplateLabelResolver(
     const archetype: Record<string, TermBag> = {};
     for (const [id, table] of Object.entries(archetypeTerms)) {
       const bag = table?.[lang];
-      if (bag && Object.keys(bag).length) archetype[id] = bag;
+      // Keep a bag for every known scope, even when this language has no
+      // translation. Otherwise resolveTermEntry treats the scope as absent
+      // and falls through to the flat root ontology (#338).
+      archetype[id] = bag && Object.keys(bag).length ? bag : {};
     }
     const built = {
       template: templateTerms[lang] ?? {},
@@ -316,9 +323,15 @@ export function createTemplateLabelResolver(
     );
     if (entry) return entry;
     const hasScopedBag = !!scope &&
-      resolveScopeChain(scope, Object.keys(bags.archetype)).length > 0;
+      resolveScopeChain(scope, allScopeKeys).length > 0;
     if (hasScopedBag) return undefined;
-    return resolveTermEntry(cObj.node_id, undefined, bags.template, {}, undefined);
+    return resolveTermEntry(
+      cObj.node_id,
+      undefined,
+      bags.template,
+      {},
+      undefined,
+    );
   };
 
   const resolveNodeTermInLanguage = (
@@ -459,7 +472,9 @@ export function createTemplateLabelResolver(
         const primaryL10n = l10nForLanguage(fromL10n, activePrimary);
         if (primaryL10n) {
           primaryName = preferNonGeneric(primaryL10n, primaryName, rmType);
-        } else if (!primaryName || isGenericRmFallbackLabel(primaryName, rmType)) {
+        } else if (
+          !primaryName || isGenericRmFallbackLabel(primaryName, rmType)
+        ) {
           for (const lang of fallbacks) {
             const candidate = l10nForLanguage(fromL10n, lang);
             if (candidate && !isGenericRmFallbackLabel(candidate, rmType)) {
@@ -471,7 +486,9 @@ export function createTemplateLabelResolver(
             const firstL10n = Object.values(fromL10n).find((v) =>
               !isGenericRmFallbackLabel(v, rmType)
             ) ?? Object.values(fromL10n)[0];
-            if (firstL10n) primaryName = firstL10n;
+            if (firstL10n) {
+              primaryName = firstL10n;
+            }
           }
         }
       }

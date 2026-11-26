@@ -8,6 +8,8 @@ Add an entry under **Unreleased** in every PR that changes user-visible behaviou
 
 ## [Unreleased]
 
+- **Template label resolution.** `createTemplateLabelResolver` no longer leaks terms from an unrelated fallback language (for example Chinese `问题/诊断名字` from another archetype) onto elided intermediate RM nodes such as `ITEM_TREE` or `HISTORY`. Isolated `wt:*` and archetype scopes are recognised even when a tertiary fallback language has no translation of that scope ([#338](https://github.com/ErikSundvall/ehrtslib/issues/338)).
+
 ## [0.19.0] - 2026-11-25
 
 - **Serialization (XML).** `XmlDeserializer` now coerces integer, real, and boolean RM leaves to JavaScript `number`/`boolean` using BMM attribute types, so an XML round-trip of `DV_QUANTITY`, `DV_COUNT`, `DV_ORDINAL`, `DV_PROPORTION`, `DV_SCALE`, and other numeric attributes validates the same way as the JSON path. Invalid numeric text is left as a string and fails validation rather than becoming `NaN` ([#336](https://github.com/ErikSundvall/ehrtslib/issues/336)).
