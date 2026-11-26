@@ -8,6 +8,8 @@ Add an entry under **Unreleased** in every PR that changes user-visible behaviou
 
 ## [Unreleased]
 
+## [0.20.0] - 2026-11-26
+
 - **Template label resolution.** `createTemplateLabelResolver` no longer leaks terms from an unrelated fallback language (for example Chinese `问题/诊断名字` from another archetype) onto elided intermediate RM nodes such as `ITEM_TREE` or `HISTORY`. Isolated `wt:*` and archetype scopes are recognised even when a tertiary fallback language has no translation of that scope ([#338](https://github.com/ErikSundvall/ehrtslib/issues/338)).
 
 ## [0.19.0] - 2026-11-25
